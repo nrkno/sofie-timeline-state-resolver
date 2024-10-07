@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { VMixConnection } from './connection'
+import { VMixCommandSender, VMixConnection } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
@@ -15,8 +15,9 @@ import {
 	OpenPresetPayload,
 	SavePresetPayload,
 	VmixActions,
+	VmixActionExecutionPayload,
+	VmixActionExecutionResult,
 } from 'timeline-state-resolver-types'
-import { t } from '../../lib'
 import { VMixState, VMixStateDiffer, VMixStateExtended } from './vMixStateDiffer'
 import { CommandContext, VMixStateCommandWithContext } from './vMixCommands'
 import { MappingsVmix, VMixTimelineStateConverter } from './vMixTimelineStateConverter'
@@ -24,6 +25,7 @@ import { VMixXmlStateParser } from './vMixXmlStateParser'
 import { VMixPollingTimer } from './vMixPollingTimer'
 import { VMixStateSynchronizer } from './vMixStateSynchronizer'
 import { Response } from './vMixResponseStreamReader'
+import { actionNotFoundMessage, t } from '../../lib'
 
 /**
  * Default time, in milliseconds, for when we should poll vMix to query its actual state.
@@ -52,7 +54,7 @@ export type CommandReceiver = (
 	layer: string
 }*/
 
-export type EnforceableVMixInputStateKeys = 'duration' | 'loop' | 'transform' | 'overlays' | 'listFilePaths'
+export type EnforceableVMixInputStateKeys = 'duration' | 'loop' | 'transform' | 'layers' | 'listFilePaths'
 
 /**
  * This is a VMixDevice, it sends commands when it feels like it
@@ -60,8 +62,11 @@ export type EnforceableVMixInputStateKeys = 'duration' | 'loop' | 'transform' | 
 export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptionsVMixInternal> {
 	private _doOnTime: DoOnTime
 
-	private _commandReceiver: CommandReceiver
-	private _vMixConnection: VMixConnection
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
+	/** Setup in init */
+	private _vMixConnection!: VMixConnection
+	private _vMixCommandSender!: VMixCommandSender
+
 	private _connected = false
 	private _initialized = false
 	private _stateDiffer: VMixStateDiffer
@@ -92,14 +97,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 
-		this._stateDiffer = new VMixStateDiffer((commands: VMixStateCommandWithContext[]) =>
-			this._addToQueue(commands, this.getCurrentTime())
+		this._stateDiffer = new VMixStateDiffer(this.getCurrentTime.bind(this), (commands: VMixStateCommandWithContext[]) =>
+			this.addToQueue(commands, this.getCurrentTime())
 		)
 
 		this._timelineStateConverter = new VMixTimelineStateConverter(
 			() => this._stateDiffer.getDefaultState(),
-			(inputNumber: number) => this._stateDiffer.getDefaultInputState(inputNumber),
-			(inputNumber: number) => this._stateDiffer.getDefaultInputAudioState(inputNumber)
+			(inputNumber) => this._stateDiffer.getDefaultInputState(inputNumber),
+			(inputNumber) => this._stateDiffer.getDefaultInputAudioState(inputNumber)
 		)
 
 		this._xmlStateParser = new VMixXmlStateParser()
@@ -108,6 +113,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 	async init(options: VMixOptions): Promise<boolean> {
 		this._vMixConnection = new VMixConnection(options.host, options.port, false)
+		this._vMixCommandSender = new VMixCommandSender(this._vMixConnection)
 		this._vMixConnection.on('connected', () => {
 			// We are not resetting the state at this point and waiting for the state to arrive. Otherwise, we risk
 			// going back and forth on reconnections
@@ -227,13 +233,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			newMappings as MappingsVmix // is this safe? why is the TriCaster integration filtering?
 		)
 
-		const commandsToAchieveState = this._stateDiffer.getCommandsToAchieveState(oldState, newVMixState)
+		const commandsToAchieveState = this._stateDiffer.getCommandsToAchieveState(newState.time, oldState, newVMixState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 
 		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
+		this.addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newVMixState, newState.time)
@@ -252,8 +258,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._vMixConnection.removeAllListeners()
 		this._vMixConnection.disconnect()
 		this._pollingTimer?.stop()
-
-		return Promise.resolve(true)
 	}
 
 	getStatus(): DeviceStatus {
@@ -281,19 +285,19 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends VmixActions>(
+		actionId: A,
+		payload: VmixActionExecutionPayload<A>
+	): Promise<VmixActionExecutionResult<A>> {
 		switch (actionId) {
 			case VmixActions.LastPreset:
-				return await this._lastPreset()
+				return this._lastPreset() as Promise<VmixActionExecutionResult<A>>
 			case VmixActions.OpenPreset:
-				return await this._openPreset(payload as OpenPresetPayload)
+				return this._openPreset(payload as OpenPresetPayload) as Promise<VmixActionExecutionResult<A>>
 			case VmixActions.SavePreset:
-				return await this._savePreset(payload as SavePresetPayload)
+				return this._savePreset(payload as SavePresetPayload) as Promise<VmixActionExecutionResult<A>>
 			default:
-				return {
-					result: ActionExecutionResultCode.Error,
-					response: t('Action "{{actionId}}" not found', { actionId }),
-				}
+				return actionNotFoundMessage(actionId)
 		}
 	}
 
@@ -323,28 +327,28 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return
 	}
 
-	private async _lastPreset() {
+	private async _lastPreset(): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction()
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vMixConnection.lastPreset()
+		await this._vMixCommandSender.lastPreset()
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
 	}
 
-	private async _openPreset(payload: OpenPresetPayload) {
+	private async _openPreset(payload: OpenPresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vMixConnection.openPreset(payload.filename)
+		await this._vMixCommandSender.openPreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
 	}
 
-	private async _savePreset(payload: SavePresetPayload) {
+	private async _savePreset(payload: SavePresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vMixConnection.savePreset(payload.filename)
+		await this._vMixCommandSender.savePreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
@@ -370,7 +374,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return this._doOnTime.getQueue()
 	}
 
-	private _addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
+	private addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: VMixStateCommandWithContext) => {
 			// add the new commands to the queue:
 			this._doOnTime.queue(
@@ -406,7 +410,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 		this.emitDebug(cwc)
 
-		return this._vMixConnection.sendCommand(cmd.command).catch((error) => {
+		return this._vMixCommandSender.sendCommand(cmd.command).catch((error) => {
 			this.emit('commandError', error, cwc)
 		})
 	}

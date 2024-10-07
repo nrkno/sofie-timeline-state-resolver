@@ -146,11 +146,38 @@ export interface VMixStateCommandOverlayInputOut extends VMixStateCommandBase {
 	command: VMixCommand.OVERLAY_INPUT_OUT
 	value: number
 }
-export interface VMixStateCommandSetInputOverlay extends VMixStateCommandBase {
-	command: VMixCommand.SET_INPUT_OVERLAY
+export interface VMixStateCommandSetLayerInput extends VMixStateCommandBase {
+	command: VMixCommand.SET_LAYER_INPUT
 	input: string | number
 	index: number
 	value: string | number
+}
+export interface VMixStateCommandSetLayerZoom extends VMixStateCommandBase {
+	command: VMixCommand.SET_LAYER_ZOOM
+	input: string | number
+	index: number
+	value: number
+}
+export interface VMixStateCommandSetLayerPanX extends VMixStateCommandBase {
+	command: VMixCommand.SET_LAYER_PAN_X
+	input: string | number
+	index: number
+	value: number
+}
+export interface VMixStateCommandSetLayerPanY extends VMixStateCommandBase {
+	command: VMixCommand.SET_LAYER_PAN_Y
+	input: string | number
+	index: number
+	value: number
+}
+export interface VMixStateCommandSetLayerCrop extends VMixStateCommandBase {
+	command: VMixCommand.SET_LAYER_CROP
+	input: string | number
+	index: number
+	cropLeft: number
+	cropTop: number
+	cropRight: number
+	cropBottom: number
 }
 export interface VMixStateCommandScriptStart extends VMixStateCommandBase {
 	command: VMixCommand.SCRIPT_START
@@ -210,7 +237,11 @@ export type VMixStateCommand =
 	| VMixStateCommandStopExternal
 	| VMixStateCommandOverlayInputIn
 	| VMixStateCommandOverlayInputOut
-	| VMixStateCommandSetInputOverlay
+	| VMixStateCommandSetLayerInput
+	| VMixStateCommandSetLayerZoom
+	| VMixStateCommandSetLayerPanX
+	| VMixStateCommandSetLayerPanY
+	| VMixStateCommandSetLayerCrop
 	| VMixStateCommandScriptStart
 	| VMixStateCommandScriptStop
 	| VMixStateCommandScriptStopAll

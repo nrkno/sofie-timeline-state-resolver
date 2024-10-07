@@ -5,9 +5,9 @@ const onNextSocket: Array<Function> = []
 const orgSetImmediate = setImmediate
 
 export class Socket extends EventEmitter {
-	public onWrite: (buff: Buffer, encoding: string) => void
-	public onConnect: (port: number, host: string) => void
-	public onClose: () => void
+	public onWrite: ((buff: Buffer, encoding: string) => void) | undefined
+	public onConnect: ((port: number, host: string) => void) | undefined
+	public onClose: (() => void) | undefined
 
 	// private _port: number
 	// private _host: string
@@ -29,8 +29,14 @@ export class Socket extends EventEmitter {
 	public static mockSockets() {
 		return sockets
 	}
+	public static openSockets() {
+		return sockets.filter((s) => !s.destroyed)
+	}
 	public static mockOnNextSocket(cb: (s: Socket) => void) {
 		onNextSocket.push(cb)
+	}
+	public static clearMockOnNextSocket() {
+		onNextSocket.splice(0, 99999)
 	}
 	// this.emit('connect')
 	// this.emit('close')

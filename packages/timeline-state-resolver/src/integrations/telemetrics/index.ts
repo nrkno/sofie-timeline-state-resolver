@@ -1,6 +1,6 @@
 import {
-	DeviceOptionsTelemetrics,
-	DeviceType,
+	ActionExecutionResult,
+	DeviceStatus,
 	Mappings,
 	StatusCode,
 	TelemetricsOptions,
@@ -8,13 +8,9 @@ import {
 	TimelineContentTelemetrics,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { DeviceStatus, DeviceWithState } from '../../devices/device'
 import { Socket } from 'net'
-import * as _ from 'underscore'
-import { DoOnTime } from '../../devices/doOnTime'
-import Timer = NodeJS.Timer
+import { CommandWithContext, Device } from '../../service/device'
 
-const TELEMETRICS_NAME = 'Telemetrics'
 const TELEMETRICS_COMMAND_PREFIX = 'P0C'
 const DEFAULT_SOCKET_PORT = 5000
 const TIMEOUT_IN_MS = 2000
@@ -23,48 +19,32 @@ interface TelemetricsState {
 	presetShotIdentifiers: number[]
 }
 
+interface TelemetricsCommandWithContext {
+	command: { presetShotIdentifier: number }
+	context: string
+	timelineObjId: string
+}
+
 /**
  * Connects to a Telemetrics Device on port 5000 using a TCP socket.
  * This class uses a fire and forget approach.
  */
-export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceOptionsTelemetrics> {
-	private doOnTime: DoOnTime
+export class TelemetricsDevice extends Device<TelemetricsOptions, TelemetricsState, TelemetricsCommandWithContext> {
+	readonly actions: {
+		[id: string]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {}
 
-	private socket: Socket
+	private socket: Socket | undefined
 	private statusCode: StatusCode = StatusCode.UNKNOWN
-	private errorMessage: string
-	private resolveInitPromise: (value: boolean) => void
+	private errorMessage: string | undefined
 
-	private retryConnectionTimer: Timer | undefined
-
-	constructor(deviceId: string, deviceOptions: DeviceOptionsTelemetrics, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-
-		this.doOnTime = new DoOnTime(() => this.getCurrentTime())
-		this.handleDoOnTime(this.doOnTime, 'telemetrics')
-	}
-
-	get canConnect(): boolean {
-		return true
-	}
-
-	clearFuture(_clearAfterTime: number): void {
-		// No state to handle - we use a fire and forget approach
-	}
+	private retryConnectionTimer: NodeJS.Timer | undefined
 
 	get connected(): boolean {
 		return this.statusCode === StatusCode.GOOD
 	}
 
-	get deviceName(): string {
-		return `${TELEMETRICS_NAME} ${this.deviceId}`
-	}
-
-	get deviceType() {
-		return DeviceType.TELEMETRICS
-	}
-
-	getStatus(): DeviceStatus {
+	getStatus(): Omit<DeviceStatus, 'active'> {
 		const messages: string[] = []
 
 		switch (this.statusCode) {
@@ -88,64 +68,74 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		return {
 			statusCode: this.statusCode,
 			messages,
-			active: this.isActive,
 		}
 	}
 
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): void {
-		super.onHandleState(newState, mappings)
-		const previousStateTime: number = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: TelemetricsState = this.getStateBefore(previousStateTime)?.state ?? { presetShotIdentifiers: [] }
-		const newTelemetricsState: TelemetricsState = this.findNewTelemetricsState(newState)
-
-		this.doOnTime.clearQueueNowAndAfter(previousStateTime)
-
-		this.setState(newTelemetricsState, newState.time)
-		const presetIdentifiersToSend: number[] = this.filterNewPresetIdentifiersFromOld(newTelemetricsState, oldState)
-
-		presetIdentifiersToSend.forEach((presetShotIdentifier) => this.queueCommand(presetShotIdentifier, newState))
+	diffStates(
+		oldState: TelemetricsState | undefined,
+		newState: TelemetricsState,
+		_mappings: Mappings<unknown>,
+		_time: number
+	): TelemetricsCommandWithContext[] {
+		return newState.presetShotIdentifiers
+			.filter((preset) => !oldState || !oldState.presetShotIdentifiers.includes(preset))
+			.map((presetShotIdentifier) => {
+				return {
+					command: { presetShotIdentifier },
+					context: '',
+					timelineObjId: '',
+				}
+			})
 	}
 
-	private findNewTelemetricsState(newState: Timeline.TimelineState<TSRTimelineContent>): TelemetricsState {
+	convertTimelineStateToDeviceState(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		_newMappings: Mappings<unknown>
+	): TelemetricsState {
 		const newTelemetricsState: TelemetricsState = { presetShotIdentifiers: [] }
 
-		newTelemetricsState.presetShotIdentifiers = _.map(newState.layers, (timelineObject, _layerName) => {
-			const telemetricsContent = timelineObject.content as TimelineContentTelemetrics
-			return telemetricsContent.presetShotIdentifiers
-		}).flat()
+		newTelemetricsState.presetShotIdentifiers = Object.entries<Timeline.ResolvedTimelineObjectInstance>(state.layers)
+			.map(([_layerName, timelineObject]) => {
+				const telemetricsContent = timelineObject.content as TimelineContentTelemetrics
+				return telemetricsContent.presetShotIdentifiers
+			})
+			.flat()
 
 		return newTelemetricsState
 	}
 
-	private filterNewPresetIdentifiersFromOld(newState: TelemetricsState, oldState: TelemetricsState): number[] {
-		return newState.presetShotIdentifiers.filter((preset) => !oldState.presetShotIdentifiers.includes(preset))
-	}
+	async sendCommand({ command, context, timelineObjId }: TelemetricsCommandWithContext): Promise<void> {
+		const cwc: CommandWithContext = {
+			context,
+			command,
+			timelineObjId,
+		}
+		this.context.logger.debug(cwc)
 
-	private queueCommand(presetShotIdentifier: number, newState: Timeline.TimelineState<TSRTimelineContent>) {
-		const command = `${TELEMETRICS_COMMAND_PREFIX}${presetShotIdentifier}\r`
-		this.doOnTime.queue(newState.time, undefined, () => this.socket.write(command))
+		// Skip attempting send if not connected
+		if (!this.socket) return
+
+		const commandStr = `${TELEMETRICS_COMMAND_PREFIX}${command.presetShotIdentifier}\r`
+		this.socket.write(commandStr)
 	}
 
 	async init(options: TelemetricsOptions): Promise<boolean> {
-		const initPromise = new Promise<boolean>((resolve) => {
-			this.resolveInitPromise = resolve
-		})
 		this.connectToDevice(options.host, options.port ?? DEFAULT_SOCKET_PORT)
-		return initPromise
+		return true
 	}
 
 	private connectToDevice(host: string, port: number) {
 		if (!this.socket || this.socket.destroyed) {
 			this.setupSocket(host, port)
 		}
-		this.socket.connect(port, host)
+		if (this.socket) this.socket.connect(port, host)
 	}
 
 	private setupSocket(host: string, port: number) {
 		this.socket = new Socket()
 
 		this.socket.on('data', (data: Buffer) => {
-			this.emit('debug', `${this.deviceName} received data: ${data.toString()}`)
+			this.context.logger.debug(`received data: ${data.toString()}`)
 		})
 
 		this.socket.on('error', (error: Error) => {
@@ -153,7 +143,6 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		})
 
 		this.socket.on('close', (hadError: boolean) => {
-			this.doOnTime.dispose()
 			if (hadError) {
 				this.updateStatus(StatusCode.BAD)
 				this.reconnect(host, port)
@@ -163,9 +152,8 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		})
 
 		this.socket.on('connect', () => {
-			this.emit('debug', 'Successfully connected to device')
+			this.context.logger.debug('Successfully connected to device')
 			this.updateStatus(StatusCode.GOOD)
-			this.resolveInitPromise(true)
 		})
 	}
 
@@ -174,7 +162,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		if (error) {
 			this.errorMessage = error.message
 		}
-		this.emit('connectionChanged', this.getStatus())
+		this.context.connectionChanged(this.getStatus())
 	}
 
 	private reconnect(host: string, port: number): void {
@@ -182,25 +170,18 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 			return
 		}
 		this.retryConnectionTimer = setTimeout(() => {
-			this.emit('debug', 'Reconnecting...')
+			this.context.logger.debug('Reconnecting...')
 			clearTimeout(this.retryConnectionTimer)
 			this.retryConnectionTimer = undefined
 			this.connectToDevice(host, port)
 		}, TIMEOUT_IN_MS)
 	}
 
-	prepareForHandleState(newStateTime: number): void {
-		this.doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
-
-	async terminate(): Promise<boolean> {
-		this.doOnTime.dispose()
+	async terminate(): Promise<void> {
 		if (this.retryConnectionTimer) {
 			clearTimeout(this.retryConnectionTimer)
 			this.retryConnectionTimer = undefined
 		}
 		this.socket?.destroy()
-		return true
 	}
 }

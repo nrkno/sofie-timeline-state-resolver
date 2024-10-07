@@ -1,6 +1,5 @@
 import * as _ from 'underscore'
 import { EventEmitter } from 'events'
-import { literal } from '../../devices/device'
 import {
 	MediaObject,
 	TimelineContentTypeVizMSE,
@@ -12,7 +11,7 @@ import {
 import { ExternalElement, InternalElement, MSE, VElement, VRundown } from '@tv2media/v-connection'
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
 import got from 'got'
-import { deferAsync } from '../../lib'
+import { deferAsync, literal } from '../../lib'
 import { VizMSEDevice } from './index'
 import {
 	CachedVElement,

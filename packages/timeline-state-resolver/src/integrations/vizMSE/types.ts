@@ -178,9 +178,9 @@ export type VizMSEPlayoutItemContentInstance =
 	| VizMSEPlayoutItemContentExternalInstance
 
 export function isVizMSEPlayoutItemContentExternalInstance(
-	content: VizMSEPlayoutItemContentInstance
+	content: VizMSEPlayoutItemContentInstance | undefined
 ): content is VizMSEPlayoutItemContentExternalInstance {
-	return (content as VizMSEPlayoutItemContentExternalInstance).vcpid !== undefined
+	return (content as VizMSEPlayoutItemContentExternalInstance | undefined)?.vcpid !== undefined
 }
 
 export function isVizMSEPlayoutItemContentInternalInstance(

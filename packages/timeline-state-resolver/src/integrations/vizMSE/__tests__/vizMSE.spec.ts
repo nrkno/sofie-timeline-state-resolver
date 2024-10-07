@@ -22,8 +22,9 @@ const getMockMSEs = vConnection.getMockMSEs
 type MSEMock = vConnection.MSEMock
 type VRundownMocked = vConnection.VRundownMocked
 import _ = require('underscore')
-import { literal, StatusCode } from '../../../devices/device'
+import { StatusCode } from '../../../devices/device'
 import { MOCK_SHOWS } from '../../../__mocks__/v-connection'
+import { literal } from '../../../lib'
 
 const orgSetTimeout = setTimeout
 
@@ -554,7 +555,7 @@ describe('vizMSE', () => {
 			statusCode: StatusCode.GOOD,
 		})
 
-		expect(await device.terminate()).toEqual(true)
+		await device.terminate()
 
 		await mockTime.advanceTimeTicks(1000)
 

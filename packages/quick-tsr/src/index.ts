@@ -128,6 +128,10 @@ function reloadInput(changed?: { path: string; stats: fs.Stats }) {
 				currentInput.timeline = []
 
 				await tsr.setDevices(newInput.devices)
+
+				setTimeout(() => {
+					tsr.logMediaList().catch(console.error)
+				}, 1000)
 			}
 
 			if (

@@ -11,8 +11,8 @@
 			"name": "Send Command",
 			"destructive": false,
 			"payload": {
+				"id": "HTTPSendCommandContent",
 				"type": "object",
-				"tsType": "HTTPSendCommandContent",
 				"properties": {
 					"type": {
 						"type": "string",
@@ -59,6 +59,35 @@
 					}
 				},
 				"required": ["type", "url", "params"],
+				"additionalProperties": false
+			},
+			"result": {
+				"type": "object",
+				"properties": {
+					"statusCode":  {
+						"type": "number"
+					},
+					"headers": {
+						"type": "object",
+						"additionalProperties": {
+							"oneOf": [
+								{ "type": "string" },
+								{
+								  "type": "array",
+								  "items": { "type": "string" }
+								}
+							]
+						}
+					},
+					"body": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"statusCode",
+					"headers",
+					"body"
+				],
 				"additionalProperties": false
 			}
 		}

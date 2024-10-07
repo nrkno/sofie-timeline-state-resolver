@@ -407,7 +407,7 @@ describe('Quantel', () => {
 				id: 'video0',
 				enable: {
 					start: 15000, // now
-					duration: 1000,
+					duration: 200, // 16000
 				},
 				layer: 'myLayer0',
 				content: {
@@ -426,7 +426,7 @@ describe('Quantel', () => {
 			{
 				id: 'video1',
 				enable: {
-					start: '#video0.start + 200', // 15200
+					start: '#video0.end', // 15200
 					duration: 300, // 15500
 				},
 				layer: 'myLayer0',

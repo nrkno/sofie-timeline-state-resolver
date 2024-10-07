@@ -1,6 +1,5 @@
 import * as AtemConnection from 'atem-connection'
-import { Conductor } from '../../../conductor'
-import { AtemDevice, DeviceOptionsAtemInternal } from '..'
+import { AtemDevice } from '..'
 import { MockTime } from '../../../__tests__/mockTime'
 import {
 	Mappings,
@@ -14,24 +13,26 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	TimelineContentAtemME,
+	StatusCode,
 } from 'timeline-state-resolver-types'
-import { ThreadedClass } from 'threadedclass'
-import { AtemStateUtil } from 'atem-connection'
-import { TransitionStyle } from 'atem-connection/dist/enums'
-import { literal } from '../../../devices/device'
-import { getMockCall } from '../../../__tests__/lib'
+import { literal } from '../../../lib'
+import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
+import { compareAtemCommands, createDevice, extractAllCommands, waitForConnection } from './util'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 describe('Atem', () => {
 	const mockTime = new MockTime()
 
-	async function createTestee(mockTime: MockTime): Promise<{
-		myConductor: Conductor
+	function getAtemConnection(device: AtemDevice): AtemConnection.BasicAtem {
+		const atem = (device as any)._atem
+		if (!atem) throw new Error('Property is missing, has `_atem` been renamed?')
+		return atem
+	}
+
+	async function createTestee(): Promise<{
+		device: AtemDevice
 		myLayerMapping: Mappings
-		commandReceiver0: jest.Mock
 	}> {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
 		const myLayerMapping0: Mapping<SomeMappingAtem> = {
 			device: DeviceType.ATEM,
 			deviceId: 'myAtem',
@@ -44,89 +45,97 @@ describe('Atem', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice(
-			'myAtem',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-					port: 9910,
-				},
-				commandReceiver: commandReceiver0,
-			})
-		)
-		return { myConductor, myLayerMapping, commandReceiver0 }
-	}
+		const device = await createDevice()
 
-	function compareAtemCommands(
-		received: AtemConnection.Commands.ISerializableCommand,
-		expected: AtemConnection.Commands.ISerializableCommand
-	) {
-		expect(received.constructor.name).toEqual(expected.constructor.name)
-		expect(received.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)).toEqual(
-			expected.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)
-		)
+		return { device, myLayerMapping }
 	}
 
 	beforeEach(() => {
 		mockTime.init()
 	})
 
-	test('Atem: Ensure clean initial state', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
+	test('Check Status', async () => {
+		const device = new AtemDevice(getDeviceContext())
+		const atem = getAtemConnection(device)
+
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem disconnected'],
+			statusCode: StatusCode.BAD,
 		})
+
+		await device.init(
+			literal<AtemOptions>({
+				host: '127.0.0.1',
+			})
+		)
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem disconnected'],
+			statusCode: StatusCode.BAD,
+		})
+
+		// Check OK once connected
+		await waitForConnection(device)
+		expect(device.getStatus()).toEqual({
+			messages: [],
+			statusCode: StatusCode.GOOD,
+		})
+
+		// Report two psus as connected
+		const testState = AtemConnection.AtemStateUtil.Create()
+		testState.info.power = [true, true]
+		atem.emit('stateChanged', testState, ['info.power'])
+		expect(device.getStatus()).toEqual({
+			messages: [],
+			statusCode: StatusCode.GOOD,
+		})
+
+		// Report one psus as offline
+		testState.info.power = [true, false]
+		atem.emit('stateChanged', testState, ['info.power'])
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem PSU 2 is faulty. The device has 2 PSU(s) in total.'],
+			statusCode: StatusCode.WARNING_MAJOR,
+		})
+
+		// Report only one psu
+		testState.info.power = [true]
+		atem.emit('stateChanged', testState, ['info.power'])
+		expect(device.getStatus()).toEqual({
+			messages: [],
+			statusCode: StatusCode.GOOD,
+		})
+
+		// Disconnect
+		atem.emit('disconnected')
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem disconnected'],
+			statusCode: StatusCode.BAD,
+		})
+	})
+
+	test('Full state diff flow: Ensure clean initial state', async () => {
 		const mockState: Timeline.TimelineState<TSRTimelineContent> = {
 			time: mockTime.now + 50,
 			layers: {},
 			nextEvents: [],
 		}
 
-		const device = new AtemDevice(
-			'mock',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-				},
-				commandReceiver: commandReceiver0,
-			}),
-			mockTime.getCurrentTime2
-		)
+		const device = await createDevice()
 
-		await device.init(
-			literal<AtemOptions>({
-				host: '127.0.0.1',
-			})
-		)
+		const deviceState = device.convertTimelineStateToDeviceState(mockState, {})
 
-		device.handleState(mockState, {})
+		const commands = device.diffStates(undefined, deviceState, {})
 
-		device.queue.forEach((cmd) => {
-			console.log(cmd)
-		})
-		expect(device.queue).toHaveLength(0)
+		expect(commands).toHaveLength(0)
 	})
 
-	test('Atem: switch input', async () => {
-		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
+	test('Full state diff flow: Switch input', async () => {
+		const { device, myLayerMapping } = await createTestee()
 
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings(
-			[
-				{
+		const mockState1: Timeline.TimelineState<TSRTimelineContent> = {
+			time: mockTime.now,
+			layers: {
+				myLayer0: makeTimelineObjectResolved({
 					id: 'obj0',
 					enable: {
 						start: mockTime.now - 1000, // 1 seconds ago
@@ -141,265 +150,32 @@ describe('Atem', () => {
 							transition: AtemTransitionStyle.CUT,
 						},
 					},
-				},
-				{
-					id: 'obj1',
-					enable: {
-						start: '#obj0.end',
-						duration: 2000,
-					},
-					layer: 'myLayer0',
-					content: {
-						deviceType: DeviceType.ATEM,
-						type: TimelineContentTypeAtem.ME,
-						me: {
-							input: 3,
-							transition: AtemTransitionStyle.CUT,
-						},
-					},
-				},
-			],
-			myLayerMapping
-		)
-
-		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(10200)
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 2))
-		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
-
-		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(12200)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 3))
-		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
-	})
-
-	test('Atem: upstream keyer', async () => {
-		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
-
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-		myConductor.setTimelineAndMappings(
-			[
-				{
-					id: 'obj0',
-					enable: {
-						start: mockTime.now - 1000, // 1 seconds ago
-						duration: 2000,
-					},
-					layer: 'myLayer0',
-					content: {
-						deviceType: DeviceType.ATEM,
-						type: TimelineContentTypeAtem.ME,
-						me: {
-							upstreamKeyers: [
-								{
-									upstreamKeyerId: 0,
-
-									lumaSettings: {
-										preMultiplied: false,
-										clip: 300,
-										gain: 2,
-										invert: true,
-									},
-								},
-							],
-						},
-					},
-				},
-			],
-			myLayerMapping
-		)
-
-		await mockTime.advanceTimeToTicks(10200)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		const cmd = new AtemConnection.Commands.MixEffectKeyLumaCommand(0, 0)
-		cmd.updateProps({
-			clip: 300,
-			gain: 2,
-			invert: true,
-		})
-		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), cmd)
-	})
-
-	test('Atem: uses upstreamKeyerId to address upstream keyers', async () => {
-		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
-
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-		myConductor.setTimelineAndMappings(
-			[
-				{
-					id: 'obj0',
-					enable: {
-						start: mockTime.now - 1000, // 1 seconds ago
-						duration: 2000,
-					},
-					layer: 'myLayer0',
-					content: {
-						deviceType: DeviceType.ATEM,
-						type: TimelineContentTypeAtem.ME,
-						me: {
-							upstreamKeyers: [
-								{
-									upstreamKeyerId: 2,
-
-									lumaSettings: {
-										preMultiplied: false,
-										clip: 300,
-										gain: 2,
-										invert: true,
-									},
-								},
-							],
-						},
-					},
-				},
-			],
-			myLayerMapping
-		)
-
-		await mockTime.advanceTimeToTicks(10200)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		const cmd = new AtemConnection.Commands.MixEffectKeyLumaCommand(0, 2)
-		cmd.updateProps({
-			clip: 300,
-			gain: 2,
-			invert: true,
-		})
-		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), cmd)
-	})
-
-	test('Atem: handle same state', async () => {
-		const commandReceiver0 = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping: Mappings = {
-			myLayer0: literal<Mapping<SomeMappingAtem>>({
-				device: DeviceType.ATEM,
-				deviceId: 'mock',
-				options: {
-					mappingType: MappingAtemType.MixEffect,
-					index: 0,
-				},
-			}),
-		}
-
-		const resolvedObj: Timeline.ResolvedTimelineObjectInstance<TimelineContentAtemME> = {
-			id: 'obj0',
-			enable: {
-				start: mockTime.now - 1000, // 1 seconds ago
-				duration: 0,
-			},
-			layer: 'myLayer0',
-			content: {
-				deviceType: DeviceType.ATEM,
-				type: TimelineContentTypeAtem.ME,
-				me: {
-					input: 4,
-					transition: AtemTransitionStyle.CUT,
-				},
-			},
-			resolved: {
-				resolved: true,
-				resolving: false,
-				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }],
-				directReferences: [],
-			},
-			instance: { start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] },
-		}
-		const mockState: Timeline.TimelineState<TSRTimelineContent> = {
-			time: mockTime.now + 50,
-			layers: {
-				myLayer0: resolvedObj,
+				}),
 			},
 			nextEvents: [],
 		}
+		const deviceState1 = device.convertTimelineStateToDeviceState(mockState1, myLayerMapping)
+		expect(deviceState1.video.mixEffects[0]).toMatchObject({
+			input: 2,
+			transition: AtemTransitionStyle.CUT,
+		})
 
-		const device = new AtemDevice(
-			'mock',
-			{
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-				},
-				commandReceiver: commandReceiver0,
-			},
-			mockTime.getCurrentTime2
-		)
+		{
+			const commands = device.diffStates(undefined, deviceState1, myLayerMapping)
 
-		await device.init(
-			literal<AtemOptions>({
-				host: '127.0.0.1',
-			})
-		)
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(2)
+			compareAtemCommands(allCommands[0], new AtemConnection.Commands.PreviewInputCommand(0, 2))
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.CutCommand(0))
+		}
 
-		// Check that no commands has been scheduled
-		expect(device.queue).toHaveLength(0)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-
-		// Expect that a command has been scheduled
-		device.handleState(mockState, myLayerMapping)
-		expect(device.queue).toHaveLength(2)
-
-		// Handle the same state, before the commands have been sent
-		mockTime.advanceTimeTo(mockTime.now + 30)
-		device.handleState(mockState, myLayerMapping)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		expect(device.queue).toHaveLength(2)
-
-		// Send the commands
-		mockTime.advanceTimeTo(mockTime.now + 30)
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-
-		// Handle the same state, after the commands have been sent
-		device.handleState(mockState, myLayerMapping)
-		expect(device.queue).toHaveLength(0)
-	})
-
-	test('Atem: sends TransitionPropertiesCommand for DIP', async () => {
-		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
-
-		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings(
-			[
-				{
-					id: 'obj0',
-					enable: {
-						start: mockTime.now - 1000, // 1 seconds ago
-						duration: 2000,
-					},
-					layer: 'myLayer0',
-					content: {
-						deviceType: DeviceType.ATEM,
-						type: TimelineContentTypeAtem.ME,
-						me: {
-							input: 2,
-							transition: AtemTransitionStyle.CUT,
-						},
-					},
-				},
-				{
+		const mockState2: Timeline.TimelineState<TSRTimelineContent> = {
+			time: mockTime.now + 2000,
+			layers: {
+				myLayer0: makeTimelineObjectResolved({
 					id: 'obj1',
 					enable: {
-						start: '#obj0.end',
+						start: mockTime.now + 1000, // 1 seconds ago
 						duration: 2000,
 					},
 					layer: 'myLayer0',
@@ -408,86 +184,40 @@ describe('Atem', () => {
 						type: TimelineContentTypeAtem.ME,
 						me: {
 							input: 3,
-							transition: AtemTransitionStyle.DIP,
+							transition: AtemTransitionStyle.CUT,
 						},
 					},
-				},
-			],
-			myLayerMapping
-		)
+				}),
+			},
+			nextEvents: [],
+		}
+		const deviceState2 = device.convertTimelineStateToDeviceState(mockState2, myLayerMapping)
+		expect(deviceState2.video.mixEffects[0]).toMatchObject({
+			input: 3,
+			transition: AtemTransitionStyle.CUT,
+		})
 
-		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(10200)
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 2))
-		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
+		{
+			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping)
 
-		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(12200)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(5)
-		const transitionPropertiesCommand = new AtemConnection.Commands.TransitionPropertiesCommand(0)
-		transitionPropertiesCommand.updateProps({ nextStyle: 1 })
-		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), transitionPropertiesCommand)
-		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.PreviewInputCommand(0, 3))
-		compareAtemCommands(getMockCall(commandReceiver0, 2, 1), transitionPropertiesCommand)
-		compareAtemCommands(
-			getMockCall(commandReceiver0, 3, 1),
-			new AtemConnection.Commands.TransitionPositionCommand(0, 0)
-		)
-		compareAtemCommands(getMockCall(commandReceiver0, 4, 1), new AtemConnection.Commands.AutoTransitionCommand(0))
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(2)
+			compareAtemCommands(allCommands[0], new AtemConnection.Commands.PreviewInputCommand(0, 3))
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.CutCommand(0))
+		}
 	})
 
-	test('Atem: does not reset transition properties when initial nextStyle is not 0', async () => {
-		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
+	test('Full state diff flow: same state', async () => {
+		const { device, myLayerMapping } = await createTestee()
 
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		const oldState = AtemStateUtil.Create()
-		const mixEffect = AtemStateUtil.getMixEffect(oldState, 0)
-		mixEffect.transitionProperties.nextStyle = TransitionStyle.DIP
-		mixEffect.programInput = 2
-
-		// @ts-ignore
-		device.setState(oldState, mockTime.now)
-
-		myConductor.setTimelineAndMappings(
-			[
-				{
+		const mockState: Timeline.TimelineState<TSRTimelineContent> = {
+			time: mockTime.now + 50,
+			layers: {
+				myLayer0: makeTimelineObjectResolved<TimelineContentAtemME>({
 					id: 'obj0',
 					enable: {
-						start: mockTime.now,
-						duration: 2000,
-					},
-					layer: 'myLayer0',
-					content: {
-						deviceType: DeviceType.ATEM,
-						type: TimelineContentTypeAtem.ME,
-						me: {
-							input: 2,
-							transition: AtemTransitionStyle.DIP,
-						},
-					},
-				},
-			],
-			myLayerMapping
-		)
-
-		await mockTime.advanceTimeToTicks(10200)
-
-		myConductor.setTimelineAndMappings(
-			[
-				{
-					id: 'obj0',
-					enable: {
-						start: mockTime.now,
-						duration: 2000,
+						start: mockTime.now - 1000, // 1 seconds ago
+						duration: 0,
 					},
 					layer: 'myLayer0',
 					content: {
@@ -495,24 +225,112 @@ describe('Atem', () => {
 						type: TimelineContentTypeAtem.ME,
 						me: {
 							input: 4,
+							transition: AtemTransitionStyle.CUT,
+						},
+					},
+				}),
+			},
+			nextEvents: [],
+		}
+
+		const deviceState = device.convertTimelineStateToDeviceState(mockState, myLayerMapping)
+		expect(deviceState.video.mixEffects[0]).toMatchObject({
+			input: 4,
+			transition: AtemTransitionStyle.CUT,
+		})
+
+		// Expect that a command has been scheduled
+		const commands = device.diffStates(undefined, deviceState, myLayerMapping)
+		const allCommands = extractAllCommands(commands)
+		expect(allCommands).toHaveLength(2)
+
+		// Diff the same state, after the commands have been sent
+		const commands2 = device.diffStates(deviceState, deviceState, myLayerMapping)
+		expect(commands2).toHaveLength(0)
+	})
+
+	test('Atem: sends TransitionPropertiesCommand for DIP', async () => {
+		const { device, myLayerMapping } = await createTestee()
+
+		const mockState1: Timeline.TimelineState<TSRTimelineContent> = {
+			time: mockTime.now,
+			layers: {
+				myLayer0: makeTimelineObjectResolved<TimelineContentAtemME>({
+					id: 'obj0',
+					enable: {
+						start: mockTime.now - 1000, // 1 seconds ago
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.ME,
+						me: {
+							input: 2,
+							transition: AtemTransitionStyle.CUT,
+						},
+					},
+				}),
+			},
+			nextEvents: [],
+		}
+
+		const deviceState1 = device.convertTimelineStateToDeviceState(mockState1, myLayerMapping)
+		expect(deviceState1.video.mixEffects[0]).toMatchObject({
+			input: 2,
+			transition: AtemTransitionStyle.CUT,
+		})
+
+		{
+			const commands = device.diffStates(undefined, deviceState1, myLayerMapping)
+
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(2)
+			compareAtemCommands(allCommands[0], new AtemConnection.Commands.PreviewInputCommand(0, 2))
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.CutCommand(0))
+		}
+
+		const mockState2: Timeline.TimelineState<TSRTimelineContent> = {
+			time: mockTime.now,
+			layers: {
+				myLayer0: makeTimelineObjectResolved<TimelineContentAtemME>({
+					id: 'obj1',
+					enable: {
+						start: mockTime.now + 1000, // 1 seconds ago
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.ME,
+						me: {
+							input: 3,
 							transition: AtemTransitionStyle.DIP,
 						},
 					},
-				},
-			],
-			myLayerMapping
-		)
+				}),
+			},
+			nextEvents: [],
+		}
+		const deviceState2 = device.convertTimelineStateToDeviceState(mockState2, myLayerMapping)
+		expect(deviceState2.video.mixEffects[0]).toMatchObject({
+			input: 3,
+			transition: AtemTransitionStyle.DIP,
+		})
 
-		await mockTime.advanceTimeToTicks(11200)
+		{
+			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping)
 
-		const transitionPropertiesCommand = commandReceiver0.mock.calls.find(
-			(call) => call[1] instanceof AtemConnection.Commands.TransitionPropertiesCommand
-		)
-		expect(transitionPropertiesCommand).toBeUndefined()
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(5)
+			const transitionPropertiesCommand = new AtemConnection.Commands.TransitionPropertiesCommand(0)
+			transitionPropertiesCommand.updateProps({ nextStyle: 1 })
 
-		const autoTransitionCommand = commandReceiver0.mock.calls.find(
-			(call) => call[1] instanceof AtemConnection.Commands.AutoTransitionCommand
-		)
-		expect(autoTransitionCommand).toBeDefined()
+			compareAtemCommands(allCommands[0], transitionPropertiesCommand)
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.PreviewInputCommand(0, 3))
+			compareAtemCommands(allCommands[2], transitionPropertiesCommand) // TODO - why is this sent twice?
+			compareAtemCommands(allCommands[3], new AtemConnection.Commands.TransitionPositionCommand(0, 0))
+			compareAtemCommands(allCommands[4], new AtemConnection.Commands.AutoTransitionCommand(0))
+		}
 	})
 })

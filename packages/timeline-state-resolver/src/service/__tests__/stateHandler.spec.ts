@@ -3,7 +3,10 @@ import { StateHandler } from '../stateHandler'
 import { MockTime } from '../../__tests__/mockTime'
 
 interface DeviceState {
-	[prop: string]: true
+	[prop: string]: {
+		value: true
+		preliminary?: number
+	}
 }
 interface CommandWithContext {
 	command: {
@@ -11,10 +14,23 @@ interface CommandWithContext {
 		property: string
 	}
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
 const MOCK_COMMAND_RECEIVER = jest.fn()
+
+const CONTEXT = {
+	deviceId: 'unitTests0',
+	logger: {
+		debug: console.log,
+		info: console.log,
+		warn: console.log,
+		error: console.log,
+	},
+	emitTimeTrace: () => null,
+	reportStateChangeMeasurement: () => null,
+	getCurrentTime: () => Date.now(),
+}
 
 describe('stateHandler', () => {
 	const mockTime = new MockTime()
@@ -26,18 +42,7 @@ describe('stateHandler', () => {
 
 	function getNewStateHandler(): StateHandler<DeviceState, CommandWithContext> {
 		return new StateHandler<DeviceState, CommandWithContext>(
-			{
-				deviceId: 'unitTests0',
-				logger: {
-					debug: console.log,
-					info: console.log,
-					warn: console.log,
-					error: console.log,
-				},
-				emitTimeTrace: () => null,
-				reportStateChangeMeasurement: () => null,
-				getCurrentTime: async () => Date.now(),
-			},
+			CONTEXT,
 			{
 				executionType: 'salvo',
 			},
@@ -52,6 +57,7 @@ describe('stateHandler', () => {
 									type: 'added',
 									property: e,
 								},
+								preliminary: n[e].preliminary,
 							})),
 						...Object.keys(o || {})
 							.filter((e) => !n[e])
@@ -72,7 +78,7 @@ describe('stateHandler', () => {
 
 		stateHandler
 			.setCurrentState({
-				entry1: true,
+				entry1: { value: true },
 			})
 			.catch((e) => {
 				console.error('Error while setting current state', e)
@@ -98,7 +104,7 @@ describe('stateHandler', () => {
 
 		stateHandler
 			.setCurrentState({
-				entry1: true,
+				entry1: { value: true },
 			})
 			.catch((e) => {
 				console.error('Error while setting current state', e)
@@ -121,7 +127,7 @@ describe('stateHandler', () => {
 		stateHandler
 			.handleState(
 				createTimelineState(10100, {
-					entry1: true,
+					entry1: { value: true },
 				}),
 				{}
 			)
@@ -147,9 +153,62 @@ describe('stateHandler', () => {
 			},
 		})
 	})
+
+	test('transition to a new state with preliminary commands', async () => {
+		const stateHandler = getNewStateHandler()
+
+		stateHandler.setCurrentState({}).catch((e) => {
+			console.error('Error while setting current state', e)
+		})
+
+		stateHandler
+			.handleState(
+				createTimelineState(12000, {
+					entry1: {
+						value: true,
+						preliminary: 300,
+					},
+					entry2: {
+						value: true,
+					},
+				}),
+				{}
+			)
+			.catch((e) => {
+				console.error('Error while handling state', e)
+			})
+
+		await mockTime.tick()
+
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(0)
+
+		await mockTime.advanceTimeTicks(1700)
+
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenNthCalledWith(1, {
+			command: {
+				type: 'added',
+				property: 'entry1',
+			},
+			preliminary: 300,
+		})
+
+		await mockTime.advanceTimeTicks(300)
+
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(2)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenNthCalledWith(2, {
+			command: {
+				type: 'added',
+				property: 'entry2',
+			},
+		})
+	})
 })
 
-function createTimelineState(time: number, objs: Record<string, true>): Timeline.TimelineState<TSRTimelineContent> {
+function createTimelineState(
+	time: number,
+	objs: Record<string, { value: true; preliminary?: number }>
+): Timeline.TimelineState<TSRTimelineContent> {
 	return {
 		time,
 		layers: objs as any,

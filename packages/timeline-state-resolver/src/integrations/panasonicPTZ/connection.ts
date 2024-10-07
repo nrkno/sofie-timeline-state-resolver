@@ -4,6 +4,8 @@ import got from 'got'
 import * as querystring from 'querystring'
 import { sprintf } from 'sprintf-js'
 
+const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
+
 interface CommandQueueItem {
 	command: string
 	executing: boolean
@@ -123,6 +125,9 @@ enum PanasonicHttpResponse {
 export class PanasonicPtzHttpInterface extends EventEmitter {
 	private _device: PanasonicPtzCamera
 
+	private _connected = false
+	private _pingInterval: NodeJS.Timer | undefined
+
 	constructor(host: string, port?: number, https?: boolean) {
 		super()
 
@@ -135,6 +140,21 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		this._device.on('debug', (...args) => {
 			this.emit('debug', ...args)
 		})
+	}
+
+	init() {
+		const check = () => {
+			this.ping()
+				.then((result) => {
+					this._connected = !!result
+				})
+				.catch(() => {
+					this._connected = false
+				})
+		}
+
+		this._pingInterval = setInterval(check, PROBE_INTERVAL)
+		check() // do a check right away
 	}
 
 	private static _isError(response: string) {
@@ -150,6 +170,11 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	}
 	dispose() {
 		this._device.dispose()
+		if (this._pingInterval) clearInterval(this._pingInterval)
+		this._connected = false
+	}
+	get connected() {
+		return this._connected
 	}
 	/**
 	 * Get the last preset recalled in the camera

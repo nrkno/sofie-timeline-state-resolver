@@ -4,11 +4,21 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface AbstractOptions {}
 
 export type SomeMappingAbstract = Record<string, never>
 
 export enum AbstractActions {
-	TestAction = 'testAction',
+	TestAction = 'testAction'
 }
+export interface AbstractActionExecutionResults {
+	testAction: () => void
+}
+export type AbstractActionExecutionPayload<A extends keyof AbstractActionExecutionResults> = Parameters<
+	AbstractActionExecutionResults[A]
+>[0]
+
+export type AbstractActionExecutionResult<A extends keyof AbstractActionExecutionResults> =
+	ActionExecutionResult<ReturnType<AbstractActionExecutionResults[A]>>

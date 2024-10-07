@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { CommandWithContext, DeviceStatus, DeviceWithState, literal, StatusCode } from './../../devices/device'
+import { CommandWithContext, DeviceStatus, DeviceWithState, StatusCode } from './../../devices/device'
 
 import {
 	ActionExecutionResult,
@@ -20,6 +20,8 @@ import {
 	SomeMappingVizMSE,
 	TimelineContentVIZMSEElementPilot,
 	TimelineContentVIZMSEElementInternal,
+	VizMSEActionExecutionPayload,
+	VizMSEActionExecutionResult,
 	VizResetPayload,
 } from 'timeline-state-resolver-types'
 
@@ -28,7 +30,7 @@ import { createMSE, MSE } from '@tv2media/v-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace, t, literal } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
 import {
@@ -76,7 +78,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
 
-	private _commandReceiver: CommandReceiver
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 
 	private _doOnTime: DoOnTime
 	private _doOnTimeBurst: DoOnTime
@@ -88,7 +90,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._doOnTime = new DoOnTime(
@@ -149,15 +150,13 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		if (this._vizmseManager) {
 			await this._vizmseManager.terminate()
 			this._vizmseManager.removeAllListeners()
 			delete this._vizmseManager
 		}
 		this._doOnTime.dispose()
-
-		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
@@ -278,15 +277,18 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this.emit('resetResolver')
 	}
 
-	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends VizMSEActions>(
+		actionId: A,
+		payload: VizMSEActionExecutionPayload<A>
+	): Promise<VizMSEActionExecutionResult<A>> {
 		switch (actionId) {
 			case VizMSEActions.PurgeRundown:
 				await this.purgeRundown(true)
 				return { result: ActionExecutionResultCode.Ok }
 			case VizMSEActions.Activate:
-				return this.activate(payload)
+				return this.activate(payload) as Promise<VizMSEActionExecutionResult<A>>
 			case VizMSEActions.StandDown:
-				return this.executeStandDown()
+				return this.executeStandDown() as Promise<VizMSEActionExecutionResult<A>>
 			case VizMSEActions.ClearAllEngines:
 				await this.clearEngines()
 				return { result: ActionExecutionResultCode.Ok }
@@ -294,7 +296,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				await this.resetViz(payload ?? {})
 				return { result: ActionExecutionResultCode.Ok }
 			default:
-				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+				return actionNotFoundMessage(actionId)
 		}
 	}
 

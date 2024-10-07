@@ -1,48 +1,50 @@
 import * as Timeline from './superfly-timeline'
-import { TimelineContentTelemetricsAny } from './telemetrics'
-import { TimelineContentAtemAny } from './atem'
-import { TimelineContentCasparCGAny } from './casparcg'
-import { TimelineContentHTTPSendAny } from './httpSend'
-import { TimelineContentTCPSendAny } from './tcpSend'
-import { TimelineContentHyperdeckAny } from './hyperdeck'
-import { TimelineContentLawoAny } from './lawo'
-import { TimelineContentOSCAny } from './osc'
-import { TimelineContentPharosAny } from './pharos'
-import { TimelineContentPanasonicPtzAny } from './panasonicPTZ'
-import { TimelineContentAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
-import { TimelineContentQuantelAny } from './quantel'
-import { TimelineContentShotoku } from './shotoku'
-import { TimelineContentSisyfosAny } from './sisyfos'
-import { TimelineContentSofieChefAny } from './sofieChef'
-import { TimelineContentVIZMSEAny } from './vizMSE'
-import { TimelineContentSingularLiveAny } from './singularLive'
-import { TimelineContentVMixAny } from './vmix'
-import { TimelineContentOBSAny } from './obs'
-import { TimelineContentTriCasterAny } from './tricaster'
 import { ITranslatableMessage } from './translations'
+import { Content } from './superfly-timeline'
 
-export * from './abstract'
-export * from './atem'
-export * from './casparcg'
-export * from './httpSend'
-export * from './hyperdeck'
-export * from './lawo'
-export * from './osc'
-export * from './pharos'
-export * from './panasonicPTZ'
-export * from './sisyfos'
-export * from './sofieChef'
-export * from './quantel'
-export * from './shotoku'
-export * from './tcpSend'
-export * from './vizMSE'
-export * from './singularLive'
-export * from './vmix'
-export * from './obs'
-export * from './tricaster'
-export * from './telemetrics'
-export * from './multiOsc'
+import { TimelineContentTelemetricsAny } from './integrations/telemetrics'
+import { TimelineContentAtemAny } from './integrations/atem'
+import { TimelineContentCasparCGAny } from './integrations/casparcg'
+import { TimelineContentHTTPSendAny } from './integrations/httpSend'
+import { TimelineContentTCPSendAny } from './integrations/tcpSend'
+import { TimelineContentHyperdeckAny } from './integrations/hyperdeck'
+import { TimelineContentLawoAny } from './integrations/lawo'
+import { TimelineContentOSCAny } from './integrations/osc'
+import { TimelineContentPharosAny } from './integrations/pharos'
+import { TimelineContentPanasonicPtzAny } from './integrations/panasonicPTZ'
+import { TimelineContentAbstractAny } from './integrations/abstract'
+import { TimelineContentQuantelAny } from './integrations/quantel'
+import { TimelineContentShotoku } from './integrations/shotoku'
+import { TimelineContentSisyfosAny } from './integrations/sisyfos'
+import { TimelineContentSofieChefAny } from './integrations/sofieChef'
+import { TimelineContentVIZMSEAny } from './integrations/vizMSE'
+import { TimelineContentSingularLiveAny } from './integrations/singularLive'
+import { TimelineContentVMixAny } from './integrations/vmix'
+import { TimelineContentOBSAny } from './integrations/obs'
+import { TimelineContentTriCasterAny } from './integrations/tricaster'
+
+export * from './integrations/abstract'
+export * from './integrations/atem'
+export * from './integrations/casparcg'
+export * from './integrations/httpSend'
+export * from './integrations/hyperdeck'
+export * from './integrations/lawo'
+export * from './integrations/osc'
+export * from './integrations/pharos'
+export * from './integrations/panasonicPTZ'
+export * from './integrations/sisyfos'
+export * from './integrations/sofieChef'
+export * from './integrations/quantel'
+export * from './integrations/shotoku'
+export * from './integrations/tcpSend'
+export * from './integrations/vizMSE'
+export * from './integrations/singularLive'
+export * from './integrations/vmix'
+export * from './integrations/obs'
+export * from './integrations/tricaster'
+export * from './integrations/telemetrics'
+export * from './integrations/multiOsc'
 
 export * from './device'
 export * from './mapping'
@@ -86,7 +88,9 @@ export enum DeviceType {
 	MULTI_OSC = 'MULTI_OSC',
 }
 
-export type TSRTimelineKeyframe<TContent> = Timeline.TimelineKeyframe<TContent>
+export interface TSRTimelineKeyframe<TContent> extends Omit<Timeline.TimelineKeyframe, 'content'> {
+	content: TContent
+}
 
 /**
  * An object containing references to the datastore
@@ -116,7 +120,7 @@ export interface TSRTimelineObj<TContent extends { deviceType: DeviceType }>
 	children?: TSRTimelineObj<TSRTimelineContent>[]
 }
 
-export interface TimelineContentEmpty {
+export interface TimelineContentEmpty extends Content {
 	deviceType: DeviceType.ABSTRACT
 	type: 'empty'
 }
@@ -156,12 +160,16 @@ export interface Datastore {
 	}
 }
 
-export interface ActionExecutionResult {
+export interface ActionExecutionResult<ResultData = undefined> {
 	result: ActionExecutionResultCode
+	/** Response message, intended to be displayed to a user */
 	response?: ITranslatableMessage
+	/** Response data */
+	resultData?: ResultData
 }
 
 export enum ActionExecutionResultCode {
 	Error = 'ERROR',
+	IgnoredNotRelevant = 'IGNORED',
 	Ok = 'OK',
 }

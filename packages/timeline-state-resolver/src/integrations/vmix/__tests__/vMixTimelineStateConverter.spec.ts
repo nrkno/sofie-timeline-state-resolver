@@ -14,9 +14,12 @@ import { VMixOutput, VMixStateDiffer } from '../vMixStateDiffer'
 import { prefixAddedInput } from './mockState'
 
 function createTestee(): VMixTimelineStateConverter {
-	const stateDiffer = new VMixStateDiffer(() => {
-		//
-	}) // should those be mocks? or should this be taken from somewhere else? this is now more of an integration test, and maybe that's fine?
+	const stateDiffer = new VMixStateDiffer(
+		() => Date.now(),
+		() => {
+			//
+		}
+	) // should those be mocks? or should this be taken from somewhere else? this is now more of an integration test, and maybe that's fine?
 	return new VMixTimelineStateConverter(
 		() => stateDiffer.getDefaultState(),
 		(inputNumber) => stateDiffer.getDefaultInputState(inputNumber),

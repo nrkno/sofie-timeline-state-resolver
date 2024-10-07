@@ -11,7 +11,7 @@ export const Commands = orgCommands
 export type AMCPCommand = orgAMCPCommand
 
 export class BasicCasparCGAPI extends EventEmitter {
-	onConnected: () => void
+	onConnected: (() => void) | undefined
 
 	connected = false
 
@@ -28,7 +28,7 @@ export class BasicCasparCGAPI extends EventEmitter {
 		instances.push(this)
 	}
 
-	async executeCommand(command: AMCPCommand): Promise<SendResult<unknown>> {
+	async executeCommand(command: AMCPCommand): Promise<SendResult<any>> {
 		mockDo.apply(this, command)
 
 		if (command.command === Commands.Info) {

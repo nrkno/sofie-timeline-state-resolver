@@ -2,7 +2,7 @@ import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager
 import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
 import { DeviceDetails, DeviceInstanceWrapper } from './DeviceInstance'
-import { Device } from '../conductor'
+import type { Device, DeviceOptionsAnyInternal } from '../conductor'
 
 export type DeviceContainerEvents = {
 	error: [context: string, err: Error]
@@ -11,7 +11,7 @@ export type DeviceContainerEvents = {
 export abstract class BaseRemoteDeviceIntegration<
 	TOptions extends DeviceOptionsBase<any>
 > extends EventEmitter<DeviceContainerEvents> {
-	public abstract onChildClose: () => void | undefined
+	public abstract onChildClose: (() => void) | undefined
 
 	protected abstract _device: ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<TOptions>>
 	protected _details: DeviceDetails = {
@@ -107,36 +107,25 @@ export abstract class BaseRemoteDeviceIntegration<
 export class RemoteDeviceInstance<
 	TOptions extends DeviceOptionsBase<any>
 > extends BaseRemoteDeviceIntegration<TOptions> {
-	protected _device: ThreadedClass<DeviceInstanceWrapper>
-	public onChildClose: () => void | undefined
+	protected _device!: ThreadedClass<DeviceInstanceWrapper>
+	public onChildClose: (() => void) | undefined
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
 		super(deviceOptions, threadConfig)
 	}
 
-	static async create<
-		TOptions extends DeviceOptionsBase<unknown>,
-		TCtor extends new (...args: any[]) => DeviceInstanceWrapper
-	>(
-		orgModule: string,
-		orgClassExport: string,
+	static async create<TOptions extends DeviceOptionsBase<unknown>>(
 		deviceId: string,
 		deviceOptions: TOptions,
 		getCurrentTime: () => number,
 		threadConfig?: ThreadedClassConfig
 	): Promise<RemoteDeviceInstance<TOptions>> {
-		if (process.env.JEST_WORKER_ID !== undefined && threadConfig && threadConfig.disableMultithreading) {
-			// running in Jest test environment.
-			// hack: we need to work around the mangling performed by threadedClass, as getCurrentTime needs to not return a promise
-			getCurrentTime = { inner: getCurrentTime } as any
-		}
-
 		const container = new RemoteDeviceInstance(deviceOptions, threadConfig)
 
-		container._device = await threadedClass<DeviceInstanceWrapper, TCtor>(
-			orgModule,
-			orgClassExport,
-			[deviceId, getCurrentTime(), deviceOptions, getCurrentTime] as any, // TODO types
+		container._device = await threadedClass<DeviceInstanceWrapper, typeof DeviceInstanceWrapper>(
+			'../../dist/service/DeviceInstance.js',
+			'DeviceInstanceWrapper',
+			[deviceId, getCurrentTime(), deviceOptions as DeviceOptionsAnyInternal, getCurrentTime as any], // any because callbacks can't be casted
 			threadConfig
 		)
 
@@ -148,7 +137,7 @@ export class RemoteDeviceInstance<
 						if (container.onChildClose) container.onChildClose()
 					}),
 					ThreadedClassManager.onEvent(container._device, 'error', (error) => {
-						container.emit('error', `${orgClassExport} "${deviceId}" threadedClass error`, error)
+						container.emit('error', `DeviceInstanceWrapper "${deviceId}" threadedClass error`, error)
 					}),
 				]
 			}

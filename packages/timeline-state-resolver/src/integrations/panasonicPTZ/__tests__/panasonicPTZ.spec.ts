@@ -1,20 +1,29 @@
-import { Conductor } from '../../../conductor'
 import { PanasonicPtzDevice } from '..'
 import {
 	Mappings,
 	DeviceType,
-	TimelineContentTypePanasonicPtz,
 	Mapping,
 	SomeMappingPanasonicPTZ,
 	MappingPanasonicPTZType,
+	Timeline,
+	TSRTimelineContent,
+	TimelineContentPanasonicPtzAny,
+	TimelineContentTypePanasonicPtz,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
-import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../../__tests__/lib'
 import got from '../../../__mocks__/got'
 import { Response } from 'got'
+import { PanasonicPtzState } from '../state'
+import { getDeviceContext } from '../../__tests__/testlib'
+import { PanasonicPtzCommandWithContext } from '../diff'
 
 const orgSetTimeout = setTimeout
+
+async function getInitialisedDevice() {
+	const dev = new PanasonicPtzDevice(getDeviceContext())
+	await dev.init({ host: 'localhost', port: 8082 })
+	return dev
+}
 
 describe('Panasonic PTZ', () => {
 	jest.mock('got', () => got)
@@ -40,243 +49,233 @@ describe('Panasonic PTZ', () => {
 		mockTime.init()
 	})
 
-	test('Panasonic PTZ: change preset', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myChannelMapping0: Mapping<SomeMappingPanasonicPTZ> = {
-			device: DeviceType.PANASONIC_PTZ,
-			deviceId: 'myPtz',
-			options: {
-				mappingType: MappingPanasonicPTZType.PresetMem,
-			},
-		}
-		const myChannelMapping1: Mapping<SomeMappingPanasonicPTZ> = {
-			device: DeviceType.PANASONIC_PTZ,
-			deviceId: 'myPtz',
-			options: {
-				mappingType: MappingPanasonicPTZType.PresetSpeed,
-			},
-		}
-		const myChannelMapping2: Mapping<SomeMappingPanasonicPTZ> = {
-			device: DeviceType.PANASONIC_PTZ,
-			deviceId: 'myPtz',
-			options: {
-				mappingType: MappingPanasonicPTZType.Zoom,
-			},
-		}
-		const myChannelMapping3: Mapping<SomeMappingPanasonicPTZ> = {
-			device: DeviceType.PANASONIC_PTZ,
-			deviceId: 'myPtz',
-			options: {
-				mappingType: MappingPanasonicPTZType.ZoomSpeed,
-			},
-		}
-		const myChannelMapping: Mappings = {
-			ptz_k1: myChannelMapping0,
-			ptz_k1_s: myChannelMapping1,
-			ptz_k1_z: myChannelMapping2,
-			ptz_k1_zs: myChannelMapping3,
+	describe('convertTimelineStateToDeviceState', () => {
+		async function compareState(tlState: Timeline.TimelineState<TSRTimelineContent>, expDevState: PanasonicPtzState) {
+			const device = await getInitialisedDevice()
+
+			const actualState = device.convertTimelineStateToDeviceState(tlState, myChannelMapping)
+
+			expect(actualState).toEqual(expDevState)
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		myConductor.setTimelineAndMappings([], myChannelMapping)
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myPtz', {
-			type: DeviceType.PANASONIC_PTZ,
-			options: {
-				host: '192.168.0.10',
-				port: 8000,
-			},
-			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myPtz')
-		const device = deviceContainer!.device as ThreadedClass<PanasonicPtzDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings([
-			{
-				id: 'obj0',
-				enable: {
-					start: mockTime.now - 1000, // 1 seconds in the past
-					duration: 2000,
+		test('convert empty state', async () => {
+			await compareState(createTimelineState({}), {
+				zoomSpeed: {
+					timelineObjId: 'default',
+					value: 0,
 				},
-				layer: 'ptz_k1',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.PRESET,
-					preset: 1,
-				},
-			},
-			{
-				id: 'obj0_s',
-				enable: {
-					start: mockTime.now - 1000, // 1 seconds in the past
-					duration: 10000,
-				},
-				layer: 'ptz_k1_s',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.SPEED,
-					speed: 250,
-				},
-			},
-			{
-				id: 'obj1',
-				enable: {
-					start: mockTime.now + 500, // 0.5 seconds in the future
-					duration: 2000,
-				},
-				layer: 'ptz_k1',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.PRESET,
-					preset: 2,
-				},
-			},
-			{
-				id: 'obj2',
-				enable: {
-					start: mockTime.now + 1000, // 1 seconds in the future
-					duration: 2000,
-				},
-				layer: 'ptz_k1',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.PRESET,
-					preset: 2,
-				},
-			},
-			{
-				id: 'obj2_s',
-				enable: {
-					start: mockTime.now + 1000, // 1 seconds in the future
-					duration: 500,
-				},
-				layer: 'ptz_k1_s',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.SPEED,
-					speed: 0,
-				},
-			},
-			{
-				id: 'obj3',
-				enable: {
-					start: mockTime.now + 2000, // 2 seconds in the future
-					duration: 2000,
-				},
-				layer: 'ptz_k1',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.PRESET,
-					preset: 1,
-				},
-			},
-			{
-				id: 'obj4',
-				enable: {
-					start: mockTime.now + 6000, // 6 seconds in the future
-					duration: 2000,
-				},
-				layer: 'ptz_k1_z',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.ZOOM,
-					zoom: 0,
-				},
-			},
-			{
-				id: 'obj5',
-				enable: {
-					start: mockTime.now + 6000, // 6 seconds in the future
-					duration: 2000,
-				},
-				layer: 'ptz_k1_zs',
-				content: {
-					deviceType: DeviceType.PANASONIC_PTZ,
-					type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
-					zoomSpeed: 1,
-				},
-			},
-		])
-
-		await mockTime.advanceTimeToTicks(10200)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.SPEED,
-			speed: 250,
-		})
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.PRESET,
-			preset: 1,
+			})
 		})
 
-		await mockTime.advanceTimeToTicks(11000)
+		test('convert state', async () => {
+			await compareState(
+				createTimelineState({
+					ptz_k1: {
+						id: 'ptz_k1_0',
+						content: {
+							deviceType: DeviceType.PANASONIC_PTZ,
+							type: TimelineContentTypePanasonicPtz.PRESET,
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.PRESET,
-			preset: 2,
+							preset: 2,
+						},
+					},
+					ptz_k1_s: {
+						id: 'ptz_k1_s_0',
+						content: {
+							deviceType: DeviceType.PANASONIC_PTZ,
+							type: TimelineContentTypePanasonicPtz.SPEED,
+
+							speed: 0,
+						},
+					},
+					ptz_k1_z: {
+						id: 'ptz_k1_z_0',
+						content: {
+							deviceType: DeviceType.PANASONIC_PTZ,
+							type: TimelineContentTypePanasonicPtz.ZOOM,
+
+							zoom: 2,
+						},
+					},
+					ptz_k1_zs: {
+						id: 'ptz_k1_zs_0',
+						content: {
+							deviceType: DeviceType.PANASONIC_PTZ,
+							type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
+
+							zoomSpeed: 0,
+						},
+					},
+				}),
+				{
+					speed: {
+						value: 0,
+						timelineObjId: 'ptz_k1_s_0',
+					},
+					preset: {
+						value: 2,
+						timelineObjId: 'ptz_k1_0',
+					},
+					zoomSpeed: {
+						value: 0,
+						timelineObjId: 'ptz_k1_zs_0',
+					},
+					zoom: {
+						value: 2,
+						timelineObjId: 'ptz_k1_z_0',
+					},
+				}
+			)
+		})
+	})
+
+	describe('diffState', () => {
+		async function compareStates(
+			oldDevState: PanasonicPtzState | undefined,
+			newDevState: PanasonicPtzState,
+			expCommands: PanasonicPtzCommandWithContext[]
+		) {
+			const device = await getInitialisedDevice()
+
+			const commands = device.diffStates(oldDevState, newDevState)
+
+			expect(commands).toEqual(expCommands)
+		}
+
+		test('From undefined', async () => {
+			await compareStates(undefined, {}, [])
 		})
 
-		await mockTime.advanceTimeToTicks(11500)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
-		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.SPEED,
-			speed: 0,
+		test('Empty states', async () => {
+			await compareStates({}, {}, [])
 		})
 
-		await mockTime.advanceTimeToTicks(12000)
-
-		// return speed to previous value
-		expect(commandReceiver0).toHaveBeenCalledTimes(5)
-		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject({
-			// attribute: 'Motor dB Value',
-			type: TimelineContentTypePanasonicPtz.SPEED,
-			speed: 250,
+		test('To state', async () => {
+			await compareStates(
+				{},
+				{
+					speed: {
+						value: 0,
+						timelineObjId: 'ptz_k1_s_0',
+					},
+					preset: {
+						value: 2,
+						timelineObjId: 'ptz_k1_0',
+					},
+					zoomSpeed: {
+						value: 0,
+						timelineObjId: 'ptz_k1_zs_0',
+					},
+					zoom: {
+						value: 2,
+						timelineObjId: 'ptz_k1_z_0',
+					},
+				},
+				[
+					{
+						command: {
+							type: TimelineContentTypePanasonicPtz.SPEED,
+							speed: 0,
+						},
+						context: 'speed differ (0, undefined)',
+						timelineObjId: 'ptz_k1_s_0',
+					},
+					{
+						command: {
+							type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
+							speed: 0,
+						},
+						context: 'zoom speed differ (0, undefined)',
+						timelineObjId: 'ptz_k1_zs_0',
+					},
+					{
+						command: {
+							type: TimelineContentTypePanasonicPtz.ZOOM,
+							zoom: 2,
+						},
+						context: 'zoom differ (2, undefined)',
+						timelineObjId: 'ptz_k1_z_0',
+					},
+					{
+						command: {
+							type: TimelineContentTypePanasonicPtz.PRESET,
+							preset: 2,
+						},
+						context: 'preset differ (2, undefined)',
+						timelineObjId: 'ptz_k1_0',
+					},
+				]
+			)
 		})
 
-		await mockTime.advanceTimeToTicks(12500)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(6)
-		expect(getMockCall(commandReceiver0, 5, 1)).toMatchObject({
-			// attribute: 'Motor dB Value',
-			type: TimelineContentTypePanasonicPtz.PRESET,
-			preset: 1,
-		})
-		await mockTime.advanceTimeToTicks(16000)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(6)
-		// no new commands should be sent, nothing is sent on object end
-
-		mockTime.advanceTimeTo(16500)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(8)
-		expect(getMockCall(commandReceiver0, 6, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
-			speed: 1,
-		})
-		expect(getMockCall(commandReceiver0, 7, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.ZOOM,
-			zoom: 0,
-		})
-		mockTime.advanceTimeTo(18500)
-
-		// The end of Zoom Speed object should reset zoom speed to 0
-		expect(commandReceiver0).toHaveBeenCalledTimes(9)
-		expect(getMockCall(commandReceiver0, 8, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
-			speed: 0,
+		test('From state to empty', async () => {
+			await compareStates(
+				{
+					speed: {
+						value: 0,
+						timelineObjId: 'ptz_k1_s_0',
+					},
+					preset: {
+						value: 2,
+						timelineObjId: 'ptz_k1_0',
+					},
+					zoomSpeed: {
+						value: 0,
+						timelineObjId: 'ptz_k1_zs_0',
+					},
+					zoom: {
+						value: 2,
+						timelineObjId: 'ptz_k1_z_0',
+					},
+				},
+				{},
+				[]
+			)
 		})
 	})
 })
+
+const myChannelMapping0: Mapping<SomeMappingPanasonicPTZ> = {
+	device: DeviceType.PANASONIC_PTZ,
+	deviceId: 'myPtz',
+	options: {
+		mappingType: MappingPanasonicPTZType.PresetMem,
+	},
+}
+const myChannelMapping1: Mapping<SomeMappingPanasonicPTZ> = {
+	device: DeviceType.PANASONIC_PTZ,
+	deviceId: 'myPtz',
+	options: {
+		mappingType: MappingPanasonicPTZType.PresetSpeed,
+	},
+}
+const myChannelMapping2: Mapping<SomeMappingPanasonicPTZ> = {
+	device: DeviceType.PANASONIC_PTZ,
+	deviceId: 'myPtz',
+	options: {
+		mappingType: MappingPanasonicPTZType.Zoom,
+	},
+}
+const myChannelMapping3: Mapping<SomeMappingPanasonicPTZ> = {
+	device: DeviceType.PANASONIC_PTZ,
+	deviceId: 'myPtz',
+	options: {
+		mappingType: MappingPanasonicPTZType.ZoomSpeed,
+	},
+}
+const myChannelMapping: Mappings = {
+	ptz_k1: myChannelMapping0,
+	ptz_k1_s: myChannelMapping1,
+	ptz_k1_z: myChannelMapping2,
+	ptz_k1_zs: myChannelMapping3,
+}
+
+function createTimelineState(
+	objs: Record<string, { id: string; content: TimelineContentPanasonicPtzAny }>
+): Timeline.TimelineState<TSRTimelineContent> {
+	return {
+		time: 10,
+		layers: objs as any,
+		nextEvents: [],
+	}
+}

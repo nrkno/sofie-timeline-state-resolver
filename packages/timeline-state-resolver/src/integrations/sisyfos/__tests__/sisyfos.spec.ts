@@ -712,6 +712,7 @@ describe('Sisyfos', () => {
 							mappedLayer: 'sisyfos_channel_2',
 							faderLevel: 0.2,
 							isPgm: 0,
+							fadeTime: 500,
 						},
 					],
 					overridePriority: -999,
@@ -762,6 +763,7 @@ describe('Sisyfos', () => {
 						{
 							mappedLayer: 'sisyfos_channel_2',
 							faderLevel: 0.74,
+							fadeTime: 500,
 						},
 					],
 					overridePriority: -999,
@@ -775,12 +777,12 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'setFader',
 			channel: 1,
-			value: 0.1,
+			values: [0.1],
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setFader',
 			channel: 2,
-			value: 0.2,
+			values: [0.2, 500],
 		})
 		commandReceiver0.mockClear()
 
@@ -800,7 +802,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 2,
-			values: [1],
+			values: [1, 500],
 		})
 		commandReceiver0.mockClear()
 
@@ -810,12 +812,12 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'setFader',
 			channel: 1,
-			value: 0.75,
+			values: [0.75],
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setFader',
 			channel: 2,
-			value: 0.74,
+			values: [0.74, 500],
 		})
 		commandReceiver0.mockClear()
 
@@ -825,17 +827,17 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'setFader',
 			channel: 1,
-			value: 0.1,
+			values: [0.1],
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 2,
-			values: [0],
+			values: [0, 500],
 		})
 		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
 			type: 'setFader',
 			channel: 2,
-			value: 0.2,
+			values: [0.2, 500],
 		})
 
 		commandReceiver0.mockClear()

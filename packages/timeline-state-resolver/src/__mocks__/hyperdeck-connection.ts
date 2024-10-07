@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 
-import { TransportStatus, Commands } from 'hyperdeck-connection'
+import { TransportStatus, Commands, VideoFormat, SlotStatus } from 'hyperdeck-connection'
 
 const setTimeoutOrg = setTimeout
 
@@ -9,7 +9,7 @@ export interface HyperdeckOptions {
 	debug?: boolean
 }
 
-export { TransportStatus, Commands }
+export { TransportStatus, Commands, VideoFormat, SlotStatus }
 
 const hyperdeckmockInstances: Array<Hyperdeck> = []
 
@@ -21,10 +21,10 @@ export class Hyperdeck extends EventEmitter {
 	private _connected = false
 
 	private _connectionActive = false
-	private _host: string
-	private _port: number
+	private _host!: string
+	private _port!: number
 
-	private _mockCommandReceiver?: (cmd: Commands.AbstractCommand) => Promise<any>
+	private _mockCommandReceiver?: (cmd: Commands.AbstractCommand<any>) => Promise<any>
 
 	constructor(_options?: HyperdeckOptions) {
 		super()
@@ -51,6 +51,9 @@ export class Hyperdeck extends EventEmitter {
 	async disconnect(): Promise<void> {
 		this._connectionActive = false
 
+		const ind = hyperdeckmockInstances.indexOf(this)
+		if (ind !== -1) hyperdeckmockInstances.splice(ind, 1)
+
 		if (!this._connected) return Promise.resolve()
 
 		return new Promise((resolve, reject) => {
@@ -62,7 +65,7 @@ export class Hyperdeck extends EventEmitter {
 		})
 	}
 
-	async sendCommand(command: Commands.AbstractCommand): Promise<any> {
+	async sendCommand(command: Commands.AbstractCommand<any>): Promise<any> {
 		if (this._mockCommandReceiver) {
 			return this._mockCommandReceiver(command)
 		}
@@ -75,7 +78,7 @@ export class Hyperdeck extends EventEmitter {
 			const res: Commands.DeviceInfoCommandResponse = {
 				protocolVersion: 1.9,
 				model: 'Mock HyperDeck for TSR',
-				slots: '2',
+				slots: 2,
 			}
 			return Promise.resolve(res)
 		} else if (command instanceof Commands.TransportInfoCommand) {
@@ -87,7 +90,7 @@ export class Hyperdeck extends EventEmitter {
 		return Promise.resolve()
 	}
 
-	public setMockCommandReceiver(fcn: (cmd: Commands.AbstractCommand) => Promise<any>) {
+	public setMockCommandReceiver(fcn: (cmd: Commands.AbstractCommand<any>) => Promise<any>) {
 		this._mockCommandReceiver = fcn
 	}
 	get connected() {

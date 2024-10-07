@@ -12,9 +12,10 @@
 		"types": ["node"],
 
 		// Temporary overrides, to allow for gradual migration project
-		"strictPropertyInitialization": false,
 		"noImplicitAny": false,
-		"strictFunctionTypes": false,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+
+		// include dom types for obs
+		"lib": ["dom", "es2020"]
 	}
 }

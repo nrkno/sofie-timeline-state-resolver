@@ -9,6 +9,7 @@ import {
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { OscCommandWithContext, OscDevice, OscDeviceState } from '..'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 const MOCKED_SOCKET_CONNECT = jest.fn()
 const MOCKED_SOCKET_WRITE = jest.fn()
@@ -30,7 +31,7 @@ jest.mock('osc', () => {
 })
 
 async function getInitialisedOscDevice() {
-	const dev = new OscDevice()
+	const dev = new OscDevice(getDeviceContext())
 	await dev.init({ host: 'localhost', port: 8082, type: OSCDeviceType.UDP })
 	return dev
 }
@@ -166,7 +167,7 @@ describe('OSC Device', () => {
 
 	describe('diffState', () => {
 		async function compareStates(
-			oldDevState: OscDeviceState,
+			oldDevState: OscDeviceState | undefined,
 			newDevState: OscDeviceState,
 			expCommands: OscCommandWithContext[]
 		) {
@@ -176,6 +177,10 @@ describe('OSC Device', () => {
 
 			expect(commands).toEqual(expCommands)
 		}
+
+		test('From undefined', async () => {
+			await compareStates(undefined, {}, [])
+		})
 
 		test('Empty states', async () => {
 			await compareStates({}, {}, [])
@@ -201,7 +206,7 @@ describe('OSC Device', () => {
 							values: [],
 						},
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -258,7 +263,7 @@ describe('OSC Device', () => {
 						values: [],
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e
@@ -304,7 +309,7 @@ describe('OSC Device', () => {
 						},
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e

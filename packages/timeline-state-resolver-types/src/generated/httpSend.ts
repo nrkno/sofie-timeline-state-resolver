@@ -4,18 +4,35 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface HTTPSendOptions {
-	/**
-	 * Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty
-	 */
-	makeReadyDoesReset?: boolean
 	/**
 	 * Minimum time in ms before a command is resent, set to <= 0 or undefined to disable
 	 */
 	resendTime?: number
-	makeReadyCommands?: HTTPSendCommandContent[]
+	/**
+	 * HTTP Proxy
+	 */
+	httpProxy?: string
+	/**
+	 * HTTPS Proxy
+	 */
+	httpsProxy?: string
+	/**
+	 * URLs not to use a proxy for (E.G. github.com)
+	 */
+	noProxy?: string[]
+	oauthTokenHost?: string
+	oauthTokenPath?: string
+	oauthClientId?: string
+	oauthClientSecret?: string
+	oauthAudience?: string
+	bearerToken?: string
 }
+
+export type SomeMappingHttpSend = Record<string, never>
+
 export interface HTTPSendCommandContent {
 	type: TimelineContentTypeHTTP
 	url: string
@@ -44,11 +61,25 @@ export enum TimelineContentTypeHTTPParamType {
 	FORM = 'form'
 }
 
-export type SomeMappingHttpSend = Record<string, never>
-
-export type SendCommandPayload = HTTPSendCommandContent
+export interface SendCommandResult {
+	statusCode: number
+	headers: {
+		[k: string]: string | string[]
+	}
+	body: string
+}
 
 export enum HttpSendActions {
 	Resync = 'resync',
-	SendCommand = 'sendCommand',
+	SendCommand = 'sendCommand'
 }
+export interface HttpSendActionExecutionResults {
+	resync: () => void,
+	sendCommand: (payload: HTTPSendCommandContent) => SendCommandResult
+}
+export type HttpSendActionExecutionPayload<A extends keyof HttpSendActionExecutionResults> = Parameters<
+	HttpSendActionExecutionResults[A]
+>[0]
+
+export type HttpSendActionExecutionResult<A extends keyof HttpSendActionExecutionResults> =
+	ActionExecutionResult<ReturnType<HttpSendActionExecutionResults[A]>>

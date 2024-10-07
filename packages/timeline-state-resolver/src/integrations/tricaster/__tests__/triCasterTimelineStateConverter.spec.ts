@@ -19,7 +19,7 @@ import {
 	WithContext,
 	wrapStateInContext,
 } from '../triCasterStateDiffer'
-import { literal } from '../../../devices/device'
+import { literal } from '../../../lib'
 import { wrapIntoResolvedInstance } from './helpers'
 
 function setupTimelineStateConverter() {

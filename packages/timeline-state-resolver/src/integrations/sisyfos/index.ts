@@ -16,20 +16,14 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	Mapping,
 	SisyfosActions,
-	ActionExecutionResult,
 	ActionExecutionResultCode,
+	SisyfosActionExecutionPayload,
+	SisyfosActionExecutionResult,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import {
-	SisyfosApi,
-	SisyfosCommand,
-	SisyfosState,
-	SisyfosChannel,
-	SisyfosCommandType,
-	ValuesCommand,
-} from './connection'
+import { SisyfosApi, SisyfosCommand, SisyfosState, SisyfosChannel, SisyfosCommandType } from './connection'
 import Debug from 'debug'
 import { startTrace, endTrace, actionNotFoundMessage } from '../../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
@@ -56,7 +50,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	private _doOnTime: DoOnTime
 	private _sisyfos: SisyfosApi
 
-	private _commandReceiver: CommandReceiver
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 
 	private _resyncing = false
 
@@ -64,7 +58,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._sisyfos = new SisyfosApi()
@@ -159,7 +152,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		this._doOnTime.dispose()
 		this._sisyfos.dispose()
 		this._sisyfos.removeAllListeners()
-		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
@@ -215,10 +207,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return Promise.resolve()
 	}
 
-	async executeAction(
-		actionId: SisyfosActions,
-		_payload?: Record<string, any> | undefined
-	): Promise<ActionExecutionResult> {
+	async executeAction<A extends SisyfosActions>(
+		actionId0: A,
+		_payload: SisyfosActionExecutionPayload<A>
+	): Promise<SisyfosActionExecutionResult<A>> {
+		const actionId = actionId0 as SisyfosActions // type fix for when there is only a single action
 		switch (actionId) {
 			case SisyfosActions.Reinit:
 				return this._makeReadyInner()
@@ -250,8 +243,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		const channels = mappings
 			? Object.values<Mapping<unknown>>(mappings || {})
-					.filter((m: Mapping<SomeMappingSisyfos>) => m.options.mappingType === MappingSisyfosType.Channel)
-					.map((m: Mapping<MappingSisyfosChannel>) => m.options.channel)
+					.filter(
+						(m): m is Mapping<MappingSisyfosChannel> =>
+							(m as Mapping<SomeMappingSisyfos>).options.mappingType === MappingSisyfosType.Channel
+					)
+					.map((m) => m.options.channel)
 			: Object.keys(deviceStateFromAPI.channels)
 
 		for (const ch of channels) {
@@ -259,7 +255,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 			let channel: SisyfosChannel = {
 				...channelFromAPI,
-				tlObjIds: [],
+				timelineObjIds: [],
 			}
 
 			if (isDefaultState) {
@@ -281,7 +277,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			pstOn: 0,
 			label: '',
 			visible: true,
-			tlObjIds: [],
+			timelineObjIds: [],
 		}
 	}
 	/**
@@ -318,7 +314,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			overridePriority: number
 			channel: number
 			isLookahead: boolean
-			tlObjId: string
+			timelineObjId: string
 		} & SisyfosChannelOptions)[] = []
 
 		_.each(state.layers, (tlObject, layerName) => {
@@ -363,7 +359,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: foundMapping.options.channel,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
-						tlObjId: layer.id,
+						timelineObjId: layer.id,
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
@@ -379,7 +375,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: ch,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
-						tlObjId: layer.id,
+						timelineObjId: layer.id,
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
@@ -394,7 +390,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 								channel: referencedMapping.options.channel,
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
-								tlObjId: layer.id,
+								timelineObjId: layer.id,
 							})
 						} else if (
 							referencedMapping &&
@@ -409,7 +405,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 								channel: ch,
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
-								tlObjId: layer.id,
+								timelineObjId: layer.id,
 							})
 						}
 					})
@@ -440,7 +436,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
 				if (newChannel.fadeTime !== undefined) channel.fadeTime = newChannel.fadeTime
 
-				channel.tlObjIds.push(newChannel.tlObjId)
+				channel.timelineObjIds.push(newChannel.timelineObjId)
 			}
 		)
 		return deviceState
@@ -501,7 +497,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						values: newChannel,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 				return
 			}
@@ -518,8 +514,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						type: SisyfosCommandType.TOGGLE_PGM,
 						channel: Number(index),
 						values,
-					} as ValuesCommand,
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
@@ -532,20 +528,24 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						value: newChannel.pstOn,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
 			if (oldChannel && oldChannel.faderLevel !== newChannel.faderLevel) {
 				debug(`change faderLevel ${index}: "${newChannel.faderLevel}"`)
+				const values: number[] = [newChannel.faderLevel]
+				if (newChannel.fadeTime) {
+					values.push(newChannel.fadeTime)
+				}
 				commands.push({
 					context: 'faderLevel change',
 					content: {
 						type: SisyfosCommandType.SET_FADER,
 						channel: Number(index),
-						value: newChannel.faderLevel,
+						values,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
@@ -559,7 +559,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						value: newChannel.label,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
@@ -572,7 +572,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						value: newChannel.visible,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 		})
@@ -586,9 +586,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'obs-websocket-js'
+import { EventEmitter } from 'events'
 import { QuantelTransitionType, QuantelControlMode } from 'timeline-state-resolver-types'
 import { QuantelGateway, Q, QuantelErrorResponse } from 'tv-automation-quantel-gateway-client'
 import _ = require('underscore')

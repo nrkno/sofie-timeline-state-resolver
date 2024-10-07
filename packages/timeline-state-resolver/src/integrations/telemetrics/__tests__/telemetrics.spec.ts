@@ -1,7 +1,7 @@
 import { TelemetricsDevice } from '..'
 import {
-	DeviceOptionsTelemetrics,
 	DeviceType,
+	Mappings,
 	StatusCode,
 	Timeline,
 	TimelineContentTelemetrics,
@@ -9,7 +9,8 @@ import {
 } from 'timeline-state-resolver-types'
 import { Socket } from 'net'
 import { DoOrderFunctionNothing } from '../../../devices/doOnTime'
-import { literal } from '../../../devices/device'
+import { literal } from '../../../lib'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 const SERVER_PORT = 5000
 const SERVER_HOST = '1.1.1.1'
@@ -66,17 +67,6 @@ describe('telemetrics', () => {
 
 	afterAll(() => {
 		jest.restoreAllMocks()
-	})
-
-	describe('deviceName', () => {
-		it('returns "Telemetrics" plus the device id', () => {
-			const deviceId = 'someId'
-			device = createTelemetricsDevice(deviceId)
-
-			const result = device.deviceName
-
-			expect(result).toBe(`Telemetrics ${deviceId}`)
-		})
 	})
 
 	describe('init', () => {
@@ -140,6 +130,18 @@ describe('telemetrics', () => {
 		})
 	})
 
+	function handleState(
+		device: TelemetricsDevice,
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings<unknown>
+	) {
+		const deviceState = device.convertTimelineStateToDeviceState(state, mappings)
+		const commands = device.diffStates(undefined, deviceState, mappings, 1)
+		for (const command of commands) {
+			void device.sendCommand(command)
+		}
+	}
+
 	describe('handleState', () => {
 		it('has correctly formatted command', () => {
 			device = createInitializedTelemetricsDevice()
@@ -147,7 +149,7 @@ describe('telemetrics', () => {
 			const commandPostFix = '\r'
 			const presetNumber = 5
 
-			device.handleState(createTimelineState(presetNumber), {})
+			handleState(device, createTimelineState(presetNumber), {})
 
 			const expectedCommand = `${commandPrefix}${presetNumber}${commandPostFix}`
 			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(expectedCommand)
@@ -157,7 +159,7 @@ describe('telemetrics', () => {
 			device = createInitializedTelemetricsDevice()
 			const presetNumber = 1
 
-			device.handleState(createTimelineState(presetNumber), {})
+			handleState(device, createTimelineState(presetNumber), {})
 
 			const expectedResult = `P0C${presetNumber}\r`
 			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(expectedResult)
@@ -167,7 +169,7 @@ describe('telemetrics', () => {
 			device = createInitializedTelemetricsDevice()
 			const presetNumber = 2
 
-			device.handleState(createTimelineState(presetNumber), {})
+			handleState(device, createTimelineState(presetNumber), {})
 
 			const expectedResult = `P0C${presetNumber}\r`
 			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(expectedResult)
@@ -176,7 +178,7 @@ describe('telemetrics', () => {
 		it('receives three presets, sends three commands', () => {
 			device = createInitializedTelemetricsDevice()
 
-			device.handleState(createTimelineState([1, 2, 3]), {})
+			handleState(device, createTimelineState([1, 2, 3]), {})
 
 			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(3)
 		})
@@ -193,7 +195,7 @@ describe('telemetrics', () => {
 				}),
 			} as unknown as Timeline.ResolvedTimelineObjectInstance<any>
 
-			device.handleState(timelineState, {})
+			handleState(device, timelineState, {})
 
 			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(2)
 		})
@@ -205,23 +207,16 @@ describe('telemetrics', () => {
 			const laterTimelineState = createTimelineState(1)
 			laterTimelineState.time = timelineState.time + 100
 
-			device.handleState(timelineState, {})
-			device.handleState(laterTimelineState, {})
+			handleState(device, timelineState, {})
+			handleState(device, laterTimelineState, {})
 
 			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(2)
 		})
 	})
 })
 
-function createTelemetricsDevice(deviceId?: string): TelemetricsDevice {
-	const deviceOptions: DeviceOptionsTelemetrics = {
-		type: DeviceType.TELEMETRICS,
-	}
-	return new TelemetricsDevice(deviceId ?? '', deviceOptions, mockGetCurrentTime)
-}
-
-async function mockGetCurrentTime(): Promise<number> {
-	return new Promise<number>((resolve) => resolve(1))
+function createTelemetricsDevice(): TelemetricsDevice {
+	return new TelemetricsDevice(getDeviceContext())
 }
 
 function createInitializedTelemetricsDevice(): TelemetricsDevice {

@@ -3,12 +3,6 @@
 	"title": "HTTP Send Options",
 	"type": "object",
 	"properties": {
-		"makeReadyDoesReset": {
-			"type": "boolean",
-			"ui:title": "Whether Make Ready triggers a state reset",
-			"description": "Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty",
-			"default": false
-		},
 		"resendTime": {
 			"type": "integer",
 			"description": "Minimum time in ms before a command is resent, set to <= 0 or undefined to disable",
@@ -16,63 +10,53 @@
 			"ui:title": "Resend time in ms",
 			"default": 0
 		},
-		"makeReadyCommands": {
+		"httpProxy": {
+			"type": "string",
+			"description": "HTTP Proxy",
+			"ui:title": "HTTP Proxy address"
+		},
+		"httpsProxy": {
+			"type": "string",
+			"description": "HTTPS Proxy",
+			"ui:title": "HTTPS Proxy address"
+		},
+		"noProxy": {
 			"type": "array",
-			"ui:title": "Make Ready Commands",
 			"items": {
-				"type": "object",
-				"title": "HTTPSendCommandContent",
-				"todo": "should this be pulled in from elsewhere? its a timeline object type too",
-				"properties": {
-					"type": {
-						"type": "string",
-						"title": "TimelineContentTypeHTTP",
-						"ui:title": "Type",
-						"ui:summaryTitle": "Type",
-						"default": "",
-						"enum": ["get", "post", "put", "delete"],
-						"tsEnumNames": ["GET", "POST", "PUT", "DELETE"]
-					},
-					"url": {
-						"type": "string",
-						"ui:title": "Url",
-						"ui:summaryTitle": "URL",
-						"default": ""
-					},
-					"params": {
-						"type": "object",
-						"ui:title": "Params",
-						"ui:displayType": "json",
-						"additionalProperties": true
-					},
-					"paramsType": {
-						"type": "string",
-						"title": "TimelineContentTypeHTTPParamType",
-						"ui:title": "Params type",
-						"default": "json",
-						"enum": ["json", "form"],
-						"tsEnumNames": ["JSON", "FORM"]
-					},
-					"headers": {
-						"type": "object",
-						"additionalProperties": { "type": "string" }
-					},
-					"temporalPriority": {
-						"type": "integer",
-						"ui:title": "Temporal Priority",
-						"default": 0
-					},
-					"queueId": {
-						"type": "string",
-						"description": "Commands in the same queue will be sent in order (will wait for the previous to finish before sending next",
-						"ui:title": "Send Queue Id"
-					}
-				},
-				"required": ["type", "url", "params"],
-				"additionalProperties": false
-			}
+				"type": "string"
+			},
+			"description": "URLs not to use a proxy for (E.G. github.com)",
+			"ui:description": "URLs that shouldn't be accessed via a proxy (E.G. github.com)",
+			"ui:title": "No proxy"
+		},
+		"oauthTokenHost": {
+			"type": "string",
+			"ui:title": "OAuth 2.0 Token Host",
+			"ui:description": "Base URL of the authorization server. To use Client Credentials Flow, provide: OAuth 2.0 Token Host, OAuth 2.0 Client ID, OAuth 2.0 Client Secret, and optionally: OAuth 2.0 Token Path, OAuth 2.0 Audience, to exchange the credentials for a Bearer token that will be added to EVERY outgoing request made through this device. Example: 'https://auth.example.com'"
+		},
+		"oauthTokenPath": {
+			"type": "string",
+			"ui:title": "OAuth 2.0 Token Path",
+			"ui:description": "Path of the Token endpoint. Example: '/oauth/token' (default)"
+		},
+		"oauthClientId": {
+			"type": "string",
+			"ui:title": "OAuth 2.0 Client ID"
+		},
+		"oauthClientSecret": {
+			"type": "string",
+			"ui:title": "OAuth 2.0 Client Secret"
+		},
+		"oauthAudience": {
+			"type": "string",
+			"ui:title": "OAuth 2.0 Audience"
+		},
+		"bearerToken": {
+			"type": "string",
+			"ui:title": "Bearer Token",
+			"ui:descrption": "Long-lived Bearer token that will be added to EVERY outgoing request made through this device"
 		}
 	},
-	"required": ["host"],
+	"required": [],
 	"additionalProperties": false
 }

@@ -3,6 +3,9 @@
 	"description": "This is a meta-schema that defines the schemas for *device*/$schemas/actions.json",
 	"type": "object",
 	"properties": {
+		"$schema": {
+			"type": "string"
+		},
 		"actions": {
 			"type": "array",
 			"items": {
@@ -38,6 +41,22 @@
 							}
 						},
 						"required": ["type", "properties"],
+						"allOf": [
+							{
+								"$ref": "https://json-schema.org/draft/2020-12/schema"
+							}
+						]
+					},
+					"result": {
+						"type": "object",
+						"tsType": "unknown",
+						"description": "Defines the returned data",
+						"properties": {
+							"type": {
+								"type": "string"
+							}
+						},
+						"required": ["type"],
 						"allOf": [
 							{
 								"$ref": "https://json-schema.org/draft/2020-12/schema"

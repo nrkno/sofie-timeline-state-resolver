@@ -217,11 +217,11 @@ describe('vMix', () => {
 		commandReceiver0.mockClear()
 
 		// Time to stop playing
-		await mockTime.advanceTimeToTicks(16050)
+		await mockTime.advanceTimeToTicks(17050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			1,
-			16000,
+			17000,
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
@@ -464,7 +464,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					index: 1,
 					value: 'G:/videos/My Other Clip.mp4',
@@ -478,7 +478,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					index: 3,
 					value: 5,
@@ -666,7 +666,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 1,
 					value: 'G:/videos/My Other Clip.mp4',
@@ -680,7 +680,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 3,
 					value: 5,
@@ -747,7 +747,7 @@ describe('vMix', () => {
 			16000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 1,
 					value: '',
@@ -761,7 +761,7 @@ describe('vMix', () => {
 			16000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 3,
 					value: '',
@@ -1011,7 +1011,7 @@ describe('vMix', () => {
 		commandReceiver0.mockClear()
 
 		// Time to swap the video
-		await mockTime.advanceTimeToTicks(16300)
+		await mockTime.advanceTimeToTicks(17300)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1070,7 +1070,7 @@ describe('vMix', () => {
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			5,
-			16000,
+			17000,
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
@@ -3616,7 +3616,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					value: 3,
 					index: 1,

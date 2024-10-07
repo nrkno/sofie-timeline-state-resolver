@@ -1,155 +1,62 @@
-import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import {
+	ActionExecutionResult,
+	DeviceStatus,
 	DeviceType,
-	ShotokuCommandContent,
-	ShotokuOptions,
-	DeviceOptionsShotoku,
-	ShotokuTransitionType,
-	Mappings,
-	TimelineContentTypeShotoku,
-	TimelineContentShotokuSequence,
+	StatusCode,
 	Timeline,
+	TimelineContentShotokuSequence,
+	ShotokuCommandContent,
 	TSRTimelineContent,
+	TimelineContentTypeShotoku,
+	ShotokuTransitionType,
+	ShotokuOptions,
 } from 'timeline-state-resolver-types'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
+import { Device } from '../../service/device'
 
+import _ = require('underscore')
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './connection'
-import { startTrace, endTrace } from '../../lib'
 
-export interface DeviceOptionsShotokuInternal extends DeviceOptionsShotoku {
-	commandReceiver?: CommandReceiver
-}
-export type CommandReceiver = (
-	time: number,
-	cmd: ShotokuCommand,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
-interface Command {
-	command: ShotokuCommand
-	context: CommandContext
-	timelineObjId: string
-}
-type CommandContext = string
-type ShotokuDeviceState = {
+export interface ShotokuDeviceState {
 	shots: Record<string, ShotokuCommandContent & { fromTlObject: string }>
 	sequences: Record<string, ShotokuSequence>
 }
-
 interface ShotokuSequence {
 	fromTlObject: string
 	shots: TimelineContentShotokuSequence['shots']
 }
-interface ShotokuDeviceStateContent extends ShotokuCommandContent {
-	fromTlObject: string
+
+export interface ShotokuCommandWithContext {
+	command: ShotokuCommand // todo
+	context: string
+	timelineObjId: string
 }
-/**
- * This is a generic wrapper for any osc-enabled device.
- */
-export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOptionsShotokuInternal> {
-	private _doOnTime: DoOnTime
-	private _shotoku: ShotokuAPI
 
-	private _commandReceiver: CommandReceiver
+export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
+	private readonly _shotoku = new ShotokuAPI()
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsShotokuInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
-		}
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
-		this._shotoku = new ShotokuAPI()
-		this._shotoku.on('error', (info, e) => this.emit(e, info))
-		this.handleDoOnTime(this._doOnTime, 'OSC')
-	}
-	async init(initOptions: ShotokuOptions): Promise<boolean> {
-		try {
-			await this._shotoku.connect(initOptions.host, initOptions.port)
-		} catch (e) {
-			return false
-		}
+	async init(options: ShotokuOptions): Promise<boolean> {
+		this._shotoku.on('error', (info, error) => this.context.logger.error(info, error))
+		this._shotoku.on('connected', () => {
+			this.context.connectionChanged(this.getStatus())
+		})
+		this._shotoku.on('disconnected', () => {
+			this.context.connectionChanged(this.getStatus())
+		})
+		this._shotoku.on('warn', (message: string) => {
+			this.context.logger.warning(message)
+		})
+
+		this._shotoku
+			.connect(options.host, options.port)
+			.catch((e) => this.context.logger.debug('Shotoku device failed initial connection attempt', e))
 
 		return true
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
-	/**
-	 * Handles a new state such that the device will be in that state at a specific point
-	 * in time.
-	 * @param newState
-	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		// Transform timeline states into device states
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: ShotokuDeviceState = (
-			this.getStateBefore(previousStateTime) || { state: { shots: {}, sequences: {} } }
-		).state
-
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-		const newShotokuState = this.convertStateToShotokuShots(newState)
-		this.emit('timeTrace', endTrace(convertTrace))
-
-		// Generate commands necessary to transition to the new state
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const commandsToAchieveState = this._diffStates(oldState, newShotokuState)
-		this.emit('timeTrace', endTrace(diffTrace))
-
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// store the new state, for later use:
-		this.setState(newShotokuState, newState.time)
-	}
-	/**
-	 * Clear any scheduled commands after this time
-	 * @param clearAfterTime
-	 */
-	clearFuture(clearAfterTime: number) {
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
-	async terminate() {
-		this._doOnTime.dispose()
+	async terminate(): Promise<void> {
 		await this._shotoku.dispose()
-		return Promise.resolve(true)
-	}
-	getStatus(): DeviceStatus {
-		return {
-			statusCode: this._shotoku.connected ? StatusCode.GOOD : StatusCode.BAD,
-			messages: [],
-			active: this.isActive,
-		}
-	}
-	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
-		return Promise.resolve() // TODO - enforce current state?
 	}
 
-	get canConnect(): boolean {
-		return true // TODO?
-	}
-	get connected(): boolean {
-		return this._shotoku.connected
-	}
-	/**
-	 * Transform the timeline state into a device state, which is in this case also
-	 * a timeline state.
-	 * @param state
-	 */
-	convertStateToShotokuShots(state: Timeline.TimelineState<TSRTimelineContent>) {
+	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): ShotokuDeviceState {
 		const deviceState: ShotokuDeviceState = {
 			shots: {},
 			sequences: {},
@@ -179,42 +86,13 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 
 		return deviceState
 	}
-	get deviceType() {
-		return DeviceType.SHOTOKU
-	}
-	get deviceName(): string {
-		return 'Shotoku ' + this.deviceId
-	}
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
-	/**
-	 * Add commands to queue, to be executed at the right time
-	 */
-	private _addToQueue(commandsToAchieveState: Array<Command>, time: number) {
-		_.each(commandsToAchieveState, (cmd: Command) => {
-			this._doOnTime.queue(
-				time,
-				undefined,
-				async (cmd: Command) => {
-					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
-				},
-				cmd
-			)
-		})
-	}
-	/**
-	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
-	 * @param oldState The assumed current state
-	 * @param newState The desired state of the device
-	 */
-	private _diffStates(oldState: ShotokuDeviceState, newState: ShotokuDeviceState): Array<Command> {
+	diffStates(oldState: ShotokuDeviceState | undefined, newState: ShotokuDeviceState): Array<ShotokuCommandWithContext> {
 		// unfortunately we don't know what shots belong to what camera, so we can't do anything smart
 
-		const commands: Array<Command> = []
+		const commands: Array<ShotokuCommandWithContext> = []
 
-		_.each(newState.shots, (newCommandContent: ShotokuDeviceStateContent, index: string) => {
-			const oldLayer = oldState.shots[index]
+		Object.entries<ShotokuDeviceState['shots'][string]>(newState.shots).forEach(([index, newCommandContent]) => {
+			const oldLayer = oldState?.shots[index]
 			if (!oldLayer) {
 				// added!
 				const shotokuCommand: ShotokuCommand = {
@@ -237,7 +115,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 		})
 
 		Object.entries<ShotokuSequence>(newState.sequences).forEach(([index, newCommandContent]) => {
-			const oldLayer = oldState.sequences[index]
+			const oldLayer = oldState?.sequences[index]
 			if (!oldLayer) {
 				// added!
 				const shotokuCommand: ShotokuCommand = {
@@ -261,30 +139,32 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 
 		return commands
 	}
-	private async _defaultCommandReceiver(
-		_time: number,
-		cmd: ShotokuCommand,
-		context: CommandContext,
-		timelineObjId: string
-	): Promise<any> {
-		const cwc: CommandWithContext = {
-			context: context,
-			command: cmd,
-			timelineObjId: timelineObjId,
-		}
-		this.emitDebug(cwc)
+	async sendCommand({ command, context, timelineObjId }: ShotokuCommandWithContext): Promise<void> {
+		this.context.logger.debug({ command, context, timelineObjId })
 
 		try {
 			if (this._shotoku.connected) {
-				this._shotoku.executeCommand(cmd).catch((e) => {
-					throw new Error(e)
-				})
+				await this._shotoku.executeCommand(command)
 			}
 
-			return Promise.resolve()
+			return
 		} catch (e) {
-			this.emit('commandError', e as Error, cwc)
-			return Promise.resolve()
+			this.context.commandError(e as Error, { command, context, timelineObjId })
+			return
 		}
 	}
+
+	get connected(): boolean {
+		return this._shotoku.connected
+	}
+	getStatus(): Omit<DeviceStatus, 'active'> {
+		const messages: string[] = []
+		if (!this._shotoku.connected) messages.push('Not connected')
+		return {
+			statusCode: this._shotoku.connected ? StatusCode.GOOD : StatusCode.BAD,
+			messages: [],
+		}
+	}
+
+	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 }

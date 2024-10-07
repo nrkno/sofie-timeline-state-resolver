@@ -3,7 +3,6 @@ import {
 	DeviceStatus,
 	DeviceType,
 	OSCDeviceType,
-	DeviceOptionsOSC,
 	OSCMessageCommandContent,
 	OSCOptions,
 	OSCValueType,
@@ -12,17 +11,14 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { Device } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 import * as osc from 'osc'
 
 import Debug from 'debug'
 import _ = require('underscore')
 import { Easing } from '../../devices/transitions/easings'
-import EventEmitter = require('eventemitter3')
+import { assertNever } from '../../lib'
 const debug = Debug('timeline-state-resolver:osc')
-
-export type OscDeviceOptions = OSCOptions
-export type DeviceOptionsOSCInternal = DeviceOptionsOSC
 
 export interface OscDeviceState {
 	[address: string]: OSCDeviceStateContent
@@ -34,11 +30,12 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 export interface OscCommandWithContext {
 	command: any // todo
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
-export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
-	private _oscClient: osc.UDPPort | osc.TCPSocketPort
+export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
+	/** Setup in init */
+	private _oscClient!: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: {
 		[address: string]: {
@@ -46,9 +43,9 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		} & OSCMessageCommandContent
 	} = {}
 	private transitionInterval: NodeJS.Timer | undefined
-	private options: OscDeviceOptions | undefined
+	private options: OSCOptions | undefined
 
-	async init(options: OscDeviceOptions): Promise<boolean> {
+	async init(options: OSCOptions): Promise<boolean> {
 		this.options = options
 		if (options.type === OSCDeviceType.TCP) {
 			debug('Creating TCP OSC device')
@@ -61,11 +58,11 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 			client.open() // creates client.socket
 			client.socket.on('connect', () => {
 				this._oscClientStatus = 'connected'
-				this.emit('connectionChanged', this.getStatus())
+				this.context.connectionChanged(this.getStatus())
 			})
 			client.socket.on('close', () => {
 				this._oscClientStatus = 'disconnected'
-				this.emit('connectionChanged', this.getStatus())
+				this.context.connectionChanged(this.getStatus())
 			})
 		} else if (options.type === OSCDeviceType.UDP) {
 			debug('Creating UDP OSC device')
@@ -78,14 +75,16 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 				metadata: true,
 			})
 			this._oscClient.open()
+		} else {
+			assertNever(options.type)
+			throw new Error(`Unknown device transport type: ${options.type}`)
 		}
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._oscClient.close()
 		this._oscClient.removeAllListeners()
-		return true
 	}
 
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): OscDeviceState {
@@ -119,7 +118,7 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 				// added!
 				commands.push({
 					context: `added: ${newCommandContent.fromTlObject}`,
-					tlObjId: newCommandContent.fromTlObject,
+					timelineObjId: newCommandContent.fromTlObject,
 					command: newCommandContent,
 				})
 			} else {
@@ -128,7 +127,7 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 					// changed!
 					commands.push({
 						context: `changed: ${newCommandContent.fromTlObject}`,
-						tlObjId: newCommandContent.fromTlObject,
+						timelineObjId: newCommandContent.fromTlObject,
 						command: newCommandContent,
 					})
 				}
@@ -136,13 +135,13 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		})
 		return commands
 	}
-	async sendCommand({ command, context, tlObjId }: OscCommandWithContext): Promise<any> {
-		const cwc = {
+	async sendCommand({ command, context, timelineObjId }: OscCommandWithContext): Promise<any> {
+		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
-			timelineObjId: tlObjId,
+			timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.context.logger.debug(cwc)
 		debug(command)
 
 		try {
@@ -182,7 +181,7 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 
 			return Promise.resolve()
 		} catch (e) {
-			this.emit('commandError', e as Error, cwc)
+			this.context.commandError(e as Error, cwc)
 			return Promise.resolve()
 		}
 	}
@@ -203,10 +202,10 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		}
 	}
 
-	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private _oscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
-		this.emit('debug', 'sending ' + msg.address)
+		this.context.logger.debug('sending ' + msg.address)
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation() {
