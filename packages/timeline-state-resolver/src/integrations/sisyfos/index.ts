@@ -531,7 +531,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug('reset channel ' + index)
 				commands.push({
 					context: `Channel ${index} reset`,
-					content: {
+					command: {
 						type: SisyfosCommandType.SET_CHANNEL,
 						channel: Number(index),
 						values: newChannel,
