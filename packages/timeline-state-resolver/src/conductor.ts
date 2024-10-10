@@ -1,5 +1,11 @@
 import * as _ from 'underscore'
-import { getResolvedState, ResolvedTimeline, ResolvedTimelineObjectInstance, TimelineObject } from 'superfly-timeline'
+import {
+	getResolvedState,
+	ResolvedTimeline,
+	ResolvedTimelineObjectInstance,
+	TimelineObject,
+	TimelineState,
+} from 'superfly-timeline'
 import { EventEmitter } from 'eventemitter3'
 import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import PQueue from 'p-queue'
@@ -260,6 +266,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				instanceName: 'resolver',
 			}
 		)
+		await this._resolver.on('error', (e) => {
+			this.emit('error', 'AsyncResolver error: ' + e)
+		})
 
 		ThreadedClassManager.onEvent(this._resolver, 'thread_closed', () => {
 			// This is called if a child crashes - we are using autoRestart, so we just log
@@ -927,7 +936,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 			}
 
-			const tlState = getResolvedState(resolvedTimeline, resolveTime, 1)
+			let tlState: TimelineState<TSRTimelineContent>
+			try {
+				tlState = getResolvedState(resolvedTimeline, resolveTime, 1)
+			} catch (e) {
+				// Trace some helpful information related to the error:
+				this.emit('error', 'Error resolveTrace: ' + JSON.stringify(resolvedTimeline.statistics.resolveTrace))
+				throw e
+			}
 			await pPrepareForHandleStates
 
 			statTimeTimelineResolved = Date.now()
