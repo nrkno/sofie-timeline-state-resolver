@@ -18,8 +18,15 @@ export type CommandWithContext = {
 	timelineObjId: string
 	/** this command is to be executed x ms _before_ the scheduled time */
 	preliminary?: number
-	/** commands with different queueId's can be executed in parallel in sequential mode */
+	/** sequential mode only: commands with different queueId's can be executed in parallel */
 	queueId?: string
+	/** If the command should be executed in sequential order or as a salvo. If not set, falls back to device default */
+	executeMode?: ExecuteMode
+}
+
+export enum ExecuteMode {
+	SALVO = 'salvo',
+	SEQUENTIAL = 'sequential',
 }
 
 /**

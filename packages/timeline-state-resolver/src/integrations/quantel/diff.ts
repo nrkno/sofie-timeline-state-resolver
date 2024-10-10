@@ -2,6 +2,7 @@ import { QuantelOutTransition } from 'timeline-state-resolver-types'
 import { QuantelCommandWithContext } from '.'
 import { QuantelCommand, QuantelCommandType, QuantelState, QuantelStatePort, QuantelStatePortClip } from './types'
 import _ = require('underscore')
+import { ExecuteMode } from '../../service/device'
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
@@ -104,6 +105,36 @@ export function diffStates(
 		if (a.command.type !== QuantelCommandType.RELEASEPORT && b.command.type === QuantelCommandType.RELEASEPORT) return 1
 		return 0
 	})
+
+	// If we run any play-command, we will need to cancel any delayed/waiting out-transitions for that port:
+	const portIdsToCancelWaiting: Set<string> = new Set()
+	for (const cmd of allCommands) {
+		if (
+			(cmd.command.type === QuantelCommandType.PLAYCLIP ||
+				cmd.command.type === QuantelCommandType.PAUSECLIP ||
+				cmd.command.type === QuantelCommandType.CLEARCLIP ||
+				cmd.command.type === QuantelCommandType.RELEASEPORT) &&
+			!cmd.command.fromLookahead
+		) {
+			// We should clear any delayed out-transitions for this port
+			portIdsToCancelWaiting.add(cmd.command.portId)
+		}
+	}
+
+	for (const portId of portIdsToCancelWaiting.values()) {
+		allCommands.unshift({
+			command: {
+				type: QuantelCommandType.CANCELWAITING,
+				portId: portId,
+				timelineObjId: '',
+			},
+			timelineObjId: '',
+			context: 'Clear all delayed out-transitions',
+			// These must be SALVO, so that they are executed first thing, and not get stuck behind a delayed sequential command.
+			executeMode: ExecuteMode.SALVO,
+		})
+	}
+
 	return allCommands
 }
 interface LookaheadPreloadClip {

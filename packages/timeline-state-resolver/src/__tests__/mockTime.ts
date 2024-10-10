@@ -22,6 +22,9 @@ export class MockTime {
 		this._now = 10000
 		jest.useFakeTimers({ now: this._now })
 	}
+	reset = () => {
+		jest.useRealTimers()
+	}
 	advanceTime = (advanceTime: number) => {
 		this._now += advanceTime
 		jest.advanceTimersByTime(advanceTime)
