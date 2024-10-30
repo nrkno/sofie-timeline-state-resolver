@@ -42,6 +42,7 @@ import {
 	DeviceOptionsPharos,
 	DeviceOptionsTriCaster,
 	DeviceOptionsSingularLive,
+	TimelineContentTypeAtem,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -217,6 +218,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _interval: NodeJS.Timer
 	private _timelineHash: string | undefined
 	private activationId: string | undefined
+	private tmpPrevMacroIndex: number = -2
 
 	constructor(options: ConductorOptions = {}) {
 		super()
@@ -961,6 +963,29 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				tlState.layers as Timeline.StateInTime<TSRTimelineContent>,
 				Array.from(this.devices.values()).filter((d) => d.initialized === true)
 			)
+
+			const tmpMacroState = tlState.layers['atem_macro_player_stolpe']
+			if (tmpMacroState) {
+				if (
+					tmpMacroState.content.deviceType === DeviceType.ATEM &&
+					tmpMacroState.content.type === TimelineContentTypeAtem.MACROPLAYER &&
+					tmpMacroState.content.macroPlayer
+				) {
+					const macroIndex = tmpMacroState.content.macroPlayer.isRunning
+						? tmpMacroState.content.macroPlayer.macroIndex
+						: -1
+
+					if (macroIndex !== this.tmpPrevMacroIndex) {
+						this.emit('warning', `ATEMTRACE layer atem_macro_player_stolpe: ${JSON.stringify(tmpMacroState)}`)
+						this.emit('warning', `ATEMTRACE timeline: ${JSON.stringify(timeline)}`)
+					}
+				} else {
+					this.emit(
+						'warning',
+						`ATEMTRACE wrong type on layer atem_macro_player_stolpe: ${JSON.stringify(tmpMacroState)}`
+					)
+				}
+			}
 
 			// Push state to the right device:
 			await this._mapAllDevices(

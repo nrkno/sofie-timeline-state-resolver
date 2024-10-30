@@ -164,6 +164,19 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 		const diffOptions = createDiffOptions(mappings as Mappings<SomeMappingAtem>)
 		const commands = AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState, diffOptions)
 
+		let hasMacroCommands = false
+		for (const command of commands) {
+			if (command instanceof AtemCommands.MacroActionCommand) {
+				hasMacroCommands = true
+				this.context.logger.info(`ATEMTRACE DIFF MACRO: ${command.index}`)
+			}
+		}
+		if (hasMacroCommands) {
+			this.context.logger.info(
+				`ATEMTRACE prevAtemState: ${JSON.stringify(oldAtemState)}, newAtemState: ${JSON.stringify(newAtemState)}`
+			)
+		}
+
 		if (commands.length > 0) {
 			return [
 				{
@@ -184,6 +197,10 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 			timelineObjId,
 		}
 		this.context.logger.debug(cwc)
+
+		if (command instanceof AtemCommands.MacroActionCommand) {
+			this.context.logger.info(`ATEMTRACE SEND MACRO: ${command.index}`)
+		}
 
 		// Skip attempting send if not connected
 		if (!this._connected) return
