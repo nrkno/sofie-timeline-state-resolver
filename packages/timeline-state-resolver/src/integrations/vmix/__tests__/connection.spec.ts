@@ -92,4 +92,21 @@ describe('VMixCommandSender', () => {
 			value: 1.5,
 		})
 	})
+
+	it('sets text', async () => {
+		const { sender, mockConnection } = createTestee()
+		await sender.sendCommand({
+			command: VMixCommand.SET_TEXT,
+			input: 5,
+			value: 'Foo',
+			fieldName: 'myTitle.Text',
+		})
+
+		expect(mockConnection.sendCommandFunction).toHaveBeenCalledTimes(1)
+		expect(mockConnection.sendCommandFunction).toHaveBeenLastCalledWith('SetText', {
+			input: 5,
+			value: 'Foo',
+			selectedName: 'myTitle.Text',
+		})
+	})
 })
