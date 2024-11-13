@@ -9929,7 +9929,7 @@ asn1@evs-broadcast/node-asn1:
     chokidar: ^3.6.0
     fast-clone: ^1.5.13
     threadedclass: ^1.2.1
-    timeline-state-resolver: 9.2.0
+    timeline-state-resolver: 9.2.1
     tslib: ^2.6.2
     underscore: ^1.13.6
   languageName: unknown
@@ -11384,7 +11384,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver@9.2.0, timeline-state-resolver@workspace:packages/timeline-state-resolver":
+"timeline-state-resolver@9.2.1, timeline-state-resolver@workspace:packages/timeline-state-resolver":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
