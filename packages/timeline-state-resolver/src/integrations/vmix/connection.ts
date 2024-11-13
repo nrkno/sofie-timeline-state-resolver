@@ -69,7 +69,7 @@ export class VMixConnection extends EventEmitter<ConnectionEvents> {
 		const val = args.value !== undefined ? `&Value=${args.value}` : ''
 		const dur = args.duration !== undefined ? `&Duration=${args.duration}` : ''
 		const mix = args.mix !== undefined ? `&Mix=${args.mix}` : ''
-		const selectedName = args.mix !== undefined ? `&SelectedName=${args.selectedName}` : ''
+		const selectedName = args.selectedName !== undefined ? `&SelectedName=${args.selectedName}` : ''
 		const ext = args.extra !== undefined ? args.extra : ''
 
 		const queryString = `${inp}${val}${dur}${mix}${ext}${selectedName}`.slice(1) // remove the first &
