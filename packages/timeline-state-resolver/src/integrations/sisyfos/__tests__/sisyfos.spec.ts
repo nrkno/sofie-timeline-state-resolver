@@ -1099,18 +1099,20 @@ describe('Sisyfos', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '192.168.0.10',
-				port: 8900,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
@@ -1249,18 +1251,20 @@ describe('Sisyfos', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '192.168.0.10',
-				port: 8900,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
