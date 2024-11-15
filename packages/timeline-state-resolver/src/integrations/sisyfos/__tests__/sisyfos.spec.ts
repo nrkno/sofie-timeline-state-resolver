@@ -1318,20 +1318,14 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeTicks(100) // 100
 		expect(commandReceiver0.mock.calls.length).toEqual(2)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			type: 'setChannel',
+			type: 'setFader',
 			channel: 1,
-			values: {
-				faderLevel: 0.1,
-				pgmOn: 0,
-			},
+			values: [0.1],
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-			type: 'setChannel',
+			type: 'setFader',
 			channel: 2,
-			values: {
-				faderLevel: 0.2,
-				pgmOn: 0,
-			},
+			values: [0.2],
 		})
 		commandReceiver0.mockClear()
 
