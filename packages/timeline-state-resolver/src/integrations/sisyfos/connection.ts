@@ -1,12 +1,20 @@
 import * as osc from 'osc'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'eventemitter3'
 import { MetaArgument } from 'osc'
 
 /** How often to check connection status */
 const CONNECTIVITY_INTERVAL = 3000 // ms
 const CONNECTIVITY_TIMEOUT = 1000 // ms
 
-export class SisyfosApi extends EventEmitter {
+interface SisyfosApiEvents {
+	error: [Error]
+	initialized: []
+	mixerOnline: [boolean]
+	connected: []
+	disconnected: []
+}
+
+export class SisyfosApi extends EventEmitter<SisyfosApiEvents> {
 	private _oscClient: osc.UDPPort | undefined
 	private _state?: SisyfosState
 	private _labelToChannel: Map<string, number> = new Map()
@@ -70,6 +78,16 @@ export class SisyfosApi extends EventEmitter {
 			this._oscClient.send({ address: '/take', args: [] })
 		} else if (command.type === SisyfosCommandType.CLEAR_PST_ROW) {
 			this._oscClient.send({ address: '/clearpst', args: [] })
+		} else if (command.type === SisyfosCommandType.RESYNC_CHANNEL) {
+			this._oscClient.send({
+				address: `/ch/${command.channel + 1}/state`,
+				args: [
+					{
+						type: 'i',
+						value: command.value,
+					},
+				],
+			})
 		} else if (command.type === SisyfosCommandType.LABEL) {
 			this._oscClient.send({
 				address: `/ch/${command.channel + 1}/label`,
@@ -122,76 +140,42 @@ export class SisyfosApi extends EventEmitter {
 					},
 				],
 			})
-		} else if (command.type === SisyfosCommandType.SET_CHANNEL) {
-			if (command.values.label) {
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/label`,
-					args: [
-						{
-							type: 's',
-							value: command.values.label,
-						},
-					],
-				})
-			}
-			if (command.values.pgmOn !== undefined) {
-				const args: Array<MetaArgument> = [
+		} else if (command.type === SisyfosCommandType.SET_MUTE) {
+			this._oscClient.send({
+				address: `/ch/${command.channel + 1}/mute`,
+				args: [
 					{
 						type: 'i',
-						value: command.values.pgmOn,
+						value: command.value === true ? 1 : 0,
 					},
-				]
-				if (command.values.fadeTime) {
-					args.push({
-						type: 'f',
-						value: command.values.fadeTime,
-					})
-				}
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/pgm`,
-					args,
-				})
-			}
-			if (command.values.pstOn !== undefined) {
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/pst`,
-					args: [
-						{
-							type: 'i',
-							value: command.values.pstOn,
-						},
-					],
-				})
-			}
-			if (command.values.faderLevel !== undefined) {
-				const args: Array<MetaArgument> = [
+				],
+			})
+		} else if (command.type === SisyfosCommandType.SET_INPUT_GAIN) {
+			this._oscClient.send({
+				address: `/ch/${command.channel + 1}/inputgain`,
+				args: [
 					{
 						type: 'f',
-						value: command.values.faderLevel,
+						value: command.value,
 					},
-				]
-				if (command.values.fadeTime) {
-					args.push({
-						type: 'f',
-						value: command.values.fadeTime,
-					})
-				}
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/faderlevel`,
-					args,
-				})
+				],
+			})
+		} else if (command.type === SisyfosCommandType.SET_INPUT_SELECTOR) {
+			this._oscClient.send({
+				address: `/ch/${command.channel + 1}/inputselector`,
+				args: [
+					{
+						type: 'i',
+						value: command.value,
+					},
+				],
+			})
+		} else if (command.type === SisyfosCommandType.SET_CHANNEL) {
+			// Resync all properties for a channel
+			const channelState = {
+				...command.values,
 			}
-			if (command.values.visible !== undefined) {
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/visible`,
-					args: [
-						{
-							type: 'i',
-							value: command.values.visible as unknown as number,
-						},
-					],
-				})
-			}
+			this.setSisyfosChannel(command.channel + 1, channelState)
 		}
 	}
 
@@ -208,6 +192,33 @@ export class SisyfosApi extends EventEmitter {
 			throw new Error(`OSC client not initialised`)
 		}
 		this._oscClient.send({ address: '/state/full', args: [] })
+	}
+
+	reSyncOneChannel(channel: number) {
+		if (!this._oscClient) {
+			throw new Error(`Can't resync channel, OSC client not initialised`)
+		}
+		// This will trigger Sisyfos to emit its state of that channel, to be picked up in this.receiver()
+		this._oscClient.send({ address: `/ch/${channel}/state`, args: [] })
+	}
+
+	setSisyfosChannel(channel: number, apiState: Partial<SisyfosChannelAPI>) {
+		if (!this._oscClient) {
+			throw new Error(`Can't set channel, OSC client not initialised`)
+		}
+		const oscApiState: SisyfosChannelOSCAPI = {
+			pgmOn: apiState.pgmOn === 1,
+			voOn: apiState.pgmOn === 2,
+			pstOn: apiState.pstOn === 1,
+			label: apiState.label ?? '',
+			faderLevel: apiState.faderLevel ?? 0.75,
+			muteOn: apiState.muteOn ?? false,
+			inputGain: apiState.inputGain ?? 0.75,
+			inputSelector: apiState.inputSelector ?? 1,
+			fadeTime: apiState.fadeTime,
+			showChannel: apiState.visible,
+		}
+		this._oscClient.send({ address: `/setchannel/${channel}`, args: { type: 's', value: JSON.stringify(oscApiState) } })
 	}
 
 	getChannelByLabel(label: string): number | undefined {
@@ -260,19 +271,21 @@ export class SisyfosApi extends EventEmitter {
 
 	private receiver(message: osc.OscMessage) {
 		const address = message.address.substr(1).split('/')
-		if (address[0] === 'state') {
-			if (address[1] === 'full') {
-				this._state = this.parseSisyfosState(message)
-				this._labelToChannel = new Map(
-					Object.entries<SisyfosChannel>(this._state.channels).map((v) => [v[1].label, Number(v[0])])
-				)
-				this.emit('initialized')
-			} else if (address[1] === 'ch' && this._state) {
-				const ch = address[2]
-				this._state.channels[ch] = {
-					...this._state.channels[ch],
-					...this.parseChannelCommand(message, address.slice(3)),
-				}
+		if (address[0] === 'state' && address[1] === 'full') {
+			this._state = this.parseSisyfosState(message)
+			this._labelToChannel = new Map(
+				Object.entries<SisyfosChannel>(this._state.channels).map((v) => [v[1].label, Number(v[0])])
+			)
+			this.emit('initialized')
+		} else if (address[0] === 'ch' && this._state) {
+			// This receives updates for a single channel
+			// But is not used in TSR as of now
+			// If once neeeded a new event should be implemented:
+			// like: this.emit('channel-state-changed')
+			const ch = Number(address[1]) - 1
+			this._state.channels[ch] = {
+				...this._state.channels[ch],
+				...this.parseChannelCommand(message, address.slice(2)),
 			}
 		} else if (address[0] === 'pong') {
 			// a reply to "/ping"
@@ -303,13 +316,26 @@ export class SisyfosApi extends EventEmitter {
 		}
 	}
 
-	private parseChannelCommand(message: osc.OscMessage, address: Array<string>) {
+	private parseChannelCommand(message: osc.OscMessage, address: Array<string>): Partial<SisyfosChannel> {
 		if (address[0] === 'pgm') {
 			return { pgmOn: message.args[0].value }
 		} else if (address[0] === 'pst') {
 			return { pstOn: message.args[0].value }
 		} else if (address[0] === 'faderlevel') {
 			return { faderLevel: message.args[0].value }
+		} else if (address[0] === 'state') {
+			const stateFromChannel = this.parseSisyfosState(message).channels[0]
+			return {
+				pgmOn: stateFromChannel.pgmOn,
+				pstOn: stateFromChannel.pstOn,
+				faderLevel: stateFromChannel.faderLevel,
+				visible: stateFromChannel.visible,
+				label: stateFromChannel.label,
+				fadeTime: stateFromChannel.fadeTime,
+				muteOn: stateFromChannel.muteOn,
+				inputGain: stateFromChannel.inputGain,
+				inputSelector: stateFromChannel.inputSelector,
+			}
 		}
 		return {}
 	}
@@ -319,7 +345,7 @@ export class SisyfosApi extends EventEmitter {
 		const deviceState: SisyfosState = { channels: {}, resync: false }
 
 		Object.keys(extState.channel).forEach((index: string) => {
-			const ch = extState.channel[index]
+			const ch = extState.channel[index] as SisyfosChannelOSCAPI
 
 			let pgmOn = 0
 			if (ch.pgmOn === true) {
@@ -333,6 +359,10 @@ export class SisyfosApi extends EventEmitter {
 				pstOn: ch.pstOn === true ? 1 : 0,
 				label: ch.label || '',
 				visible: ch.showChannel ? true : false,
+				fadeTime: ch.fadeTime || undefined,
+				muteOn: ch.muteOn || false,
+				inputGain: ch.inputGain || 0.75,
+				inputSelector: ch.inputSelector || 1,
 				timelineObjIds: [],
 			}
 
@@ -347,11 +377,15 @@ export enum SisyfosCommandType {
 	TOGGLE_PGM = 'togglePgm',
 	TOGGLE_PST = 'togglePst',
 	SET_FADER = 'setFader',
+	SET_INPUT_GAIN = 'setInputGain',
+	SET_INPUT_SELECTOR = 'setInputSelector',
+	SET_MUTE = 'setMute',
 	CLEAR_PST_ROW = 'clearPstRow',
 	LABEL = 'label',
 	TAKE = 'take',
 	VISIBLE = 'visible',
 	RESYNC = 'resync',
+	RESYNC_CHANNEL = 'resyncChannel',
 	SET_CHANNEL = 'setChannel',
 }
 
@@ -362,7 +396,7 @@ export interface BaseCommand {
 export interface SetChannelCommand {
 	type: SisyfosCommandType.SET_CHANNEL
 	channel: number
-	values: Partial<SisyfosAPIChannel>
+	values: Partial<SisyfosChannelAPI>
 }
 
 export interface ChannelCommand extends BaseCommand {
@@ -372,6 +406,10 @@ export interface ChannelCommand extends BaseCommand {
 		| SisyfosCommandType.TOGGLE_PST
 		| SisyfosCommandType.LABEL
 		| SisyfosCommandType.VISIBLE
+		| SisyfosCommandType.RESYNC_CHANNEL
+		| SisyfosCommandType.SET_INPUT_SELECTOR
+		| SisyfosCommandType.SET_INPUT_GAIN
+		| SisyfosCommandType.SET_MUTE
 	channel: number
 }
 
@@ -380,11 +418,16 @@ export interface GlobalCommand extends BaseCommand {
 }
 
 export interface BoolCommand extends ChannelCommand {
-	type: SisyfosCommandType.VISIBLE
+	type: SisyfosCommandType.VISIBLE | SisyfosCommandType.SET_MUTE
 	value: boolean
 }
 export interface ValueCommand extends ChannelCommand {
-	type: SisyfosCommandType.TOGGLE_PST | SisyfosCommandType.VISIBLE
+	type:
+		| SisyfosCommandType.TOGGLE_PST
+		| SisyfosCommandType.VISIBLE
+		| SisyfosCommandType.RESYNC_CHANNEL
+		| SisyfosCommandType.SET_INPUT_SELECTOR
+		| SisyfosCommandType.SET_INPUT_GAIN
 	value: number
 }
 
@@ -406,8 +449,9 @@ export type SisyfosCommand =
 	| StringCommand
 	| SetChannelCommand
 
-export interface SisyfosChannel extends SisyfosAPIChannel {
+export interface SisyfosChannel extends SisyfosChannelAPI {
 	timelineObjIds: string[]
+	triggerValue?: string
 }
 export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }
@@ -417,17 +461,36 @@ export interface SisyfosState {
 
 // ------------------------------------------------------
 // Interfaces for the data that comes over OSC:
-export interface SisyfosAPIChannel {
+
+export interface SisyfosChannelAPI {
 	faderLevel: number
 	pgmOn: number
 	pstOn: number
 	label: string
 	visible: boolean
 	fadeTime?: number
+	muteOn: boolean
+	inputGain: number
+	inputSelector: number
+}
+
+// ------------------------------------------------------
+// Interfaces for the data that sends over OSC to Sisyfos:
+export interface SisyfosChannelOSCAPI {
+	faderLevel?: number
+	pgmOn?: boolean
+	voOn?: boolean
+	pstOn?: boolean
+	label?: string
+	showChannel?: boolean
+	fadeTime?: number
+	muteOn?: boolean
+	inputGain?: number
+	inputSelector?: number
 }
 
 export interface SisyfosAPIState {
 	channels: {
-		[index: string]: SisyfosAPIChannel
+		[index: string]: SisyfosChannelAPI
 	}
 }

@@ -27,10 +27,8 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface OscCommandWithContext {
-	command: any // todo
-	context: string
-	timelineObjId: string
+export interface OscCommandWithContext extends CommandWithContext {
+	command: OSCDeviceStateContent
 }
 
 export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
@@ -56,9 +54,21 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 			})
 			this._oscClient = client
 			client.open() // creates client.socket
+			let firstConnect = true
 			client.socket.on('connect', () => {
 				this._oscClientStatus = 'connected'
-				this.context.connectionChanged(this.getStatus())
+				if (firstConnect) {
+					// note - perhaps we could resend the commands every time we reconnect? or that could be a device option
+					firstConnect = false
+					this.context.connectionChanged(this.getStatus())
+					this.context
+						.resetToState({})
+						.catch((e) =>
+							this.context.logger.warning(
+								'Failed to reset to state after first connection, device may be in unknown state (reason: ' + e + ')'
+							)
+						)
+				}
 			})
 			client.socket.on('close', () => {
 				this._oscClientStatus = 'disconnected'
@@ -73,6 +83,15 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 				remoteAddress: options.host,
 				remotePort: options.port,
 				metadata: true,
+			})
+			this._oscClient.once('ready', () => {
+				this.context
+					.resetToState({})
+					.catch((e) =>
+						this.context.logger.warning(
+							'Failed to reset to state after first connection, device may be in unknown state (reason: ' + e + ')'
+						)
+					)
 			})
 			this._oscClient.open()
 		} else {

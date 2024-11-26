@@ -34,7 +34,11 @@ export enum VMixCommand {
 	STOP_EXTERNAL = 'STOP_EXTERNAL',
 	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
 	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
-	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY',
+	SET_LAYER_INPUT = 'SET_LAYER_INPUT',
+	SET_LAYER_ZOOM = 'SET_LAYER_ZOOM',
+	SET_LAYER_PAN_X = 'SET_LAYER_PAN_X',
+	SET_LAYER_PAN_Y = 'SET_LAYER_PAN_Y',
+	SET_LAYER_CROP = 'SET_LAYER_CROP',
 	SCRIPT_START = 'SCRIPT_START',
 	SCRIPT_STOP = 'SCRIPT_STOP',
 	SCRIPT_STOP_ALL = 'SCRIPT_STOP_ALL',
@@ -166,8 +170,18 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	transform?: VMixTransform
 
-	/** List of input (Multi View) overlays; indexes start from 1 */
+	/**
+	 * List of input (Multi View) overlays; indexes start from 1
+	 * @deprecated Use `layers` instead. If both `layers` and `overlays` are provided, `overlays` will be discarded
+	 */
 	overlays?: VMixInputOverlays
+
+	/**
+	 * List of input Layers.
+	 * Indexes start from 1.
+	 * Requires vMix 27+.
+	 */
+	layers?: VMixLayers
 
 	/** An array of file paths to load into a List input. Uses Windows-style path separators (\\). Only applies to List inputs. */
 	listFilePaths?: string[]
@@ -221,8 +235,53 @@ export interface VMixTransform {
 	alpha: number
 }
 
+export interface VMixLayers {
+	[index: number]: VMixLayer
+}
+
 export interface VMixInputOverlays {
 	[index: number]: number | string
+}
+
+export interface VMixLayer {
+	input: string | number
+
+	/**
+	 * Horizontal pan (-2 - 2)
+	 * 0 = centered, -2 = 100% to left, 2 = 100% to right
+	 */
+	panX?: number
+	/**
+	 * Vertical pan (-2 - 2)
+	 * 0 = centered, -2 = 100% to bottom, 2 = 100% to top
+	 */
+	panY?: number
+
+	/**
+	 * Scale (0 - 5)
+	 */
+	zoom?: number
+
+	/**
+	 * Left crop (0 - 1)
+	 * 0 = No Crop, 1 = Full Crop
+	 */
+	cropLeft?: number
+	/**
+	 * Top crop (0 - 1)
+	 * 0 = No Crop, 1 = Full Crop
+	 */
+	cropTop?: number
+	/**
+	 * Right crop (0 - 1)
+	 * 1 = No Crop, 0 = Full Crop
+	 */
+	cropRight?: number
+	/**
+	 * Bottom crop (0 - 1)
+	 * 1 = No Crop, 0 = Full Crop
+	 */
+	cropBottom?: number
 }
 
 export interface VMixTransition {

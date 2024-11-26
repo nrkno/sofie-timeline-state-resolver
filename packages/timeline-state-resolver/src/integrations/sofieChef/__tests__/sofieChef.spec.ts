@@ -19,7 +19,7 @@ describe('SofieChef', () => {
 		WebSocket.mockConstructor((ws: WebSocket) => {
 			// @ts-ignore mock
 			// ws.mockReplyFunction((message) => {
-			// 	return ''
+			// 	return Buffer.from('')
 			// })
 
 			setImmediate(() => {

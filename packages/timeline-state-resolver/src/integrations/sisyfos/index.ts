@@ -31,18 +31,11 @@ const debug = Debug('timeline-state-resolver:sisyfos')
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
 	commandReceiver?: CommandReceiver
 }
-export type CommandReceiver = (
-	time: number,
-	cmd: SisyfosCommand,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
-interface Command {
-	content: SisyfosCommand
-	context: CommandContext
-	timelineObjId: string
+export type CommandReceiver = (time: number, cmd: SisyfosCommand, context: any, timelineObjId: string) => Promise<any>
+interface Command extends CommandWithContext {
+	command: SisyfosCommand
 }
-type CommandContext = string
+
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
@@ -85,10 +78,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	async init(initOptions: SisyfosOptions): Promise<boolean> {
 		this._sisyfos.once('initialized', () => {
 			this.setState(this.getDeviceState(false), this.getCurrentTime())
-			this.emit('resetResolver')
+			this.emit('resyncStates')
 		})
 
-		return this._sisyfos.connect(initOptions.host, initOptions.port).then(() => true)
+		this._sisyfos
+			.connect(initOptions.host, initOptions.port)
+			.catch((e) => this.emit('error', 'Failed to initialise Sisyfos connection', e))
+
+		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
@@ -190,7 +187,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 		this._sisyfos.reInitialize()
-		this._sisyfos.on('initialized', () => {
+		this._sisyfos.once('initialized', () => {
 			if (resync) {
 				this._resyncing = false
 				const targetState = this.getState(this.getCurrentTime())
@@ -200,7 +197,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				}
 			} else {
 				this.setState(this.getDeviceState(false), this.getCurrentTime())
-				this.emit('resetResolver')
+				this.emit('resyncStates')
 			}
 		})
 
@@ -209,9 +206,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
-		_payload: SisyfosActionExecutionPayload<A>
+		payload: SisyfosActionExecutionPayload<A>
 	): Promise<SisyfosActionExecutionResult<A>> {
-		const actionId = actionId0 as SisyfosActions // type fix for when there is only a single action
+		const actionId = actionId0
 		switch (actionId) {
 			case SisyfosActions.Reinit:
 				return this._makeReadyInner()
@@ -221,6 +218,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					.catch(() => ({
 						result: ActionExecutionResultCode.Error,
 					}))
+			case SisyfosActions.SetSisyfosChannelState:
+				if (typeof payload?.channel !== 'number') {
+					return {
+						result: ActionExecutionResultCode.Error,
+					}
+				}
+				this._sisyfos.setSisyfosChannel(payload.channel + 1, { ...this.getDeviceState().channels[payload.channel] })
+				return {
+					result: ActionExecutionResultCode.Ok,
+				}
 			default:
 				return actionNotFoundMessage(actionId)
 		}
@@ -277,15 +284,19 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			pstOn: 0,
 			label: '',
 			visible: true,
+			muteOn: false,
+			inputGain: 0.75,
+			inputSelector: 1,
 			timelineObjIds: [],
 		}
 	}
+
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
+	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): SisyfosState {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names
@@ -315,6 +326,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			channel: number
 			isLookahead: boolean
 			timelineObjId: string
+			triggerValue?: string
 		} & SisyfosChannelOptions)[] = []
 
 		_.each(state.layers, (tlObject, layerName) => {
@@ -328,8 +340,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				deviceState.resync = deviceState.resync || content.resync
 			}
 
-			// Allow retrigger without valid channel mapping
-			if ('triggerValue' in content && content.triggerValue !== undefined) {
+			// Allow global retrigger without valid channel mapping
+			if (
+				'triggerValue' in content &&
+				content.triggerValue !== undefined &&
+				content.type === TimelineContentTypeSisyfos.TRIGGERVALUE
+			) {
 				deviceState.triggerValue = content.triggerValue
 			}
 
@@ -360,6 +376,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
 						timelineObjId: layer.id,
+						triggerValue: content.triggerValue,
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
@@ -376,6 +393,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
 						timelineObjId: layer.id,
+						triggerValue: content.triggerValue,
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
@@ -391,6 +409,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
 								timelineObjId: layer.id,
+								triggerValue: content.triggerValue,
 							})
 						} else if (
 							referencedMapping &&
@@ -406,6 +425,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
 								timelineObjId: layer.id,
+								triggerValue: content.triggerValue,
 							})
 						}
 					})
@@ -435,6 +455,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				if (newChannel.label !== undefined && newChannel.label !== '') channel.label = newChannel.label
 				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
 				if (newChannel.fadeTime !== undefined) channel.fadeTime = newChannel.fadeTime
+				if (newChannel.muteOn !== undefined) channel.muteOn = newChannel.muteOn
+				if (newChannel.inputGain !== undefined) channel.inputGain = newChannel.inputGain
+				if (newChannel.inputSelector !== undefined) channel.inputSelector = newChannel.inputSelector
+				if (newChannel.triggerValue !== undefined) channel.triggerValue = newChannel.triggerValue
 
 				channel.timelineObjIds.push(newChannel.timelineObjId)
 			}
@@ -461,7 +485,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				time,
 				undefined,
 				async (cmd: Command) => {
-					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
+					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 				},
 				cmd
 			)
@@ -476,7 +500,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		if (newOscSendState.resync && !oldOscSendState.resync) {
 			commands.push({
 				context: `Resyncing with Sisyfos`,
-				content: {
+				command: {
 					type: SisyfosCommandType.RESYNC,
 				},
 				timelineObjId: '',
@@ -492,7 +516,22 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug('reset channel ' + index)
 				commands.push({
 					context: `Channel ${index} reset`,
-					content: {
+					command: {
+						type: SisyfosCommandType.SET_CHANNEL,
+						channel: Number(index),
+						values: newChannel,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+				return
+			}
+
+			if (newChannel.triggerValue && oldChannel?.triggerValue !== newChannel.triggerValue) {
+				// note - should we only do this if we have an oldchannel?
+				debug('reset channel ' + index)
+				commands.push({
+					context: `Channel ${index} reset`,
+					command: {
 						type: SisyfosCommandType.SET_CHANNEL,
 						channel: Number(index),
 						values: newChannel,
@@ -510,7 +549,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				}
 				commands.push({
 					context: `Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.TOGGLE_PGM,
 						channel: Number(index),
 						values,
@@ -523,7 +562,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`)
 				commands.push({
 					context: `Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.TOGGLE_PST,
 						channel: Number(index),
 						value: newChannel.pstOn,
@@ -540,7 +579,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				}
 				commands.push({
 					context: 'faderLevel change',
-					content: {
+					command: {
 						type: SisyfosCommandType.SET_FADER,
 						channel: Number(index),
 						values,
@@ -554,7 +593,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`set label on fader ${index}: "${newChannel.label}"`)
 				commands.push({
 					context: 'set label on fader',
-					content: {
+					command: {
 						type: SisyfosCommandType.LABEL,
 						channel: Number(index),
 						value: newChannel.label,
@@ -567,10 +606,49 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`)
 				commands.push({
 					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.VISIBLE,
 						channel: Number(index),
 						value: newChannel.visible,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.muteOn !== newChannel.muteOn) {
+				debug(`Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`)
+				commands.push({
+					context: `Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`,
+					command: {
+						type: SisyfosCommandType.SET_MUTE,
+						channel: Number(index),
+						value: newChannel.muteOn,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.inputGain !== newChannel.inputGain) {
+				debug(`Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`)
+				commands.push({
+					context: `Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`,
+					command: {
+						type: SisyfosCommandType.SET_INPUT_GAIN,
+						channel: Number(index),
+						value: newChannel.inputGain,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.inputSelector !== newChannel.inputSelector) {
+				debug(`Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`)
+				commands.push({
+					context: `Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`,
+					command: {
+						type: SisyfosCommandType.SET_INPUT_SELECTOR,
+						channel: Number(index),
+						value: newChannel.inputSelector,
 					},
 					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
@@ -582,7 +660,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: SisyfosCommand,
-		context: CommandContext,
+		context: string,
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {

@@ -28,11 +28,9 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface QuantelCommandWithContext {
+export interface QuantelCommandWithContext extends CommandWithContext {
 	command: QuantelCommand
 	context: string
-	timelineObjId: string
-	preliminary?: number
 }
 
 export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
@@ -74,16 +72,31 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 			.init(options.gatewayUrl, isaURLs, options.zoneId, options.serverId)
 			.then(() => {
 				this._quantel.monitorServerStatus((connected: boolean) => {
-					if (!this._disconnectedSince && connected === false && options.suppressDisconnectTime) {
+					if (!this._disconnectedSince && connected === false) {
 						this._disconnectedSince = Date.now()
 
-						// trigger another update after debounce
-						setTimeout(() => {
-							if (!this._quantel.connected) {
-								this.context.connectionChanged(this.getStatus())
-							}
-						}, options.suppressDisconnectTime)
+						if (options.suppressDisconnectTime) {
+							// trigger another update after debounce
+							setTimeout(() => {
+								if (!this._quantel.connected) {
+									this.context.connectionChanged(this.getStatus())
+								}
+							}, options.suppressDisconnectTime)
+						}
 					} else if (connected === true) {
+						if (!this._disconnectedSince) {
+							// this must be our first time connecting, so let's resend any commands we missed
+							this.context
+								.resetToState({ time: 0, port: {} })
+								.catch((e) =>
+									this.context.logger.warning(
+										'Failed to reset to state after first connection, device may be in unknown state (reason: ' +
+											e +
+											')'
+									)
+								)
+						}
+
 						this._disconnectedSince = undefined
 					}
 

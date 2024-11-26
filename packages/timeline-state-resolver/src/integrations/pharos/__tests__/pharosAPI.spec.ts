@@ -25,7 +25,7 @@ import { OptionsOfTextResponseBody, Response } from 'got'
 const orgSetTimeout = setTimeout
 
 function getStandardPharosMockReply() {
-	return jest.fn((_ws: WebSocket, message: string) => {
+	return jest.fn((_ws: WebSocket, message: string): string | null => {
 		const data = JSON.parse(message)
 		if (data.request) {
 			const reply = ((): any => {
@@ -314,7 +314,10 @@ describe('PharosAPI', () => {
 			// @ts-ignore mock
 			ws.mockReplyFunction((message) => {
 				if (message === '') return '' // ping message
-				return mockReply(ws, message)
+				const reply = mockReply(ws, message)
+
+				if (reply) return Buffer.from(reply)
+				return reply
 			})
 		})
 
@@ -392,7 +395,10 @@ describe('PharosAPI', () => {
 			// @ts-ignore mock
 			ws.mockReplyFunction((message) => {
 				if (message === '') return '' // ping message
-				return mockReply(ws, message)
+				const reply = mockReply(ws, message)
+
+				if (reply) return Buffer.from(reply)
+				return reply
 			})
 		})
 
@@ -445,7 +451,10 @@ describe('PharosAPI', () => {
 			// @ts-ignore mock
 			ws.mockReplyFunction((message) => {
 				if (message === '') return '' // ping message
-				return mockReply(ws, message)
+				const reply = mockReply(ws, message)
+
+				if (reply) return Buffer.from(reply)
+				return reply
 			})
 		})
 		const pharos = new Pharos()
@@ -647,7 +656,10 @@ describe('PharosAPI', () => {
 			// @ts-ignore mock
 			ws.mockReplyFunction((message) => {
 				if (message === '') return '' // ping message
-				return mockReply(ws, message)
+				const reply = mockReply(ws, message)
+
+				if (reply) return Buffer.from(reply)
+				return reply
 			})
 		})
 		const pharos = new Pharos()
@@ -752,7 +764,10 @@ describe('PharosAPI', () => {
 			// @ts-ignore mock
 			ws.mockReplyFunction((message) => {
 				if (message === '') return '' // ping message
-				return mockReply(ws, message)
+				const reply = mockReply(ws, message)
+
+				if (reply) return Buffer.from(reply)
+				return reply
 			})
 		})
 		const pharos = new Pharos()
@@ -1056,7 +1071,10 @@ describe('PharosAPI', () => {
 			// @ts-ignore mock
 			ws.mockReplyFunction((message) => {
 				if (message === '') return '' // ping message
-				return mockReply(ws, message)
+				const reply = mockReply(ws, message)
+
+				if (reply) return Buffer.from(reply)
+				return reply
 			})
 		})
 		const pharos = new Pharos()
@@ -1193,7 +1211,10 @@ describe('PharosAPI', () => {
 			// @ts-ignore mock
 			ws.mockReplyFunction((message) => {
 				if (message === '') return '' // ping message
-				return mockReply(ws, message)
+				const reply = mockReply(ws, message)
+
+				if (reply) return Buffer.from(reply)
+				return reply
 			})
 		})
 		const pharos = new Pharos()

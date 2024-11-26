@@ -1,3 +1,5 @@
+import { CommandWithContext } from '../../service/device'
+
 /**
  * Values in this enum correspond to actual shortcut names or their suffixes
  */
@@ -169,11 +171,8 @@ export type TriCasterGenericCommandName<T> = T extends boolean
 	? TriCasterGenericNumberCommand['name']
 	: never
 
-export type TriCasterCommandContext = any
-export interface TriCasterCommandWithContext {
+export interface TriCasterCommandWithContext extends CommandWithContext {
 	command: TriCasterCommand
-	context: TriCasterCommandContext
-	timelineObjId: string
 	temporalPriority: number
 }
 

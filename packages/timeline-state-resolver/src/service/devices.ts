@@ -18,6 +18,7 @@ import { ViscaOverIpDevice } from '../integrations/viscaOverIP'
 import { TelemetricsDevice } from '../integrations/telemetrics'
 import { TriCasterDevice } from '../integrations/tricaster'
 import { SingularLiveDevice } from '../integrations/singularLive'
+import { MultiOSCMessageDevice } from '../integrations/multiOsc'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -35,6 +36,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.LAWO
 	| DeviceType.OBS
 	| DeviceType.OSC
+	| DeviceType.MULTI_OSC
 	| DeviceType.PANASONIC_PTZ
 	| DeviceType.PHAROS
 	| DeviceType.SHOTOKU
@@ -96,6 +98,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceName: (deviceId: string) => 'OSC ' + deviceId,
 		executionMode: () => 'salvo',
 	},
+	[DeviceType.MULTI_OSC]: {
+		deviceClass: MultiOSCMessageDevice,
+		canConnect: false,
+		deviceName: (deviceId: string) => 'MultiOSC ' + deviceId,
+		executionMode: () => 'salvo',
+	},
 	[DeviceType.PANASONIC_PTZ]: {
 		deviceClass: PanasonicPtzDevice,
 		canConnect: true,
@@ -148,7 +156,7 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: QuantelDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Quantel' + deviceId,
-		executionMode: () => 'salvo',
+		executionMode: () => 'sequential',
 	},
 	[DeviceType.VISCA_OVER_IP]: {
 		deviceClass: ViscaOverIpDevice,

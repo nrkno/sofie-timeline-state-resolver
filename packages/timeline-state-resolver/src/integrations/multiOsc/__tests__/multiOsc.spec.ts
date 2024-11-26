@@ -1,21 +1,21 @@
-import { Conductor } from '../../../conductor'
 import {
 	Mappings,
 	DeviceType,
 	TimelineContentTypeOSC,
 	OSCValueType,
 	TimelineContentOSCMessage,
-	TSRTimelineObj,
 	MultiOSCDeviceType,
 	MappingMultiOscLayer,
 	Mapping,
 	MappingMultiOscType,
+	Timeline,
+	SomeOSCValue,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
-import { literal } from '../../../lib'
-import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
 import { MultiOSCMessageDevice } from '..'
+import { getDeviceContext } from '../../__tests__/testlib'
+import { TSRTimelineContent } from 'timeline-state-resolver-types/src'
 
 // let nowActual = Date.now()
 describe('MultiOSC-Message', () => {
@@ -39,15 +39,9 @@ describe('MultiOSC-Message', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		myConductor.on('error', (e) => console.error(e))
-		await myConductor.init()
-		await myConductor.addDevice('osc0', {
-			type: DeviceType.MULTI_OSC,
-			options: {
+		const device = new MultiOSCMessageDevice(getDeviceContext())
+		await device.init(
+			{
 				connections: [
 					{
 						connectionId: 'osc0',
@@ -58,58 +52,71 @@ describe('MultiOSC-Message', () => {
 				],
 				timeBetweenCommands: 160,
 			},
-			oscSenders: { osc0: commandReceiver0 },
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
+			{
+				oscSenders: { osc0: commandReceiver0 },
+			}
+		)
 
-		const deviceContainer = myConductor.getDevice('osc0')
-		const device = deviceContainer!.device as ThreadedClass<MultiOSCMessageDevice>
+		const testValues: SomeOSCValue[] = [
+			{
+				type: OSCValueType.INT,
+				value: 123,
+			},
+			{
+				type: OSCValueType.FLOAT,
+				value: 123.45,
+			},
+			{
+				type: OSCValueType.STRING,
+				value: 'abc',
+			},
+			{
+				type: OSCValueType.BLOB,
+				value: new Uint8Array([1, 3, 5]),
+			},
+		]
 
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
+		const state = device.convertTimelineStateToDeviceState(
+			createTimelineState({
+				obj0: {
+					id: 'obj0',
 
-		myConductor.setTimelineAndMappings([
-			literal<TSRTimelineObj<TimelineContentOSCMessage>>({
-				id: 'obj0',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
-				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.OSC,
-					type: TimelineContentTypeOSC.OSC,
+					layer: 'myLayer0',
 
-					path: '/test-path',
-					values: [
-						{
-							type: OSCValueType.INT,
-							value: 123,
-						},
-						{
-							type: OSCValueType.FLOAT,
-							value: 123.45,
-						},
-						{
-							type: OSCValueType.STRING,
-							value: 'abc',
-						},
-						{
-							type: OSCValueType.BLOB,
-							value: new Uint8Array([1, 3, 5]),
-						},
-					],
+					content: {
+						deviceType: DeviceType.OSC,
+						type: TimelineContentTypeOSC.OSC,
+
+						path: '/test-path',
+						values: testValues,
+					},
 				},
 			}),
-		])
+			myLayerMapping
+		)
+		expect(state).toBeTruthy()
+		expect(state).toEqual({
+			osc0: {
+				'/test-path': {
+					connectionId: 'osc0',
+					deviceType: DeviceType.OSC,
+					type: TimelineContentTypeOSC.OSC,
+					fromTlObject: 'obj0',
+					path: '/test-path',
+					values: testValues,
+				},
+			},
+		})
 
-		await mockTime.advanceTimeToTicks(10990)
+		const commands = device.diffStates(undefined, state)
+		expect(commands).toHaveLength(1)
+
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		await mockTime.advanceTimeToTicks(11100)
-
+		for (const command of commands) {
+			await device.sendCommand(command)
+		}
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		// console.log(commandReceiver0.mock.calls)
+
 		expect(getMockCall(commandReceiver0, 0, 0)).toMatchObject({
 			address: '/test-path',
 			args: [
@@ -131,7 +138,15 @@ describe('MultiOSC-Message', () => {
 				},
 			],
 		})
-		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 })
+
+function createTimelineState(
+	objs: Record<string, { id: string; layer: string; content: TimelineContentOSCMessage }>
+): Timeline.TimelineState<TSRTimelineContent> {
+	return {
+		time: 10,
+		layers: objs as any,
+		nextEvents: [],
+	}
+}

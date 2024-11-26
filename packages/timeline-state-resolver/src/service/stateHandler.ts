@@ -105,6 +105,9 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		}
 	}
 
+	/**
+	 * Sets the current state and makes sure the commands to get to the next state are still corrects
+	 **/
 	async setCurrentState(state: DeviceState | undefined) {
 		this.currentState = {
 			commands: [],
@@ -112,6 +115,43 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
 			mappings: this.currentState?.mappings || {},
 		}
+		await this.calculateNextStateChange()
+	}
+
+	/**
+	 * This takes in a DeviceState and then updates the commands such that the device
+	 * will be put back into its intended state as designated by the timeline
+	 * @todo: this may need to be tied into _executingStateChange variable
+	 */
+	async updateStateFromDeviceState(state: DeviceState | undefined) {
+		// update the current state to the state we received
+		const timelineState = this.currentState?.state || {
+			time: this.context.getCurrentTime(),
+			layers: {},
+			nextEvents: [],
+		}
+		const currentMappings = this.currentState?.mappings || {}
+
+		this.currentState = {
+			commands: [],
+			deviceState: state,
+			state: timelineState,
+			mappings: currentMappings,
+		}
+
+		// calculate how to get to the timeline state (because the device state may have changed based on device config changes or something)
+		const trace = startTrace('device:convertTimelineStateToDeviceState', { deviceId: this.context.deviceId })
+		const deviceState = this.device.convertTimelineStateToDeviceState(timelineState, currentMappings) // @todo - we should probably be recalculating all of these :x
+		this.context.emitTimeTrace(endTrace(trace))
+
+		// push a new state
+		this.stateQueue.unshift({
+			deviceState: deviceState,
+			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
+			mappings: this.currentState?.mappings || {},
+		})
+
+		// now we let it calculate commands to get into the right state, which should be executed immediately given this state is from the past
 		await this.calculateNextStateChange()
 	}
 

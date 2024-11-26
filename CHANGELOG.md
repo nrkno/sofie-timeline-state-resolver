@@ -3,65 +3,141 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [9.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0...9.0.1) (2024-04-02)
+### [9.2.0-release52](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.1.0...9.2.0-release52) (2024-08-19)
+
+## [9.2.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.0-alpha.0...9.2.0) (2024-10-07)
 
 
 ### Bug Fixes
 
-* **vMix:** handling XML messages with multi-byte characters ([e811ef0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e811ef09f6118c69ea337e0b1eb969a663546bde))
+* revert quantel device to release50 version ([36817aa](https://github.com/nrkno/sofie-timeline-state-resolver/commit/36817aadcd0d0657bfa6175a3b333b1bf9e2c798))
 
 
+
+## [9.2.0-alpha.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.1.0...9.2.0-alpha.0) (2024-09-09)
+
+
+### Features
+
+* allow sequential executionMode to paralelize multiple queues of Commands ([84a53cd](https://github.com/nrkno/sofie-timeline-state-resolver/commit/84a53cd5f1ee0978767d46ad766c01841559983d))
+
+
+### Bug Fixes
+
+* filter mappings by deviceid ([f4402dd](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f4402ddc6b9998e9cdf6d04f3c766ba94056d4bd))
+* update timeline dependency (see https://github.com/SuperFlyTV/supertimeline/pull/102 ) ([81af9f7](https://github.com/nrkno/sofie-timeline-state-resolver/commit/81af9f7a1e3c24cfd1bbd85e5497198ff4c612bc))
+* use sequential send mode for quantel ([940e68a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/940e68ab09a37df7ce53944d888757a4a6f5a9c9))
+
+
+
+## [9.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.2...9.1.0) (2024-08-19)
+
+**Note:** Version bump only for package timeline-state-resolver-packages
+
+## [9.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.2...9.1.0) (2024-08-19)
+
+### Features
+
+- add "returnData" to action schema ([529bcb3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/529bcb3157f2e583c077dd54787d0c3ea4a25905))
+- atem color generator support SOFIE-2968 ([#322](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/322)) ([b7ceb69](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b7ceb6950c875ff123dcc9bdd58a45c7922045d2))
+- atem command batching SOFIE-2549 ([#308](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/308)) ([75e2cbe](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/75e2cbebd8ffe05e5de44d0f0f3797bbb07882e7))
+- convert quantel to state handler ([7f6e619](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7f6e619e1284c3ff7e3cf9ad21e578018e19edd0))
+- Dereference schemas ([#286](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/286)) ([7f6a20e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7f6a20e7656e92e337e9ddd45048fe76b08e349e))
+- **EAV-243:** add OAuth (Client Credentials grant) and Bearer Token to HTTPSend ([8fef807](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8fef807e31c7b65d1017d772ba2e0a441f899226))
+- **EAV-243:** add oauth token path option for a broader support ([76592f2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/76592f29d53b1ce5b64ddd1c283f7f045c155da3))
+- **EAV-269:** add vMix input layers props and commands ([1bcf056](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1bcf056a70ed7932c1c5588fdad17f1c25d32832))
+- **httpSend:** Proxy support ([6dc4c59](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6dc4c59424242b1ea6681c27c0647a9afaae7c17))
+- **HTTPSend:** return response data from HTTP SendCommand action ([#334](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/334)) ([d220c78](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d220c786ea3ae139a690d741dcfdf9d8f0c8511f))
+- include timestamp in statediff api ([06f095a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/06f095a81ce917ec9c350c191f662f8b660123fd))
+- refactor chef device ([#330](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/330)) ([3c857c6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3c857c668006dcef3bc37833987f7520fb6c9444))
+- refactor pharos device SOFIE-2488 ([#333](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/333)) ([d57812c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d57812c2b2519635cadb7279803601f06918f91c))
+- refactor singular-live device SOFIE-2492 ([#337](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/337)) ([2d08c7c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2d08c7c14a53fa5c32b50e829f233c9f2a20654c))
+- refactor telemtrics device SOFIE-2496 ([#335](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/335)) ([96e0f6c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96e0f6ca66e479b2cadd61426ed5d7831da95c0b))
+- refactor tricaster device SOFIE-2497 ([#336](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/336)) ([4b4d2f6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4b4d2f63fb16cc66fb348c4c276803ea430d457b))
+- **sisyfos:** Send fadeTime with faderLevel if specified ([5fa0446](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5fa0446a2b35e13e0ca293628022eeed925eb79a))
+- **state handler:** send commands before planned time of the state ([0a3ae5f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0a3ae5f6f764762c0761a53b4364314b945f1c9b))
+- support timeline v9 ([3ccc759](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3ccc759f6d2d64cc2f3ca861634d96b427076490))
+- update atem-connection and atem-state SOFIE-2504 ([#289](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/289)) ([10d1509](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/10d15093654b50364e6deb4e5fe947d6ac0b3058))
+- update hyperdeck-connection ([65dc0dc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/65dc0dc607a63d184ebb51a9c399e8631a0f835c))
+
+### Bug Fixes
+
+- synced synchronous getCurrentTime ([db4c3e6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/db4c3e6138396b8bd5dec85f54338e6add6af079))
+- 'connectionChanged' event typings ([dcd9f02](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dcd9f026258ddebcc5f3303a691910308f940da7))
+- `TypeError: Cannot read properties of undefined (reading 'preliminary')` ([804f1ef](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/804f1ef7df42c7988cb57084d7706a4b8ff59aab))
+- abstract add missing action ([172feb5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/172feb5ddbfc6d7b7371a369afdf5ce005186b56))
+- abstract device to handle undefined old state ([5f656bd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5f656bd1e28be012d8bfbf3f22f564588dee3dd8))
+- add missing cleanup to osc and multi-osc ([71d1d8f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/71d1d8fb991abf5cfad691768b6acca66231b6c0))
+- add missing typings for atem dve ([#305](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/305)) ([1758ffc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1758ffc229e8162efad5261dad8a83d69cf61747))
+- bug in conductor resolve loop ([38a0a22](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/38a0a228a66a2613879642e9b4743a8eedd86505))
+- CasparCG: add listMedia action (wip) ([f4277ad](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f4277ad5515d13803f9850b61b5110f7b8573706))
+- conductor unit tests ([3bbf519](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3bbf519bd844ea3bb777f00e74c2f53483ab158d))
+- **EAV-243:** improve oauthTokenHost UI description ([e2ee7cf](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e2ee7cfcf417d2f9aa790f7622d97c220a256828))
+- **EAV-269:** default to vMix layers instead of deprecated overlays ([dc719c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dc719c8b105d88faf085daf059faef5b17dd03d0))
+- ensure new services are added to `DevicesDict` ([0067869](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0067869a31b4d0c3a0afb8d0b647b655ed6a2fd3))
+- missing httpsend enums ([920da05](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/920da0506cd9f2142d0edabfd9894ccd88d288cf))
+- preliminary time is 0 for no commands ([9f1b481](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9f1b481d5792518a68265f8a32b414786302b7fa))
+- reset atem upon connection ([9cbb458](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9cbb4581d7003cf9107428eb1d6dfba8d3b9c8fc))
+- sisyfos add fade time during reset ([#339](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/339)) ([f6a3609](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f6a36092351d9487e02706762adba69951d5ecd7))
+- suppress quantel disconnect shortly ([9b6621d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b6621dff7d358e8d7870af304678beb3c197987))
+- update casparcg-connection dependency ([e209ba8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e209ba822f9f026018a51d70498e0feb3a94473e))
+- vmix: move pre-loading of media inputs into separate class ([39d3eba](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/39d3ebad6f175fc710bda7a94af6862a6452df80))
+- vmix: move pre-loading of media inputs into separate class ([184fad5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/184fad55e91aef3f48ce5f8f94af1b9e869e5a71))
+
+## [9.0.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.1...9.0.2) (2024-08-15)
+
+### Bug Fixes
+
+- atem supersource border properties SOFIE-3307 ([#341](https://github.com/nrkno/sofie-timeline-state-resolver/issues/341)) ([27213b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/27213b0ca9fcf63ad70520e281f7e8e69bb7273d))
+
+## [9.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0...9.0.1) (2024-04-02)
+
+### Bug Fixes
+
+- **vMix:** handling XML messages with multi-byte characters ([e811ef0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e811ef09f6118c69ea337e0b1eb969a663546bde))
 
 ## [9.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.8...9.0.0) (2024-02-23)
 
 **Note:** Version bump only for package timeline-state-resolver-packages
 
-
-
-
-
 ## [9.0.0-release50.8](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.4...9.0.0-release50.8) (2024-02-02)
-
 
 ### Bug Fixes
 
-* **vMix:** fragmented message handling SOFIE-2932 ([#320](https://github.com/nrkno/sofie-timeline-state-resolver/issues/320)) ([c8fe3b1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/c8fe3b1d5c5f625ceffd3d970efed1b525267165))
-* **vMix:** handle sparse arrays in the state ([#319](https://github.com/nrkno/sofie-timeline-state-resolver/issues/319)) ([d7caf7d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d7caf7d30f397a9fdabafd438b4bf723f3f60bb4))
+- **vMix:** fragmented message handling SOFIE-2932 ([#320](https://github.com/nrkno/sofie-timeline-state-resolver/issues/320)) ([c8fe3b1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/c8fe3b1d5c5f625ceffd3d970efed1b525267165))
+- **vMix:** handle sparse arrays in the state ([#319](https://github.com/nrkno/sofie-timeline-state-resolver/issues/319)) ([d7caf7d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d7caf7d30f397a9fdabafd438b4bf723f3f60bb4))
 
 ## [9.0.0-release50.7](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.0...9.0.0-release50.7) (2023-11-17)
 
-
 ### Features
 
-* changes the implementation of how to assign a pollTime. ([88b875d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/88b875d4d6196f55379c2dadd6d4d570216a6f42))
-* changes the logic for setting a pollInterval ([a482e57](https://github.com/nrkno/sofie-timeline-state-resolver/commit/a482e57e2a647de9421898df3fb061cf28c74408)), closes [#277](https://github.com/nrkno/sofie-timeline-state-resolver/issues/277)
-* **quick-tsr:** add command report and debug logging ([f693569](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f693569601136d27c5fadb29b95787ef18c607ab))
-
+- changes the implementation of how to assign a pollTime. ([88b875d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/88b875d4d6196f55379c2dadd6d4d570216a6f42))
+- changes the logic for setting a pollInterval ([a482e57](https://github.com/nrkno/sofie-timeline-state-resolver/commit/a482e57e2a647de9421898df3fb061cf28c74408)), closes [#277](https://github.com/nrkno/sofie-timeline-state-resolver/issues/277)
+- **quick-tsr:** add command report and debug logging ([f693569](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f693569601136d27c5fadb29b95787ef18c607ab))
 
 ### Bug Fixes
 
-* `createDevice` race condition ([#296](https://github.com/nrkno/sofie-timeline-state-resolver/issues/296)) ([20abff2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/20abff2324809977e3ef1a135102791bd8b46525))
-* add a future-proof "resetResolver" event ([feb709b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/feb709b5f4a80ce0ebcbe13329c86cec9904fbec))
-* bad merge in casparcg device, causing issues with channel 1 ([#293](https://github.com/nrkno/sofie-timeline-state-resolver/issues/293)) ([e259f5c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e259f5c0d7cdde5bc9dcd7fa0120697b6810bae0))
-* casparcg restart action always responds 'OK' SOFIE-2588 ([#295](https://github.com/nrkno/sofie-timeline-state-resolver/issues/295)) ([6488187](https://github.com/nrkno/sofie-timeline-state-resolver/commit/648818760a654e7e16407d6f635d59bb233870a3))
-* **quick-tsr:** status logging ([634acb1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/634acb123ec9f215a398fd127e6542d5f44e92cd))
-* remove unused casparcg useScheduling option ([#294](https://github.com/nrkno/sofie-timeline-state-resolver/issues/294)) ([06d3c96](https://github.com/nrkno/sofie-timeline-state-resolver/commit/06d3c967d2da012aa2f6655c34d382201a45cab8))
-* update emberplus-connection ([0259fbf](https://github.com/nrkno/sofie-timeline-state-resolver/commit/0259fbfaa45240d041052a0cb76bffe9241cf49f))
-* update v-connection dependency ([2ba4ae3](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2ba4ae3cc769980a4b2b3c3c8a75a84d91d258f8))
+- `createDevice` race condition ([#296](https://github.com/nrkno/sofie-timeline-state-resolver/issues/296)) ([20abff2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/20abff2324809977e3ef1a135102791bd8b46525))
+- add a future-proof "resetResolver" event ([feb709b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/feb709b5f4a80ce0ebcbe13329c86cec9904fbec))
+- bad merge in casparcg device, causing issues with channel 1 ([#293](https://github.com/nrkno/sofie-timeline-state-resolver/issues/293)) ([e259f5c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e259f5c0d7cdde5bc9dcd7fa0120697b6810bae0))
+- casparcg restart action always responds 'OK' SOFIE-2588 ([#295](https://github.com/nrkno/sofie-timeline-state-resolver/issues/295)) ([6488187](https://github.com/nrkno/sofie-timeline-state-resolver/commit/648818760a654e7e16407d6f635d59bb233870a3))
+- **quick-tsr:** status logging ([634acb1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/634acb123ec9f215a398fd127e6542d5f44e92cd))
+- remove unused casparcg useScheduling option ([#294](https://github.com/nrkno/sofie-timeline-state-resolver/issues/294)) ([06d3c96](https://github.com/nrkno/sofie-timeline-state-resolver/commit/06d3c967d2da012aa2f6655c34d382201a45cab8))
+- update emberplus-connection ([0259fbf](https://github.com/nrkno/sofie-timeline-state-resolver/commit/0259fbfaa45240d041052a0cb76bffe9241cf49f))
+- update v-connection dependency ([2ba4ae3](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2ba4ae3cc769980a4b2b3c3c8a75a84d91d258f8))
 
 ## [9.0.0-release50.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.5...9.0.0-release50.6) (2023-08-25)
 
-
 ### Bug Fixes
 
-* another potential fix for this system not working as intended ([c75d4d8](https://github.com/nrkno/sofie-timeline-state-resolver/commit/c75d4d8ee6271be95d1fcd60f8741c3281db0521))
-* **chef:** only stop windows that we know of in the Mappings ([43ab8f6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/43ab8f6b59eda4bdd1e244355a648ee2753ef2f2))
-* **httpSend:** Use the same types for the sendCommand action as a timeline object ([#269](https://github.com/nrkno/sofie-timeline-state-resolver/issues/269)) ([3385217](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3385217afcb6e45aa37123f5400d1dea4a0c8972))
-* media re-playing shortly after completing ([867f30f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/867f30f2ea3c5c4d568e471f054bfabed877d52b))
-* prevent conflicts with sisyfos ([4780fcf](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4780fcfb816a58a9de44a9af320031def88214dc))
-* promisify cb from threadedclass ([368ab92](https://github.com/nrkno/sofie-timeline-state-resolver/commit/368ab9209c5146a7e5f998dbbd69fd77b20e35f8))
-* **sofie-chef:** resync state upon reconnect ([80f0ab9](https://github.com/nrkno/sofie-timeline-state-resolver/commit/80f0ab9dc9616afdbf6e9c954163f09c18a3b8e1))
-* **vmix:** fix scenario where the media load retry system would load clips into playlists twice ([8ceddb2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8ceddb291ac3e25cc77f8cb77fa58f67d9167f4c))
+- another potential fix for this system not working as intended ([c75d4d8](https://github.com/nrkno/sofie-timeline-state-resolver/commit/c75d4d8ee6271be95d1fcd60f8741c3281db0521))
+- **chef:** only stop windows that we know of in the Mappings ([43ab8f6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/43ab8f6b59eda4bdd1e244355a648ee2753ef2f2))
+- **httpSend:** Use the same types for the sendCommand action as a timeline object ([#269](https://github.com/nrkno/sofie-timeline-state-resolver/issues/269)) ([3385217](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3385217afcb6e45aa37123f5400d1dea4a0c8972))
+- media re-playing shortly after completing ([867f30f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/867f30f2ea3c5c4d568e471f054bfabed877d52b))
+- prevent conflicts with sisyfos ([4780fcf](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4780fcfb816a58a9de44a9af320031def88214dc))
+- promisify cb from threadedclass ([368ab92](https://github.com/nrkno/sofie-timeline-state-resolver/commit/368ab9209c5146a7e5f998dbbd69fd77b20e35f8))
+- **sofie-chef:** resync state upon reconnect ([80f0ab9](https://github.com/nrkno/sofie-timeline-state-resolver/commit/80f0ab9dc9616afdbf6e9c954163f09c18a3b8e1))
+- **vmix:** fix scenario where the media load retry system would load clips into playlists twice ([8ceddb2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8ceddb291ac3e25cc77f8cb77fa58f67d9167f4c))
 
 ## [9.0.0-release50.5](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.4...9.0.0-release50.5) (2023-07-03)
 
@@ -75,64 +151,58 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [9.0.0-release50.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/3.5.1...9.0.0-release50.0) (2023-07-03)
 
-
 ### ⚠ BREAKING CHANGES
 
-* DeviceType enum has been changed from a number-based to a string-based one
+- DeviceType enum has been changed from a number-based to a string-based one
 
 ### Features
 
-* add restart command to vMix inputs ([e16e8c1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e16e8c14d263fffc8e004bf9f06cdde6073e16b2))
-* DeviceType enum has been changed from a number-based to a string-based one ([dd03bcc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/dd03bcc7a0f246ff62ccd09091003195c97e4dc1))
-* upgrade singular.live to API v2 ([2bb5c4d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2bb5c4d2557710d55b27556cef919dc8419fa1e9))
-* Use strings for DeviceType enum ([f1b95bc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f1b95bcb972aff329bce9c67b15f58a98bbf48cf))
-* **vMix:** retry sending media load commands if the file wasn't found ([4321aae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4321aae2684ba4c7f55e3cf810dacae187fe282b))
-
+- add restart command to vMix inputs ([e16e8c1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e16e8c14d263fffc8e004bf9f06cdde6073e16b2))
+- DeviceType enum has been changed from a number-based to a string-based one ([dd03bcc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/dd03bcc7a0f246ff62ccd09091003195c97e4dc1))
+- upgrade singular.live to API v2 ([2bb5c4d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2bb5c4d2557710d55b27556cef919dc8419fa1e9))
+- Use strings for DeviceType enum ([f1b95bc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f1b95bcb972aff329bce9c67b15f58a98bbf48cf))
+- **vMix:** retry sending media load commands if the file wasn't found ([4321aae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4321aae2684ba4c7f55e3cf810dacae187fe282b))
 
 ### Bug Fixes
 
-* add ci for quick-tsr ([9f2c3d1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9f2c3d1f6606af55228d96be5a064b585e6f8287))
-* add types support for vMix stingers 3 and 4 ([44fa27d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44fa27d164bd717b58d7f1d1255d56d132007865))
-* allow multiple sisyfos devices ([3d47f82](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3d47f82f197ac58b68c21033eac6e0354fd72fa8))
-* consider outputs (Auxes) when checking if something is on air ([d629ed6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d629ed6b8f022d72688765aebb48bc087fb6a963))
-* consider overlays (DSKs) when checking if something is in PGM ([4863e0f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4863e0f70ef906dbe442d9cfb95e51f37a7cbc77))
-* don't join response packets together with an extraneous newline ([9258d11](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9258d11ad99a2701895a91deba0779ff22d687df))
-* enable and fix logic for non-List inputs ([4cd3173](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4cd3173ff6896d55a171d3ef6563163d8516452d))
-* **PTZ:** clean up interval on terminate(), sort commands in a predictable order ([13b6698](https://github.com/nrkno/sofie-timeline-state-resolver/commit/13b6698101747c6c3ae2117b28a8bfa38c16b0eb))
-* quick-tsr typing errors ([#267](https://github.com/nrkno/sofie-timeline-state-resolver/issues/267)) ([95b2eae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/95b2eae93450db5f6f4d9f26c96380fa56b08a03))
-* run post transition commands after overlays commands ([aa43869](https://github.com/nrkno/sofie-timeline-state-resolver/commit/aa43869085643cc104322ca6a3c8a65d53e1a685))
-* **vmix:** account for the fact that some mixes may temporarily be undefined in the state ([50ffe80](https://github.com/nrkno/sofie-timeline-state-resolver/commit/50ffe805d9236bbd51924720c9927839d051c0bd))
-* **vmix:** change how commands are ordered to reduce flashes of content in PGM ([b2ebaad](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b2ebaadbad0d9f1f48462f13ebe328cf14974594))
-* **vmix:** inform parent about the connection status changing after initialization ([e4e380e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e4e380eae62ac1da6ec9a7881cdf461184bc497d))
-* **vmix:** show a BAD status code when vMix is not initialized ([370be3a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/370be3af2f01bada232ea244c76b6c5507e9773f))
-* wrap singular.live JSON commands in an array ([cc5b7ec](https://github.com/nrkno/sofie-timeline-state-resolver/commit/cc5b7ec61d456de993cbc0e25963c93ec8b65f38))
+- add ci for quick-tsr ([9f2c3d1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9f2c3d1f6606af55228d96be5a064b585e6f8287))
+- add types support for vMix stingers 3 and 4 ([44fa27d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44fa27d164bd717b58d7f1d1255d56d132007865))
+- allow multiple sisyfos devices ([3d47f82](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3d47f82f197ac58b68c21033eac6e0354fd72fa8))
+- consider outputs (Auxes) when checking if something is on air ([d629ed6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d629ed6b8f022d72688765aebb48bc087fb6a963))
+- consider overlays (DSKs) when checking if something is in PGM ([4863e0f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4863e0f70ef906dbe442d9cfb95e51f37a7cbc77))
+- don't join response packets together with an extraneous newline ([9258d11](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9258d11ad99a2701895a91deba0779ff22d687df))
+- enable and fix logic for non-List inputs ([4cd3173](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4cd3173ff6896d55a171d3ef6563163d8516452d))
+- **PTZ:** clean up interval on terminate(), sort commands in a predictable order ([13b6698](https://github.com/nrkno/sofie-timeline-state-resolver/commit/13b6698101747c6c3ae2117b28a8bfa38c16b0eb))
+- quick-tsr typing errors ([#267](https://github.com/nrkno/sofie-timeline-state-resolver/issues/267)) ([95b2eae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/95b2eae93450db5f6f4d9f26c96380fa56b08a03))
+- run post transition commands after overlays commands ([aa43869](https://github.com/nrkno/sofie-timeline-state-resolver/commit/aa43869085643cc104322ca6a3c8a65d53e1a685))
+- **vmix:** account for the fact that some mixes may temporarily be undefined in the state ([50ffe80](https://github.com/nrkno/sofie-timeline-state-resolver/commit/50ffe805d9236bbd51924720c9927839d051c0bd))
+- **vmix:** change how commands are ordered to reduce flashes of content in PGM ([b2ebaad](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b2ebaadbad0d9f1f48462f13ebe328cf14974594))
+- **vmix:** inform parent about the connection status changing after initialization ([e4e380e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e4e380eae62ac1da6ec9a7881cdf461184bc497d))
+- **vmix:** show a BAD status code when vMix is not initialized ([370be3a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/370be3af2f01bada232ea244c76b6c5507e9773f))
+- wrap singular.live JSON commands in an array ([cc5b7ec](https://github.com/nrkno/sofie-timeline-state-resolver/commit/cc5b7ec61d456de993cbc0e25963c93ec8b65f38))
 
 ## [3.5.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release49.0...3.5.1) (2023-03-31)
 
-
 ### ⚠ BREAKING CHANGES
 
-* json schemas for device config and mappings (#237)
+- json schemas for device config and mappings (#237)
 
 ### Features
 
-* json schemas for device config and mappings ([#237](https://github.com/nrkno/sofie-timeline-state-resolver/issues/237)) ([d43f3dc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d43f3dc70f5c8843081760846e9aa38fa4c71396))
-* replace makeready ([5abe41e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5abe41eaa421db4845a54837b2e3b41f2b33d062))
-* SOF-1254 add me_clean support for mix ouputs ([7f3fb9c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7f3fb9c7d9edb03022db69c6e206302c5c69a815))
-* SOF-1254 add temporal priority to TriCaster ([7133774](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7133774a49e03a038d91a9ec8fd8d0f13cbd962c))
-* state handler initial commit ([a219c84](https://github.com/nrkno/sofie-timeline-state-resolver/commit/a219c84f899fec4ae7e53fa402be9b3911fb8a59))
-
+- json schemas for device config and mappings ([#237](https://github.com/nrkno/sofie-timeline-state-resolver/issues/237)) ([d43f3dc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d43f3dc70f5c8843081760846e9aa38fa4c71396))
+- replace makeready ([5abe41e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5abe41eaa421db4845a54837b2e3b41f2b33d062))
+- SOF-1254 add me_clean support for mix ouputs ([7f3fb9c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7f3fb9c7d9edb03022db69c6e206302c5c69a815))
+- SOF-1254 add temporal priority to TriCaster ([7133774](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7133774a49e03a038d91a9ec8fd8d0f13cbd962c))
+- state handler initial commit ([a219c84](https://github.com/nrkno/sofie-timeline-state-resolver/commit/a219c84f899fec4ae7e53fa402be9b3911fb8a59))
 
 ### Bug Fixes
 
-* osc animation should rely on monotonic time ([7989c9d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7989c9de9b7e8e11e7f0ee74d62d843059a0053b))
-* prevent lingering device containers ([e313198](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e31319855d67209f402a4263bac51af264678efa))
-* SOF-1254 don't send layer commands when not in effect mode ([daa7d9b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/daa7d9bbd97cad87090592bb6f440f5efc0f048d))
-* SOF-1254 use bin_index command for M/Es ([569bde0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/569bde0d863d3fefaed65fcda0c065a1203236a4))
-* SOF-1254 wrong scale defaults ([0b66153](https://github.com/nrkno/sofie-timeline-state-resolver/commit/0b6615351c9376d834868164b32797f2ea67de7d))
-* SOF-1404 use upstreamKeyerId to address ATEM upstream keyers ([61b0061](https://github.com/nrkno/sofie-timeline-state-resolver/commit/61b006156849455ec4b59d92415cd820982b1706))
-
-
+- osc animation should rely on monotonic time ([7989c9d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7989c9de9b7e8e11e7f0ee74d62d843059a0053b))
+- prevent lingering device containers ([e313198](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e31319855d67209f402a4263bac51af264678efa))
+- SOF-1254 don't send layer commands when not in effect mode ([daa7d9b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/daa7d9bbd97cad87090592bb6f440f5efc0f048d))
+- SOF-1254 use bin_index command for M/Es ([569bde0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/569bde0d863d3fefaed65fcda0c065a1203236a4))
+- SOF-1254 wrong scale defaults ([0b66153](https://github.com/nrkno/sofie-timeline-state-resolver/commit/0b6615351c9376d834868164b32797f2ea67de7d))
+- SOF-1404 use upstreamKeyerId to address ATEM upstream keyers ([61b0061](https://github.com/nrkno/sofie-timeline-state-resolver/commit/61b006156849455ec4b59d92415cd820982b1706))
 
 ## [8.1.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.3...8.1.4) (2024-01-18)
 

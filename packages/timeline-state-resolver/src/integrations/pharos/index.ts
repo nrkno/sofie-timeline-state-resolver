@@ -11,10 +11,8 @@ import { Pharos } from './connection'
 import { Device, CommandWithContext, DeviceContextAPI } from '../../service/device'
 import { diffStates } from './diffStates'
 
-export interface PharosCommandWithContext {
+export interface PharosCommandWithContext extends CommandWithContext {
 	command: CommandContent
-	context: string
-	timelineObjId: string
 }
 export type PharosState = Timeline.StateInTime<TSRTimelineContent>
 
@@ -58,6 +56,7 @@ export class PharosDevice extends Device<PharosOptions, PharosState, PharosComma
 					.getProjectInfo()
 					.then((info) => {
 						this.context.logger.info(`Current project: ${info.name}`)
+						this.context.resetToState({}).catch((e) => this.context.logger.error('Failed to reset state', e))
 					})
 					.catch((e) => this.context.logger.error('Failed to query project', e))
 			})

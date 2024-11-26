@@ -26,10 +26,8 @@ export interface SingularLiveCommandContent {
 	subCompositionName: string
 }
 
-export interface SingularLiveCommandContext {
+export interface SingularLiveCommandContext extends CommandWithContext {
 	command: Command
-	context: string
-	timelineObjId: string
 }
 
 interface Command {

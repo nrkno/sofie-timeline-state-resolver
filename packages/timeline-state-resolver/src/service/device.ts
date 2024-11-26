@@ -18,6 +18,8 @@ export type CommandWithContext = {
 	timelineObjId: string
 	/** this command is to be executed x ms _before_ the scheduled time */
 	preliminary?: number
+	/** commands with different queueId's can be executed in parallel in sequential mode */
+	queueId?: string
 }
 
 /**
@@ -111,6 +113,8 @@ export interface DeviceEvents {
 	connectionChanged: [status: Omit<DeviceStatus, 'active'>]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
+	/** A message to the resolver that the device needs to receive all known states */
+	resyncStates: []
 
 	/** @deprecated replaced by slowSentCommand & slowFulfilledCommand  */
 	slowCommand: [commandInfo: string]

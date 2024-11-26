@@ -19,10 +19,8 @@ interface TelemetricsState {
 	presetShotIdentifiers: number[]
 }
 
-interface TelemetricsCommandWithContext {
+interface TelemetricsCommandWithContext extends CommandWithContext {
 	command: { presetShotIdentifier: number }
-	context: string
-	timelineObjId: string
 }
 
 /**

@@ -26,10 +26,8 @@ import { CommandWithContext, Device } from '../../service/device'
 import { diffStates } from './diffStates'
 import { buildSofieChefState } from './stateBuilder'
 
-export interface SofieChefCommandWithContext {
+export interface SofieChefCommandWithContext extends CommandWithContext {
 	command: ReceiveWSMessageAny
-	context: string
-	timelineObjId: string
 }
 export interface SofieChefState {
 	windows: {
@@ -89,7 +87,14 @@ export class SofieChefDevice extends Device<SofieChefOptions, SofieChefState, So
 	async init(initOptions: SofieChefOptions): Promise<boolean> {
 		// This is where we would do initialization, like connecting to the devices, etc
 		this.initOptions = initOptions
-		await this._setupWSConnection()
+
+		this._setupWSConnection()
+			.then(() => {
+				// assume empty state on start (would be nice if we could get the url for each window on connection)
+				this.context.resetToState({ windows: {} }).catch((e) => this.context.logger.error('Failed to reset state', e))
+			})
+			.catch((e) => this.context.logger.error('Failed to initialise Sofie Chef connection', e))
+
 		return true
 	}
 	private async _setupWSConnection() {

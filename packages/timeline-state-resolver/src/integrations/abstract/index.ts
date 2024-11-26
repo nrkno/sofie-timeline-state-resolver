@@ -1,4 +1,4 @@
-import { DeviceStatus, StatusCode } from './../../devices/device'
+import { CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import {
 	AbstractOptions,
 	Timeline,
@@ -10,10 +10,8 @@ import {
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
-export interface AbstractCommandWithContext {
+export interface AbstractCommandWithContext extends CommandWithContext {
 	command: string
-	timelineObjId: string
-	context: string
 }
 
 export type DeviceOptionsAbstractInternal = DeviceOptionsAbstract

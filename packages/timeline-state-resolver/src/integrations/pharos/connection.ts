@@ -5,7 +5,7 @@ import * as _ from 'underscore'
 
 /**
  * Note: This work is derived from
- * http://www.pharoscontrols.com/assets/documentation/manuals/Pharos%20Designer%202%20User%20Manual%20-%20A4.pdf
+ * https://dl.pharoscontrols.com/documentation/manuals/Pharos%20Designer%202%20User%20Manual%20-%20A4.pdf
  */
 
 // This should probably be moved into it's own library
@@ -643,10 +643,10 @@ export class Pharos extends EventEmitter {
 				this._replyReceived = true
 				this._webSocketKeepAlive()
 			})
-			this._socket.on('message', (data) => {
+			this._socket.on('message', (data, isBinary) => {
 				// let data: WebSocket.Data = ev.data
 				this._replyReceived = true
-				if (typeof data === 'object') {
+				if (isBinary) {
 					// @ts-ignore data type
 					const array = new Int32Array(data)
 					if (this._serverSessionKey) {
@@ -665,7 +665,7 @@ export class Pharos extends EventEmitter {
 						this._serverSessionKey = array
 					}
 				} else {
-					const json = JSON.parse(data)
+					const json = JSON.parse(data.toString())
 					this._onReceiveMessage(json)
 				}
 			})

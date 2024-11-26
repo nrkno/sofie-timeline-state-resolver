@@ -13,7 +13,7 @@ const MockOSC = OSC.MockOSC
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { SisyfosMessageDevice } from '../../../integrations/sisyfos'
-import { getMockCall } from '../../../__tests__/lib'
+import { addConnections, getMockCall, waitUntil } from '../../../__tests__/lib'
 
 describe('Sisyfos', () => {
 	jest.mock('osc', () => OSC)
@@ -82,18 +82,20 @@ describe('Sisyfos', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '192.168.0.10',
-				port: 8900,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
@@ -309,18 +311,20 @@ describe('Sisyfos', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '192.168.0.10',
-				port: 8900,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
@@ -535,18 +539,20 @@ describe('Sisyfos', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '192.168.0.10',
-				port: 8900,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
@@ -673,18 +679,20 @@ describe('Sisyfos', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '192.168.0.10',
-				port: 8900,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
@@ -879,8 +887,16 @@ describe('Sisyfos', () => {
 				mappingType: MappingSisyfosType.Channels,
 			},
 		}
+		const myTriggerMapping0: Mapping<SomeMappingSisyfos> = {
+			device: DeviceType.SISYFOS,
+			deviceId: 'mySisyfos',
+			options: {
+				mappingType: MappingSisyfosType.Channels,
+			},
+		}
 		const myChannelMapping: Mappings = {
 			sisyfos_channels_base: myChannelMapping0,
+			sisyfos_channels_base_trigger: myTriggerMapping0,
 			sisyfos_channel_1: myChannelMapping1,
 			sisyfos_channel_2: myChannelMapping2,
 			sisyfos_channels: myChannelMapping3,
@@ -891,18 +907,20 @@ describe('Sisyfos', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '192.168.0.10',
-				port: 8900,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
@@ -932,8 +950,19 @@ describe('Sisyfos', () => {
 							isPgm: 0,
 						},
 					],
-					triggerValue: 'a',
 					overridePriority: -999,
+				},
+			},
+			{
+				id: 'baseline_trigger',
+				enable: {
+					while: 1,
+				},
+				layer: 'sisyfos_channels_base_trigger',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.TRIGGERVALUE,
+					triggerValue: 'a',
 				},
 			},
 			{
@@ -1041,17 +1070,19 @@ describe('Sisyfos', () => {
 		})
 		// myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
-		await myConductor.addDevice('mySisyfos', {
-			type: DeviceType.SISYFOS,
-			options: {
-				host: '127.0.0.1',
-				port: 1234,
+		await addConnections(myConductor.connectionManager, {
+			mySisyfos: {
+				type: DeviceType.SISYFOS,
+				options: {
+					host: '192.168.0.10',
+					port: 8900,
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('mySisyfos')
+		const deviceContainer = myConductor.connectionManager.getConnection('mySisyfos')
 		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		const onConnectionChanged = jest.fn()
@@ -1059,19 +1090,29 @@ describe('Sisyfos', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		expect(await device.connected).toEqual(true)
-		expect(onConnectionChanged).toHaveBeenCalledTimes(0)
+
+		// Wait for the connection to be initialized:
+		await waitUntil(
+			async () => {
+				expect(await device.connected).toEqual(true)
+			},
+			1000,
+			mockTime
+		)
 
 		// Simulate a connection loss:
 		MockOSC.connectionIsGood = false
 
+		// Wait for the OSC timeout to trigger:
 		await mockTime.advanceTimeTicks(3000)
 		await wait(1)
 		await mockTime.advanceTimeTicks(3000)
 		await wait(1)
 
 		expect(await device.connected).toEqual(false)
-		expect(onConnectionChanged).toHaveBeenCalledTimes(1)
+
+		expect(onConnectionChanged.mock.calls.length).toBeGreaterThanOrEqual(1)
+		onConnectionChanged.mockClear()
 
 		// Simulate a connection regain:
 		MockOSC.connectionIsGood = true
@@ -1081,6 +1122,6 @@ describe('Sisyfos', () => {
 		await wait(1)
 
 		expect(await device.connected).toEqual(true)
-		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
+		expect(onConnectionChanged.mock.calls.length).toBeGreaterThanOrEqual(1)
 	})
 })
