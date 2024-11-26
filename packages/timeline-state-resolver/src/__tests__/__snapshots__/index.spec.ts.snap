@@ -24,6 +24,7 @@ exports[`index imports 1`] = `
   "EmberParameterType",
   "FlyKeyDirection",
   "FlyKeyKeyFrame",
+  "FocusMode",
   "HttpMethod",
   "HttpSendActions",
   "HyperdeckActions",
