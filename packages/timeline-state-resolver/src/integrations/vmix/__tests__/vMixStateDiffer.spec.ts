@@ -159,7 +159,7 @@ describe('VMixStateDiffer', () => {
 		const url = 'https://example.com'
 		newState.reportedState.existingInputs['99'].url = url
 
-		const commands = differ.getCommandsToAchieveState(oldState, newState)
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
 
 		expect(commands.length).toBe(1)
 		expect(commands[0].command).toMatchObject({
