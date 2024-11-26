@@ -1,7 +1,7 @@
 import { CommandType } from '../enums'
 
 export interface AbstractCommand {
-	deserialize?(payload: Buffer): any
+	deserializeReply(payload: Buffer): any
 }
 
 export abstract class AbstractCommand {
@@ -67,6 +67,10 @@ export abstract class ViscaInquiryCommand extends AbstractCommand {
 		}
 
 		return Number(result & 0xfffffn)
+	}
+
+	protected from2sComplement(x: number): number {
+		return x & 0x80000 ? x - (1 << 20) : x
 	}
 }
 

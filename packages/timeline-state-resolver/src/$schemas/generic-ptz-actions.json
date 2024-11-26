@@ -33,6 +33,27 @@
 		{
 			"id": "getPanTiltPosition",
 			"name": "Get absolute Pan and Tilt position",
+			"result": {
+				"type": "object",
+				"properties": {
+					"panPosition": {
+                        "type": "number",
+                        "ui:title": "Pan Position",
+                        "min": -1,
+                        "max": 1,
+                        "description": "Pan Position; Range: [-1.0, 1.0]; -1.0 = furthest LEFT, 0.0 = CENTER, 1.0 = furthest RIGHT (each protocol might internally support a different range, which the value will be mapped from)"
+                    },
+                    "tiltPosition": {
+                        "type": "number",
+                        "ui:title": "Tilt Position",
+                        "min": -1,
+                        "max": 1,
+                        "description": "Tilt Position; Range: [-1.0, 1.0]; -1.0 = furthest DOWN, 0.0 = CENTER, 1.0 = furthest UP (each protocol might internally support a different range, which the value will be mapped from)"
+                    }
+				},
+				"required": ["panPosition", "tiltPosition"],
+				"additionalProperties": false
+			},
 			"destructive": false,
 			"generic": true
 		},
@@ -60,6 +81,20 @@
 		{
 			"id": "getZoomPosition",
 			"name": "Get absolute Zoom position",
+			"result": {
+				"type": "object",
+				"properties": {
+                    "zoomPosition": {
+                        "type": "number",
+                        "ui:title": "Zoom Position",
+                        "min": 0,
+                        "max": 1,
+                        "description": "Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest WIDE, 1.0 = furthest TELE (each protocol might internally support a different range, which the value will be mapped from)"
+                    }
+				},
+				"required": ["zoomPosition"],
+				"additionalProperties": false
+			},
 			"destructive": false,
 			"generic": true
 		},
@@ -172,12 +207,43 @@
 		{
 			"id": "getFocusPosition",
 			"name": "Get absolute Focus position",
+			"result": {
+				"type": "object",
+				"properties": {
+                    "zoomPosition": {
+                        "type": "number",
+                        "ui:title": "Focus Position",
+                        "min": 0,
+                        "max": 1,
+                        "description": "Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest NEAR, 1.0 = furthest FAR (each protocol might internally support a different range, which the value will be mapped from)"
+                    }
+				},
+				"required": ["zoomPosition"],
+				"additionalProperties": false
+			},
 			"destructive": false,
 			"generic": true
 		},
 		{
 			"id": "getFocusMode",
 			"name": "Get Focus mode",
+			"result": {
+				"type": "object",
+				"properties": {
+					"mode": {
+						"type": "string",
+						"title": "FocusModeResult",
+						"tsType": "FocusMode",
+						"ui:title": "Mode",
+						"ui:summaryTitle": "Mode",
+						"default": "",
+						"enum": ["auto", "manual"],
+						"tsEnumNames": ["AUTO", "MANUAL"]
+					}
+				},
+				"required": ["mode"],
+				"additionalProperties": false
+			},
 			"destructive": false,
 			"generic": true
 		}

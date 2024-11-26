@@ -17,11 +17,29 @@ export interface SetPanTiltSpeedPayload {
 	tiltSpeed: number
 }
 
+export interface GetPanTiltPositionResult {
+	/**
+	 * Pan Position; Range: [-1.0, 1.0]; -1.0 = furthest LEFT, 0.0 = CENTER, 1.0 = furthest RIGHT (each protocol might internally support a different range, which the value will be mapped from)
+	 */
+	panPosition: number
+	/**
+	 * Tilt Position; Range: [-1.0, 1.0]; -1.0 = furthest DOWN, 0.0 = CENTER, 1.0 = furthest UP (each protocol might internally support a different range, which the value will be mapped from)
+	 */
+	tiltPosition: number
+}
+
 export interface SetZoomSpeedPayload {
 	/**
 	 * Zoom Speed; Range: [-1.0, 1.0]; -1.0 = fastest WIDE, 0.0 = STOP, 1.0 = fastest TELE (each protocol might internally support a different range, which the value will be mapped into)
 	 */
 	zoomSpeed: number
+}
+
+export interface GetZoomPositionResult {
+	/**
+	 * Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest WIDE, 1.0 = furthest TELE (each protocol might internally support a different range, which the value will be mapped from)
+	 */
+	zoomPosition: number
 }
 
 export interface StorePresetPayload {
@@ -56,7 +74,21 @@ export interface SetFocusModePayload {
 	mode: FocusMode
 }
 
-export const enum FocusMode {
+export enum FocusMode {
 	AUTO = 'auto',
 	MANUAL = 'manual'
+}
+
+
+export interface GetFocusPositionResult {
+	/**
+	 * Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest NEAR, 1.0 = furthest FAR (each protocol might internally support a different range, which the value will be mapped from)
+	 */
+	zoomPosition: number
+}
+
+export type FocusModeResult = FocusMode
+
+export interface GetFocusModeResult {
+	mode: FocusModeResult
 }

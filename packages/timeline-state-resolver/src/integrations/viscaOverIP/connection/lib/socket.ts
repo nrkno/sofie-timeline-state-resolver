@@ -100,7 +100,9 @@ export class ViscaUdpSocket extends EventEmitter {
 		// Will be re-assigned by the top-level class.
 	}
 
-	public async sendCommand(command: AbstractCommand) {
+	public async sendCommand<T extends AbstractCommand>(
+		command: AbstractCommand
+	): Promise<ReturnType<T['deserializeReply']>> {
 		const buffer = Buffer.alloc(8)
 		const payload = command.serialize()
 
@@ -167,8 +169,8 @@ export class ViscaUdpSocket extends EventEmitter {
 				this._inFlight.promise.reject(new Error('Not executable'))
 			} else {
 				// maybe a inquisition reply?
-				if (this._inFlight.command.deserialize) {
-					this._inFlight.promise.resolve(this._inFlight.command.deserialize(packet.slice(8, 8 + length)))
+				if (this._inFlight.command.deserializeReply) {
+					this._inFlight.promise.resolve(this._inFlight.command.deserializeReply(packet.slice(8, 8 + length)))
 				}
 			}
 		} else if (type === CommandType.ControlReply) {

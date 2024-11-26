@@ -35,7 +35,7 @@ export class ViscaDevice extends EventEmitter {
 		}
 	}
 
-	async sendCommand(command: AbstractCommand): Promise<any> {
-		return this._socket.sendCommand(command)
+	async sendCommand<T extends AbstractCommand>(command: T) {
+		return this._socket.sendCommand<T>(command)
 	}
 }

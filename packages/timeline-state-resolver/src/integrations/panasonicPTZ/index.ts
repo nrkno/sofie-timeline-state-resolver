@@ -74,6 +74,7 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 	): Array<PanasonicPtzCommandWithContext> {
 		return diffStates(oldState ?? getDefaultState(), newState)
 	}
+
 	async sendCommand(command: PanasonicPtzCommandWithContext): Promise<void> {
 		this.context.logger.debug(command)
 
@@ -122,6 +123,7 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 	get connected() {
 		return this._device?.connected ?? false
 	}
+
 	getStatus(): Omit<DeviceStatus, 'active'> {
 		if (!this._device?.connected) {
 			return {
