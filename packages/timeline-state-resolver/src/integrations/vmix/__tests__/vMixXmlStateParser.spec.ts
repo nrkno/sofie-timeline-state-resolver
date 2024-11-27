@@ -242,4 +242,31 @@ describe('VMixXmlStateParser', () => {
 			},
 		})
 	})
+
+	it('parses text (titles)', () => {
+		const parser = new VMixXmlStateParser()
+
+		const parsedState = parser.parseVMixState(
+			makeMockVMixXmlState([
+				'<input key="a97b8de1-807a-4c14-8eb9-3de0129b41e3" number="1" type="Capture" title="Cam 0" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>',
+				`<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="2" type="GT" title="gfx.gtzip" shortTitle="gfx.gtzip" state="Paused" position="0" duration="0" loop="False" >
+	gfx.gtzip
+	<text index="0" name="TextBlock1.Text">SomeText</text>
+	<text index="1" name="AnotherBlock.Text">Foo</text>
+</input>`,
+				'<input key="1d70bc59-6517-4571-a0c5-932e30311f01" number="3" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>',
+			])
+		)
+
+		expect(parsedState).toMatchObject<Partial<VMixState>>({
+			existingInputs: {
+				'2': {
+					text: {
+						'TextBlock1.Text': 'SomeText',
+						'AnotherBlock.Text': 'Foo',
+					},
+				},
+			},
+		})
+	})
 })
