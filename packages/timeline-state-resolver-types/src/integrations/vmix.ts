@@ -46,6 +46,8 @@ export enum VMixCommand {
 	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
 	RESTART_INPUT = 'RESTART_INPUT',
 	SET_TEXT = 'SET_TEXT',
+	BROWSER_NAVIGATE = 'BROWSER_NAVIGATE',
+	SELECT_INDEX = 'SELECT_INDEX',
 }
 
 export type TimelineContentVMixAny =
@@ -194,6 +196,16 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 	 * Titles (GT): Sets the values of text fields by name
 	 */
 	text?: VMixText
+
+	/** The URL for Browser input */
+	url?: string
+
+	/**
+	 * Photos, List: Selects item in List
+	 * Virtual Set: Zooms to selected preset using the current speed settings
+	 * starts from 1
+	 */
+	index?: number
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {
@@ -335,4 +347,5 @@ export enum VMixInputType {
 	Flash = 'Flash',
 	PowerPoint = 'PowerPoint',
 	List = 'List',
+	Browser = 'Browser',
 }

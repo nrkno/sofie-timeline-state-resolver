@@ -80,6 +80,8 @@ export interface VMixInput {
 	listFilePaths?: string[]
 	restart?: boolean
 	text?: VMixText
+	url?: string
+	index?: number
 }
 
 export interface VMixInputAudio {
@@ -600,6 +602,28 @@ export class VMixStateDiffer {
 					})
 				}
 			}
+		}
+		if (input.url !== undefined && oldInput.url !== input.url) {
+			commands.push({
+				command: {
+					command: VMixCommand.BROWSER_NAVIGATE,
+					input: key,
+					value: input.url,
+				},
+				context: CommandContext.None,
+				timelineId: '',
+			})
+		}
+		if (input.index !== undefined && oldInput.index !== input.index) {
+			commands.push({
+				command: {
+					command: VMixCommand.SELECT_INDEX,
+					input: key,
+					value: input.index,
+				},
+				context: CommandContext.None,
+				timelineId: '',
+			})
 		}
 		return { preTransitionCommands, postTransitionCommands }
 	}

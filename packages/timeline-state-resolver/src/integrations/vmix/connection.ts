@@ -256,6 +256,10 @@ export class VMixCommandSender {
 				return this.restart(command.input)
 			case VMixCommand.SET_TEXT:
 				return this.setText(command.input, command.value, command.fieldName)
+			case VMixCommand.BROWSER_NAVIGATE:
+				return this.browserNavigate(command.input, command.value)
+			case VMixCommand.SELECT_INDEX:
+				return this.selectIndex(command.input, command.value)
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -465,6 +469,14 @@ export class VMixCommandSender {
 
 	public async setText(input: string | number, value: string, fieldName: string): Promise<any> {
 		return this.sendCommandFunction(`SetText`, { input, value, selectedName: fieldName })
+	}
+
+	public async browserNavigate(input: string | number, value: string): Promise<any> {
+		return this.sendCommandFunction(`BrowserNavigate`, { input, value: encodeURIComponent(value) })
+	}
+
+	public async selectIndex(input: string | number, value: number): Promise<any> {
+		return this.sendCommandFunction(`SelectIndex`, { input, value })
 	}
 
 	private async sendCommandFunction(func: string, args: SentCommandArgs) {

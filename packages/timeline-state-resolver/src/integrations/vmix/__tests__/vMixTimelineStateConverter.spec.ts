@@ -8,6 +8,7 @@ import {
 	TimelineContentTypeVMix,
 	TimelineContentVMixAny,
 	VMixInputType,
+	VMixTransitionType,
 } from 'timeline-state-resolver-types'
 import { VMixTimelineStateConverter } from '../vMixTimelineStateConverter'
 import { VMixOutput, VMixStateDiffer } from '../vMixStateDiffer'
@@ -155,6 +156,114 @@ describe('VMixTimelineStateConverter', () => {
 				}
 			)
 			expect(result.reportedState.existingInputs['1'].text).toEqual(text)
+		})
+
+		it('allows overriding transitions in usual layer order', () => {
+			const converter = createTestee()
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					pgm0: wrapInTimelineObject('pgm0', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						input: 2,
+					}),
+					pgm1: wrapInTimelineObject('pgm1', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						transition: {
+							duration: 500,
+							effect: VMixTransitionType.Fade,
+						},
+					}),
+				}),
+				{
+					pgm0: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+					pgm1: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+				}
+			)
+			expect(result.reportedState.mixes[0]?.transition).toEqual({
+				duration: 500,
+				effect: VMixTransitionType.Fade,
+			})
+			expect(result.reportedState.mixes[0]?.program).toEqual(2)
+		})
+
+		it('does not allow overriding transitions in reverse layer order', () => {
+			const converter = createTestee()
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					pgm0: wrapInTimelineObject('pgm0', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						transition: {
+							duration: 500,
+							effect: VMixTransitionType.Fade,
+						},
+					}),
+					pgm1: wrapInTimelineObject('pgm1', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						input: 2,
+					}),
+				}),
+				{
+					pgm0: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+					pgm1: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+				}
+			)
+			expect(result.reportedState.mixes[0]?.transition).toEqual({
+				duration: 0,
+				effect: VMixTransitionType.Cut,
+			})
+			expect(result.reportedState.mixes[0]?.program).toEqual(2)
+		})
+		it('supports url', () => {
+			const converter = createTestee()
+			const url = 'https://example.com'
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					inp0: wrapInTimelineObject('inp0', {
+						deviceType: DeviceType.VMIX,
+						url,
+						type: TimelineContentTypeVMix.INPUT,
+					}),
+				}),
+				{
+					inp0: wrapInMapping({
+						mappingType: MappingVmixType.Input,
+						index: '1',
+					}),
+				}
+			)
+			expect(result.reportedState.existingInputs['1'].url).toEqual(url)
+		})
+		it('supports index', () => {
+			const converter = createTestee()
+			const index = 3
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					inp0: wrapInTimelineObject('inp0', {
+						deviceType: DeviceType.VMIX,
+						index,
+						type: TimelineContentTypeVMix.INPUT,
+					}),
+				}),
+				{
+					inp0: wrapInMapping({
+						mappingType: MappingVmixType.Input,
+						index: '1',
+					}),
+				}
+			)
+			expect(result.reportedState.existingInputs['1'].index).toEqual(index)
 		})
 
 		// TODO: maybe we can't trust the defaults when adding an input? Make this test pass eventually
