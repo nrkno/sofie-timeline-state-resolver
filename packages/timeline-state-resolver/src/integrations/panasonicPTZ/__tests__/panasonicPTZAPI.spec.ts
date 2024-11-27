@@ -1,7 +1,24 @@
-import { PanasonicPtzHttpInterface } from '../../../integrations/panasonicPTZ/connection'
+import { PanasonicFocusMode, PanasonicPtzHttpInterface } from '../../../integrations/panasonicPTZ/connection'
 import got from '../../../__mocks__/got'
 import { URL } from 'url'
 import { OptionsOfJSONResponseBody, Response } from 'got'
+import {
+	PresetRegisterControl,
+	PresetDeleteControl,
+	PresetPlaybackControl,
+	PresetSpeedControl,
+	ZoomSpeedControl,
+	ZoomPositionControl,
+	PanTiltSpeedControl,
+	FocusSpeedControl,
+	AutoFocusOnOffControl,
+	OneTouchFocusControl,
+	PresetNumberQuery,
+	PresetSpeedQuery,
+	ZoomSpeedQuery,
+	ZoomPositionQuery,
+	PowerMode,
+} from '../commands'
 
 const orgSetTimeout = setTimeout
 
@@ -21,18 +38,32 @@ function mockReply(mockDevice: MockDevice, urlString: string) {
 
 	if (mockDevice.returnError) return mockDevice.returnError
 
-	const preset = cmd.match(/#R(\d+)/) // #R%02i
+	const presetStore = cmd.match(/#M(\d+)/) // #M%02i
+	const presetRecall = cmd.match(/#R(\d+)/) // #R%02i
+	const presetDelete = cmd.match(/#C(\d+)/) // #C%02i
 	const speed = cmd.match(/#UPVS(\d+)/) // #UPVS%03i
 	const zoomSpeed = cmd.match(/#Z(\w+)/) // #Z%02i
 	const zoom = cmd.match(/#AXZ(\w+)/) // #AXZ%03X
+	const panTiltDrive = cmd.match(/#PTS(\d{2})(\d{2})/) // #PTS%02i%02i
+	const focusSpeed = cmd.match(/#F(\d+)/) // #F%02i
+	const focusMode = cmd.match(/#D1(\d+)/) // #D1%d
+	const oneTouchFocus = cmd.match(/OSE:69:1/) // #OSE:69:1
 
 	if (cmd === '#O') {
 		// POWER_MODE_QUERY
 		return mockDevice.powerMode
-	} else if (preset) {
+	} else if (presetRecall) {
 		// PRESET_NUMBER_CONTROL_TPL
-		mockDevice.preset = Number(preset[1])
+		mockDevice.preset = Number(presetRecall[1])
 		return 's' + mockDevice.preset
+	} else if (presetStore) {
+		mockDevice.preset = Number(presetStore[1])
+		return 's' + mockDevice.preset
+	} else if (presetDelete) {
+		return 's' + presetDelete[1]
+	} else if (panTiltDrive) {
+		const speeds = panTiltDrive[1] + panTiltDrive[2]
+		return 'pTS' + speeds
 	} else if (cmd === '#S') {
 		// PRESET_NUMBER_QUERY
 		return 's' + mockDevice.preset
@@ -54,6 +85,12 @@ function mockReply(mockDevice: MockDevice, urlString: string) {
 		// ZOOM_CONTROL_TPL
 		mockDevice.zoom = Number.parseInt(zoom[1], 16)
 		return 'axz' + mockDevice.zoom.toString(16)
+	} else if (focusSpeed) {
+		return 'fS' + focusSpeed[1]
+	} else if (focusMode) {
+		return 'd1' + focusMode[1]
+	} else if (oneTouchFocus) {
+		return oneTouchFocus[0]
 	} else if (cmd === '#GZ') {
 		// ZOOM_QUERY
 		return 'gz' + mockDevice.zoom.toString(16)
@@ -116,29 +153,48 @@ describe('PanasonicAPI', () => {
 		panasonicPTZ.on('error', onError)
 		panasonicPTZ.on('disconnected', onDisconnected)
 
-		mockDevice.powerMode = 'p0' // POWER_MODE_STBY
-		expect(await panasonicPTZ.ping()).toEqual(false)
+		mockDevice.powerMode = 'p0'
+		expect(await panasonicPTZ.ping()).toEqual(PowerMode.POWER_MODE_STBY)
 
-		mockDevice.powerMode = 'p3' // POWER_MODE_TURNING_ON
-		expect(await panasonicPTZ.ping()).toEqual('turningOn')
+		mockDevice.powerMode = 'p3'
+		expect(await panasonicPTZ.ping()).toEqual(PowerMode.POWER_MODE_TURNING_ON)
 
-		mockDevice.powerMode = 'p1' // POWER_MODE_ON
-		expect(await panasonicPTZ.ping()).toEqual(true)
+		mockDevice.powerMode = 'p1'
+		expect(await panasonicPTZ.ping()).toEqual(PowerMode.POWER_MODE_ON)
 
-		expect(await panasonicPTZ.recallPreset(42)).toEqual(42)
-		expect(mockDevice.preset).toEqual(42)
-		expect(await panasonicPTZ.recallPreset(7)).toEqual(7)
-		expect(await panasonicPTZ.setSpeed(0)).toEqual(0)
-		expect(await panasonicPTZ.setSpeed(250)).toEqual(250)
-		expect(await panasonicPTZ.setZoomSpeed(49 + 50)).toEqual(49 + 50)
-		expect(await panasonicPTZ.setZoomSpeed(25 + 50)).toEqual(25 + 50)
-		expect(await panasonicPTZ.setZoom(0x555)).toEqual(0x555)
-		expect(await panasonicPTZ.setZoom(1 * 0xaaa + 0x555)).toEqual(1 * 0xaaa + 0x555)
+		expect(await panasonicPTZ.executeCommand(new PresetRegisterControl(23))).toEqual(23)
+		expect(await panasonicPTZ.executeCommand(new PresetDeleteControl(31))).toEqual(31)
+		expect(await panasonicPTZ.executeCommand(new PresetPlaybackControl(7))).toEqual(7)
 
-		expect(await panasonicPTZ.getPreset()).toEqual(7)
-		expect(await panasonicPTZ.getSpeed()).toEqual(250)
-		expect(await panasonicPTZ.getZoomSpeed()).toEqual(25 + 50)
-		expect(await panasonicPTZ.getZoom()).toEqual(1 * 0xaaa + 0x555)
+		expect(await panasonicPTZ.executeCommand(new PresetSpeedControl(0))).toEqual(0)
+		expect(await panasonicPTZ.executeCommand(new PresetSpeedControl(250))).toEqual(250)
+		expect(await panasonicPTZ.executeCommand(new ZoomSpeedControl(49 + 50))).toEqual(49 + 50)
+		expect(await panasonicPTZ.executeCommand(new ZoomSpeedControl(25 + 50))).toEqual(25 + 50)
+		expect(await panasonicPTZ.executeCommand(new ZoomPositionControl(0x555))).toEqual(0x555)
+		expect(await panasonicPTZ.executeCommand(new ZoomPositionControl(1 * 0xaaa + 0x555))).toEqual(1 * 0xaaa + 0x555)
+
+		expect(await panasonicPTZ.executeCommand(new PanTiltSpeedControl(50, 50))).toEqual({ panSpeed: 50, tiltSpeed: 50 })
+		expect(await panasonicPTZ.executeCommand(new PanTiltSpeedControl(50 + 22, 50 - 5))).toEqual({
+			panSpeed: 50 + 22,
+			tiltSpeed: 45,
+		})
+
+		expect(await panasonicPTZ.executeCommand(new FocusSpeedControl(50))).toEqual(50)
+		expect(await panasonicPTZ.executeCommand(new FocusSpeedControl(50 + 22))).toEqual(72)
+
+		expect(await panasonicPTZ.executeCommand(new AutoFocusOnOffControl(PanasonicFocusMode.AUTO))).toEqual(
+			PanasonicFocusMode.AUTO
+		)
+		expect(await panasonicPTZ.executeCommand(new AutoFocusOnOffControl(PanasonicFocusMode.MANUAL))).toEqual(
+			PanasonicFocusMode.MANUAL
+		)
+
+		expect(await panasonicPTZ.executeCommand(new OneTouchFocusControl())).toEqual(undefined)
+
+		expect(await panasonicPTZ.executeCommand(new PresetNumberQuery())).toEqual(7)
+		expect(await panasonicPTZ.executeCommand(new PresetSpeedQuery())).toEqual(250)
+		expect(await panasonicPTZ.executeCommand(new ZoomSpeedQuery())).toEqual(75) // 25 + 50 = 75
+		expect(await panasonicPTZ.executeCommand(new ZoomPositionQuery())).toEqual(1 * 0xaaa + 0x555)
 
 		// test that queueing works:
 		// mockDevice.preset = 0
@@ -156,13 +212,11 @@ describe('PanasonicAPI', () => {
 
 		// return error:
 		mockDevice.returnError = 'E1'
-		let err: any = null
-		try {
-			await panasonicPTZ.recallPreset(42)
-		} catch (e) {
-			err = e
-		}
-		expect(err).toEqual('Device returned an error: E1')
+
+		await expect(async () => await panasonicPTZ.executeCommand(new PresetPlaybackControl(42))).rejects.toThrow(
+			'Device returned an error: E1'
+		)
+
 		mockDevice.returnError = null
 
 		expect(onDisconnected).toHaveBeenCalledTimes(0)

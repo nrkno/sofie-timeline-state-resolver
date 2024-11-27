@@ -35,6 +35,7 @@ import {
 	DeviceOptionsLawo,
 	DeviceOptionsSofieChef,
 	DeviceOptionsPharos,
+	DeviceOptionsViscaOverIP,
 	DeviceOptionsTriCaster,
 	DeviceOptionsSingularLive,
 } from 'timeline-state-resolver-types'
@@ -1201,6 +1202,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCaster
 	| DeviceOptionsMultiOSC
+	| DeviceOptionsViscaOverIP
 
 function removeParentFromState(
 	o: Timeline.TimelineState<TSRTimelineContent>
