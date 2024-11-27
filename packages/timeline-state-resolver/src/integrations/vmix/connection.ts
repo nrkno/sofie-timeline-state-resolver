@@ -260,6 +260,8 @@ export class VMixCommandSender {
 				return this.listRemoveAll(command.input)
 			case VMixCommand.RESTART_INPUT:
 				return this.restart(command.input)
+			case VMixCommand.BROWSER_NAVIGATE:
+				return this.browserNavigate(command.input, command.value)
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -465,6 +467,10 @@ export class VMixCommandSender {
 
 	public async restart(input: string | number): Promise<any> {
 		return this.sendCommandFunction(`Restart`, { input })
+	}
+
+	public async browserNavigate(input: string | number, value: string): Promise<any> {
+		return this.sendCommandFunction(`BrowserNavigate`, { input, value: encodeURIComponent(value) })
 	}
 
 	private async sendCommandFunction(func: string, args: SentCommandArgs) {

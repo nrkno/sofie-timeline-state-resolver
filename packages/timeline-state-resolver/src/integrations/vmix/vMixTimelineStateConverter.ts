@@ -148,6 +148,7 @@ export class VMixTimelineStateConverter {
 										(content.overlays ? this._convertDeprecatedInputOverlays(content.overlays) : undefined),
 									listFilePaths: content.listFilePaths,
 									restart: content.restart,
+									url: content.url,
 								},
 								{ key: mapping.options.index, filePath: content.filePath },
 								layerName

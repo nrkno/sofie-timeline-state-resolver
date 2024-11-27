@@ -203,6 +203,11 @@ export interface VMixStateCommandRestart extends VMixStateCommandBase {
 	command: VMixCommand.RESTART_INPUT
 	input: string | number
 }
+export interface VMixStateCommandBrowserNavigate extends VMixStateCommandBase {
+	command: VMixCommand.BROWSER_NAVIGATE
+	input: string | number
+	value: string
+}
 export type VMixStateCommand =
 	| VMixStateCommandPreviewInput
 	| VMixStateCommandTransition
@@ -248,6 +253,7 @@ export type VMixStateCommand =
 	| VMixStateCommandListAdd
 	| VMixStateCommandListRemoveAll
 	| VMixStateCommandRestart
+	| VMixStateCommandBrowserNavigate
 
 export enum CommandContext {
 	None = 'none',
