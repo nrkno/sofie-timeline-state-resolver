@@ -168,4 +168,25 @@ describe('VMixStateDiffer', () => {
 			value: url,
 		})
 	})
+	it('sets index', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		const index = 3
+		newState.reportedState.existingInputs['99'].index = index
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SELECT_INDEX,
+			input: '99',
+			value: index,
+		})
+	})
 })

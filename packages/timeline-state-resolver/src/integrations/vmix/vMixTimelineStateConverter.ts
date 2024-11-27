@@ -149,6 +149,7 @@ export class VMixTimelineStateConverter {
 									listFilePaths: content.listFilePaths,
 									restart: content.restart,
 									url: content.url,
+									index: content.index,
 								},
 								{ key: mapping.options.index, filePath: content.filePath },
 								layerName
