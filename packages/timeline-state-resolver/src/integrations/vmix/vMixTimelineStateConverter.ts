@@ -71,6 +71,11 @@ export class VMixTimelineStateConverter {
 								this._switchToInput(content.input, deviceState, mixProgram, content.transition)
 							} else if (content.inputLayer) {
 								this._switchToInput(content.inputLayer, deviceState, mixProgram, content.transition, true)
+							} else if (content.transition) {
+								const mixState = deviceState.reportedState.mixes[mixProgram]
+								if (mixState) {
+									mixState.transition = content.transition
+								}
 							}
 						}
 						break
@@ -238,7 +243,7 @@ export class VMixTimelineStateConverter {
 			mixState.preview = mixState.program
 			mixState.program = input
 
-			mixState.transition = transition || { effect: VMixTransitionType.Cut, duration: 0 }
+			mixState.transition = transition ?? { effect: VMixTransitionType.Cut, duration: 0 }
 			mixState.layerToProgram = layerToProgram
 		}
 	}
