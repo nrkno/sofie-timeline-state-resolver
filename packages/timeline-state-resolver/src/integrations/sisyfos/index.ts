@@ -19,13 +19,15 @@ import {
 	ActionExecutionResultCode,
 	SisyfosActionExecutionPayload,
 	SisyfosActionExecutionResult,
+	SetSisyfosChannelStatePayload,
+	LoadMixerPresetPayload,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { SisyfosApi, SisyfosCommand, SisyfosState, SisyfosChannel, SisyfosCommandType } from './connection'
 import Debug from 'debug'
-import { startTrace, endTrace, actionNotFoundMessage } from '../../lib'
+import { startTrace, endTrace, actionNotFoundMessage, t } from '../../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
@@ -206,7 +208,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
-		payload: SisyfosActionExecutionPayload<A>
+		payload0: SisyfosActionExecutionPayload<A>
 	): Promise<SisyfosActionExecutionResult<A>> {
 		const actionId = actionId0
 		switch (actionId) {
@@ -218,7 +220,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					.catch(() => ({
 						result: ActionExecutionResultCode.Error,
 					}))
-			case SisyfosActions.SetSisyfosChannelState:
+			case SisyfosActions.SetSisyfosChannelState: {
+				const payload = payload0 as SetSisyfosChannelStatePayload
 				if (typeof payload?.channel !== 'number') {
 					return {
 						result: ActionExecutionResultCode.Error,
@@ -228,6 +231,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				return {
 					result: ActionExecutionResultCode.Ok,
 				}
+			}
+			case SisyfosActions.LoadMixerPreset: {
+				const payload = payload0 as LoadMixerPresetPayload
+				if (!payload?.name) {
+					return { result: ActionExecutionResultCode.Error, response: t('Missing name') }
+				}
+				return this._handleLoadMixerPreset(payload.name)
+			}
 			default:
 				return actionNotFoundMessage(actionId)
 		}
@@ -684,5 +695,19 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	}
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
+	}
+
+	private _handleLoadMixerPreset(presetName: string) {
+		if (!this._sisyfos.connected || !this._sisyfos.mixerOnline)
+			return {
+				result: ActionExecutionResultCode.Error,
+			}
+		this._sisyfos.send({
+			type: SisyfosCommandType.LOAD_MIXER_PRESET,
+			presetName,
+		})
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
 	}
 }
