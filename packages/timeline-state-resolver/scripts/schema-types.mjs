@@ -20,6 +20,16 @@ const DEREFERENCED_SCHEMA_DIRECTORY = '$schemas/generated'
 
 let hadError = false
 
+const capitalise = (s) => {
+	if (!s) return s
+	const base = s.slice(0, 1).toUpperCase() + s.slice(1)
+
+	// replace `_a` with `A`
+	return base.replace(/_[a-z]/gi, (v) => {
+		return v.slice(1).toUpperCase()
+	})
+}
+
 const PrettierConf = JSON.parse(
 	await fs.readFile('../../node_modules/@sofie-automation/code-standard-preset/.prettierrc.json')
 )
@@ -39,6 +49,51 @@ try {
 	console.error('Error while generating action-schema.json, continuing...')
 	console.error(e)
 	hadError = true
+}
+
+// convert generic PTZ actions
+try {
+	const actionsDescr = JSON.parse(await fs.readFile('./src/$schemas/generic-ptz-actions.json'))
+	const actionDefinitions = []
+	let output = ''
+	for (const action of actionsDescr.actions) {
+		let actionTypes = []
+		const actionDefinition = {
+			id: action.id,
+			payloadId: undefined,
+			resultId: undefined
+		}
+		actionDefinitions.push(actionDefinition)
+		// Payload:
+		if (action.payload) {
+			actionDefinition.payloadId = action.payload.id || capitalise(action.id + 'Payload')
+			actionTypes.push(await compile(action.payload, actionDefinition.payloadId, {
+				additionalProperties: false,
+				style: PrettierConf,
+				bannerComment: '',
+				enableConstEnums: false,
+			}))
+		}
+		// Return Data:
+		if (action.result) {
+			actionDefinition.resultId = action.result.id || capitalise(action.id + 'Result')
+			actionTypes.push(await compile(action.result, actionDefinition.resultId, {
+				additionalProperties: false,
+				style: PrettierConf,
+				bannerComment: '',
+				enableConstEnums: false,
+			}))
+		}
+		output += '\n' + actionTypes.join('\n')
+	}
+
+	await fs.writeFile(
+		'../timeline-state-resolver-types/src/generated/generic-ptz-actions.ts',
+		BANNER + '\n' + output
+	)
+} catch (e) {
+	console.error('Error while generating common-options.json, continuing...')
+	console.error(e)
 }
 
 // convert common-options
@@ -76,17 +131,7 @@ try {
 	hadError = true
 }
 
-const capitalise = (s) => {
-	if (!s) return s
-	const base = s.slice(0, 1).toUpperCase() + s.slice(1)
-
-	// replace `_a` with `A`
-	return base.replace(/_[a-z]/gi, (v) => {
-		return v.slice(1).toUpperCase()
-	})
-}
-
-let indexFile = BANNER + `\nexport * from './action-schema'`
+let indexFile = BANNER + `\nexport * from './action-schema'\nexport * from './generic-ptz-actions'`
 let baseMappingsTypes = []
 
 // iterate over integrations
@@ -195,6 +240,7 @@ for (const dir of dirs) {
 					resultId: undefined
 				}
 				actionDefinitions.push(actionDefinition)
+				if (action.generic) continue
 
 
 				const actionTypes = []

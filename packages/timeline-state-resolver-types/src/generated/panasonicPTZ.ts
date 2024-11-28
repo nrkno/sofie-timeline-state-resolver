@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface PanasonicPTZOptions {
 	host: string
@@ -35,3 +36,38 @@ export enum MappingPanasonicPTZType {
 }
 
 export type SomeMappingPanasonicPTZ = MappingPanasonicPTZPresetMem | MappingPanasonicPTZPresetSpeed | MappingPanasonicPTZZoomSpeed | MappingPanasonicPTZZoom
+
+export enum PanasonicPTZActions {
+	SetPanTiltSpeed = 'setPanTiltSpeed',
+	GetPanTiltPosition = 'getPanTiltPosition',
+	SetZoomSpeed = 'setZoomSpeed',
+	GetZoomPosition = 'getZoomPosition',
+	StorePreset = 'storePreset',
+	RecallPreset = 'recallPreset',
+	ResetPreset = 'resetPreset',
+	SetFocusSpeed = 'setFocusSpeed',
+	SetFocusMode = 'setFocusMode',
+	TriggerOnePushFocus = 'triggerOnePushFocus',
+	GetFocusPosition = 'getFocusPosition',
+	GetFocusMode = 'getFocusMode'
+}
+export interface PanasonicPTZActionExecutionResults {
+	setPanTiltSpeed: () => void,
+	getPanTiltPosition: () => void,
+	setZoomSpeed: () => void,
+	getZoomPosition: () => void,
+	storePreset: () => void,
+	recallPreset: () => void,
+	resetPreset: () => void,
+	setFocusSpeed: () => void,
+	setFocusMode: () => void,
+	triggerOnePushFocus: () => void,
+	getFocusPosition: () => void,
+	getFocusMode: () => void
+}
+export type PanasonicPTZActionExecutionPayload<A extends keyof PanasonicPTZActionExecutionResults> = Parameters<
+	PanasonicPTZActionExecutionResults[A]
+>[0]
+
+export type PanasonicPTZActionExecutionResult<A extends keyof PanasonicPTZActionExecutionResults> =
+	ActionExecutionResult<ReturnType<PanasonicPTZActionExecutionResults[A]>>

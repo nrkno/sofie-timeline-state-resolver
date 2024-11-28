@@ -6,6 +6,7 @@
  */
 
 export * from './action-schema'
+export * from './generic-ptz-actions'
 export * from './abstract'
 import { SomeMappingAbstract } from './abstract'
 
@@ -66,6 +67,9 @@ import { SomeMappingTelemetrics } from './telemetrics'
 export * from './tricaster'
 import { SomeMappingTricaster } from './tricaster'
 
+export * from './viscaOverIP'
+import { SomeMappingViscaOverIP } from './viscaOverIP'
+
 export * from './vizMSE'
 import { SomeMappingVizMSE } from './vizMSE'
 
@@ -93,5 +97,6 @@ export type TSRMappingOptions =
 	| SomeMappingTcpSend
 	| SomeMappingTelemetrics
 	| SomeMappingTricaster
+	| SomeMappingViscaOverIP
 	| SomeMappingVizMSE
 	| SomeMappingVmix
