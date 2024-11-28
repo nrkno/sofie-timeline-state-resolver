@@ -33,6 +33,7 @@ Using this input, it resolves the expected state, diffs the state against curren
 - **[Sofie Chef](https://github.com/nrkno/sofie-chef)**
 - **Telemetrics** camera robotics
 - **Newtek Tricaster** video mixers
+- **[VISCA over IP](https://en.wikipedia.org/wiki/VISCA_Protocol)** camera control
 - Arbitrary [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) compatible devices
 - Arbitrary HTTP (REST) compatible devices
 - Arbitrary TCP-socket compatible devices

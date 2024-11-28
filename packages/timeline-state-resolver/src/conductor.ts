@@ -1201,7 +1201,6 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCaster
-	| DeviceOptionsMultiOSC
 	| DeviceOptionsViscaOverIP
 
 function removeParentFromState(
