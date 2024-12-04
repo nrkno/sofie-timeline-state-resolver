@@ -147,6 +147,140 @@ describe('VMixStateDiffer', () => {
 		})
 	})
 
+	it('sets text', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'].text = {
+			'myTitle.Text': 'SomeValue',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_TEXT,
+			input: '99',
+			value: 'SomeValue',
+			fieldName: 'myTitle.Text',
+		})
+	})
+
+	it('sets multiple texts', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'].text = {
+			'myTitle.Text': 'SomeValue',
+			'myTitle.Foo': 'Bar',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(2)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_TEXT,
+			input: '99',
+			value: 'SomeValue',
+			fieldName: 'myTitle.Text',
+		})
+		expect(commands[1].command).toMatchObject({
+			command: VMixCommand.SET_TEXT,
+			input: '99',
+			value: 'Bar',
+			fieldName: 'myTitle.Foo',
+		})
+	})
+
+	it('does not unset text', () => {
+		// it would have to be explicitly set to an empty string on the timeline
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		oldState.reportedState.existingInputs['99'].text = {
+			'myTitle.Text': 'SomeValue',
+			'myTitle.Foo': 'Bar',
+		}
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		newState.reportedState.existingInputs['99'].text = {
+			'myTitle.Foo': 'Bar',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(0)
+	})
+
+	it('updates text', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		oldState.reportedState.existingInputs['99'].text = {
+			'myTitle.Text': 'SomeValue',
+		}
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		newState.reportedState.existingInputs['99'].text = {
+			'myTitle.Text': 'Bar',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_TEXT,
+			input: '99',
+			value: 'Bar',
+			fieldName: 'myTitle.Text',
+		})
+	})
+
+	it('updates text to an empty string', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		oldState.reportedState.existingInputs['99'].text = {
+			'myTitle.Text': 'SomeValue',
+		}
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		newState.reportedState.existingInputs['99'].text = {
+			'myTitle.Text': '',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_TEXT,
+			input: '99',
+			value: '',
+			fieldName: 'myTitle.Text',
+		})
+	})
+
 	it('sets browser url', () => {
 		const differ = createTestee()
 

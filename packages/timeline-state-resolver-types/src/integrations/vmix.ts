@@ -45,6 +45,7 @@ export enum VMixCommand {
 	LIST_ADD = 'LIST_ADD',
 	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
 	RESTART_INPUT = 'RESTART_INPUT',
+	SET_TEXT = 'SET_TEXT',
 	BROWSER_NAVIGATE = 'BROWSER_NAVIGATE',
 	SELECT_INDEX = 'SELECT_INDEX',
 }
@@ -191,6 +192,11 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 	/** If media should start from the beginning or resume from where it left off */
 	restart?: boolean
 
+	/**
+	 * Titles (GT): Sets the values of text fields by name
+	 */
+	text?: VMixText
+
 	/** The URL for Browser input */
 	url?: string
 
@@ -253,6 +259,10 @@ export interface VMixLayers {
 
 export interface VMixInputOverlays {
 	[index: number]: number | string
+}
+
+export interface VMixText {
+	[index: string]: string
 }
 
 export interface VMixLayer {
