@@ -41,6 +41,18 @@
 				"required": ["filename"],
 				"additionalProperties": false
 			}
+		},
+		{
+			"id": "startExternal",
+			"name": "Start External Output",
+			"destructive": false,
+			"timeout": 5000
+		},
+		{
+			"id": "stopExternal",
+			"name": "Stop External Output",
+			"destructive": false,
+			"timeout": 5000
 		}
 	]
 }
