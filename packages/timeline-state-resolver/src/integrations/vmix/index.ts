@@ -300,18 +300,18 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				return this._openPreset(payload as OpenPresetPayload) as Promise<VmixActionExecutionResult<A>>
 			case VmixActions.SavePreset:
 				return this._savePreset(payload as SavePresetPayload) as Promise<VmixActionExecutionResult<A>>
+			case VmixActions.StartExternal:
+				return this._startExternalOutput() as Promise<VmixActionExecutionResult<A>>
+			case VmixActions.StopExternal:
+				return this._stopExternalOutput() as Promise<VmixActionExecutionResult<A>>
 			default:
 				return actionNotFoundMessage(actionId)
 		}
 	}
 
 	_checkPresetAction(payload?: any, payloadRequired?: boolean): ActionExecutionResult | undefined {
-		if (!this._vMixConnection.connected) {
-			return {
-				result: ActionExecutionResultCode.Error,
-				response: t('Cannot perform VMix action without a connection'),
-			}
-		}
+		const connectionError = this._checkConnectionForAction()
+		if (connectionError) return connectionError
 
 		if (payloadRequired) {
 			if (!payload || typeof payload !== 'object') {
@@ -356,6 +356,36 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
+	}
+
+	private async _startExternalOutput() {
+		const connectionError = this._checkConnectionForAction()
+		if (connectionError) return connectionError
+
+		await this._vMixCommandSender.startExternal()
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	private async _stopExternalOutput() {
+		const connectionError = this._checkConnectionForAction()
+		if (connectionError) return connectionError
+
+		await this._vMixCommandSender.stopExternal()
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	private _checkConnectionForAction(): ActionExecutionResult | undefined {
+		if (!this._vMixConnection.connected) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Cannot perform VMix action without a connection'),
+			}
+		}
+		return undefined
 	}
 
 	get canConnect(): boolean {
