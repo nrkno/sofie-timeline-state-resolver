@@ -1,6 +1,7 @@
 import { Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
 import { StateHandler } from '../stateHandler'
 import { MockTime } from '../../__tests__/mockTime'
+import { ExecuteMode } from '../device'
 
 interface DeviceState {
 	[prop: string]: {
@@ -44,7 +45,7 @@ describe('stateHandler', () => {
 		return new StateHandler<DeviceState, CommandWithContext>(
 			CONTEXT,
 			{
-				executionType: 'salvo',
+				executionType: ExecuteMode.SALVO,
 			},
 			{
 				convertTimelineStateToDeviceState: (s) => s.layers as unknown as DeviceState,
