@@ -125,12 +125,16 @@ export interface SavePresetPayload {
 export enum VmixActions {
 	LastPreset = 'lastPreset',
 	OpenPreset = 'openPreset',
-	SavePreset = 'savePreset'
+	SavePreset = 'savePreset',
+	StartExternal = 'startExternal',
+	StopExternal = 'stopExternal'
 }
 export interface VmixActionExecutionResults {
 	lastPreset: () => void,
 	openPreset: (payload: OpenPresetPayload) => void,
-	savePreset: (payload: SavePresetPayload) => void
+	savePreset: (payload: SavePresetPayload) => void,
+	startExternal: () => void,
+	stopExternal: () => void
 }
 export type VmixActionExecutionPayload<A extends keyof VmixActionExecutionResults> = Parameters<
 	VmixActionExecutionResults[A]
