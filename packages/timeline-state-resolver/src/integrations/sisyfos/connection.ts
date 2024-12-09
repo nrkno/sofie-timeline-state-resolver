@@ -176,6 +176,8 @@ export class SisyfosApi extends EventEmitter<SisyfosApiEvents> {
 				...command.values,
 			}
 			this.setSisyfosChannel(command.channel + 1, channelState)
+		} else if (command.type === SisyfosCommandType.LOAD_MIXER_PRESET) {
+			this.sendLoadMixerPresetCommand(command.presetName)
 		}
 	}
 
@@ -371,6 +373,21 @@ export class SisyfosApi extends EventEmitter<SisyfosApiEvents> {
 
 		return deviceState
 	}
+
+	protected sendLoadMixerPresetCommand(presetName: string) {
+		if (!this._oscClient) {
+			throw new Error(`Can't load mixer preset, OSC client not initialised`)
+		}
+		this._oscClient.send({
+			address: `/loadmixerpreset`,
+			args: [
+				{
+					type: 's',
+					value: presetName,
+				},
+			],
+		})
+	}
 }
 
 export enum SisyfosCommandType {
@@ -387,6 +404,7 @@ export enum SisyfosCommandType {
 	RESYNC = 'resync',
 	RESYNC_CHANNEL = 'resyncChannel',
 	SET_CHANNEL = 'setChannel',
+	LOAD_MIXER_PRESET = 'loadMixerPreset',
 }
 
 export interface BaseCommand {
@@ -397,6 +415,11 @@ export interface SetChannelCommand {
 	type: SisyfosCommandType.SET_CHANNEL
 	channel: number
 	values: Partial<SisyfosChannelAPI>
+}
+
+export interface LoadMixerPresetCommand {
+	type: SisyfosCommandType.LOAD_MIXER_PRESET
+	presetName: string
 }
 
 export interface ChannelCommand extends BaseCommand {
@@ -411,6 +434,10 @@ export interface ChannelCommand extends BaseCommand {
 		| SisyfosCommandType.SET_INPUT_GAIN
 		| SisyfosCommandType.SET_MUTE
 	channel: number
+}
+
+export interface GlobalCommand extends BaseCommand {
+	type: SisyfosCommandType.CLEAR_PST_ROW | SisyfosCommandType.TAKE | SisyfosCommandType.RESYNC
 }
 
 export interface GlobalCommand extends BaseCommand {
@@ -448,6 +475,7 @@ export type SisyfosCommand =
 	| BoolCommand
 	| StringCommand
 	| SetChannelCommand
+	| LoadMixerPresetCommand
 
 export interface SisyfosChannel extends SisyfosChannelAPI {
 	timelineObjIds: string[]
