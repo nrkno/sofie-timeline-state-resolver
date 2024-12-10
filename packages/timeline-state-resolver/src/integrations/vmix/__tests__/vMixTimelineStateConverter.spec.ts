@@ -137,6 +137,27 @@ describe('VMixTimelineStateConverter', () => {
 			expect(result.reportedState.inputsAddedByUsAudio[prefixAddedInput(filePath)]).toBeUndefined()
 		})
 
+		it('supports text', () => {
+			const converter = createTestee()
+			const text = { 'myTitle.Text': 'SomeValue', 'myTitle.Foo': 'Bar' }
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					inp0: wrapInTimelineObject('inp0', {
+						deviceType: DeviceType.VMIX,
+						text,
+						type: TimelineContentTypeVMix.INPUT,
+					}),
+				}),
+				{
+					inp0: wrapInMapping({
+						mappingType: MappingVmixType.Input,
+						index: '1',
+					}),
+				}
+			)
+			expect(result.reportedState.existingInputs['1'].text).toEqual(text)
+		})
+
 		it('allows overriding transitions in usual layer order', () => {
 			const converter = createTestee()
 			const result = converter.getVMixStateFromTimelineState(

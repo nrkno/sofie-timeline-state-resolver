@@ -1,6 +1,5 @@
 import * as xml from 'xml-js'
 import { TSR_INPUT_PREFIX, VMixInput, VMixInputAudio, VMixMix, VMixState } from './vMixStateDiffer'
-import { InferredPartialInputStateKeys } from './connection'
 import { VMixTransitionType } from 'timeline-state-resolver-types'
 
 /**
@@ -19,11 +18,11 @@ export class VMixXmlStateParser {
 		const inputsAddedByUsAudio: Record<string, VMixInputAudio> = {}
 
 		const inputKeysToNumbers: Record<string, number> = {}
-		for (const input of xmlState['vmix']['inputs']['input'] as Omit<VMixInput, InferredPartialInputStateKeys>[]) {
+		for (const input of xmlState['vmix']['inputs']['input']) {
 			inputKeysToNumbers[input['_attributes']['key']] = Number(input['_attributes']['number'])
 		}
 
-		for (const input of xmlState['vmix']['inputs']['input'] as Omit<VMixInput, InferredPartialInputStateKeys>[]) {
+		for (const input of xmlState['vmix']['inputs']['input']) {
 			const title = input['_attributes']['title'] as string
 			const inputNumber = Number(input['_attributes']['number'])
 			const isAddedByUs = title.startsWith(TSR_INPUT_PREFIX)
@@ -51,6 +50,14 @@ export class VMixXmlStateParser {
 				})
 			}
 
+			let text: VMixInput['text'] = undefined
+			if (input['text'] != null) {
+				this.ensureArray(input['text']).forEach((item) => {
+					text = text ?? {}
+					text[item['_attributes']['name']] = item['_text']
+				})
+			}
+
 			const result: VMixInput = {
 				number: inputNumber,
 				type: input['_attributes']['type'],
@@ -69,6 +76,7 @@ export class VMixXmlStateParser {
 				},
 				layers,
 				listFilePaths: fixedListFilePaths!,
+				text,
 			}
 
 			const resultAudio = {
