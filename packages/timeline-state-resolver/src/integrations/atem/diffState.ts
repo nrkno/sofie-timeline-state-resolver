@@ -63,7 +63,7 @@ export function createDiffOptions(mappings: Mappings<SomeMappingAtem>): DeepComp
 					dip: false,
 					DVE: false,
 					mix: true,
-					stinger: false,
+					stinger: true,
 					wipe: true,
 				},
 				upstreamKeyers: {

@@ -82,6 +82,21 @@ export interface AtemTransitionSettings {
 		input: number
 	}
 	// stinger
+	stinger?: {
+		/** index of the mediaplayer (0-3) - note: putting this at a number that the mixer doesn't support may crash the connection */
+		source: number
+		preMultipliedKey?: boolean
+
+		clip?: number
+		/** 0 - 1000 */
+		gain?: number
+		invert?: boolean
+
+		preroll?: number
+		clipDuration?: number
+		triggerPoint?: number
+		mixRate?: number
+	}
 	wipe?: {
 		/** 1 - 250 frames */
 		rate?: number
