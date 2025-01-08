@@ -272,6 +272,10 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 				await this._stateHandler.clearFutureStates()
 				this.emit('resyncStates')
 			},
+
+			recalcDiff: () => {
+				this._stateHandler.recalcDiff()
+			},
 		}
 	}
 

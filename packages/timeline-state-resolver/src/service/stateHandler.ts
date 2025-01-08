@@ -159,6 +159,12 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.stateQueue = this.stateQueue.filter((s) => s.state.time <= t)
 	}
 
+	recalcDiff() {
+		this.calculateNextStateChange().catch((e) => {
+			this.logger.warn('Failed to calculate state change ' + e)
+		})
+	}
+
 	private async calculateNextStateChange() {
 		if (!this.currentState) return // a change is currently being executed, we'll be called again once it's done
 

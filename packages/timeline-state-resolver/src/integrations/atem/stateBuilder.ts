@@ -1,4 +1,4 @@
-import { AtemStateUtil, Enums, MacroState, VideoState } from 'atem-connection'
+import { AtemState, AtemStateUtil, Enums, MacroState, VideoState } from 'atem-connection'
 import {
 	Mapping,
 	SomeMappingAtem,
@@ -37,7 +37,7 @@ import { PartialDeep } from 'type-fest'
 
 export class AtemStateBuilder {
 	// Start out with default state:
-	readonly #deviceState = AtemStateUtil.Create()
+	readonly #deviceState: AtemState & { controlValue?: string } = AtemStateUtil.Create()
 
 	public static fromTimeline(timelineState: Timeline.StateInTime<TSRTimelineContent>, mappings: Mappings): DeviceState {
 		const builder = new AtemStateBuilder()
@@ -55,6 +55,11 @@ export class AtemStateBuilder {
 
 			if (mapping && content.deviceType === DeviceType.ATEM) {
 				switch (mapping.options.mappingType) {
+					case MappingAtemType.ControlValue:
+						if (content.type === TimelineContentTypeAtem.ControlValue) {
+							builder.#deviceState.controlValue = content.controlValue
+						}
+						break
 					case MappingAtemType.MixEffect:
 						if (content.type === TimelineContentTypeAtem.ME) {
 							builder._applyMixEffect(mapping.options, content)

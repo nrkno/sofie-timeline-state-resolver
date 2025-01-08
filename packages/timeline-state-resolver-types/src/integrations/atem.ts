@@ -1,6 +1,7 @@
 import { DeviceType } from '..'
 
 export enum TimelineContentTypeAtem { //  Atem-state
+	ControlValue = 'controlValue',
 	ME = 'me',
 	DSK = 'dsk',
 	AUX = 'aux',
@@ -119,6 +120,7 @@ export interface AtemTransitionSettings {
 }
 
 export type TimelineContentAtemAny =
+	| TimelineContentAtemControlValue
 	| TimelineContentAtemME
 	| TimelineContentAtemDSK
 	| TimelineContentAtemAUX
@@ -133,6 +135,12 @@ export type TimelineContentAtemAny =
 export interface TimelineContentAtemBase {
 	deviceType: DeviceType.ATEM
 	type: TimelineContentTypeAtem
+}
+
+export interface TimelineContentAtemControlValue extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.ControlValue
+
+	controlValue: string
 }
 
 // as described in this issue: https://github.com/Microsoft/TypeScript/issues/14094
