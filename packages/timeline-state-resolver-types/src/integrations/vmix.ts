@@ -48,6 +48,7 @@ export enum VMixCommand {
 	SET_TEXT = 'SET_TEXT',
 	BROWSER_NAVIGATE = 'BROWSER_NAVIGATE',
 	SELECT_INDEX = 'SELECT_INDEX',
+	SET_IMAGE = 'SET_IMAGE',
 }
 
 export type TimelineContentVMixAny =
@@ -206,6 +207,11 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 	 * starts from 1
 	 */
 	index?: number
+
+	/**
+	 * Titles (GT): Sets the filenames of image fields by name
+	 */
+	images?: VMixImages
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {
@@ -262,6 +268,10 @@ export interface VMixInputOverlays {
 }
 
 export interface VMixText {
+	[index: string]: string
+}
+
+export interface VMixImages {
 	[index: string]: string
 }
 

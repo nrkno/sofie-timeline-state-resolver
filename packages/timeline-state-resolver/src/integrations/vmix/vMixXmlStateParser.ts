@@ -58,6 +58,14 @@ export class VMixXmlStateParser {
 				})
 			}
 
+			let images: VMixInput['images'] = undefined
+			if (input['image'] != null) {
+				this.ensureArray(input['image']).forEach((item) => {
+					images ??= {}
+					images[item['_attributes']['name']] = item['_text']
+				})
+			}
+
 			const result: VMixInput = {
 				number: inputNumber,
 				type: input['_attributes']['type'],
@@ -77,6 +85,7 @@ export class VMixXmlStateParser {
 				layers,
 				listFilePaths: fixedListFilePaths!,
 				text,
+				images,
 			}
 
 			const resultAudio = {

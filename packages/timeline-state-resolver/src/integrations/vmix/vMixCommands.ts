@@ -219,6 +219,12 @@ export interface VMixStateCommanSelectIndex extends VMixStateCommandBase {
 	input: string | number
 	value: number
 }
+export interface VMixStateCommandSetImage extends VMixStateCommandBase {
+	command: VMixCommand.SET_IMAGE
+	input: string | number
+	fieldName: string
+	value: string
+}
 export type VMixStateCommand =
 	| VMixStateCommandPreviewInput
 	| VMixStateCommandTransition
@@ -267,6 +273,7 @@ export type VMixStateCommand =
 	| VMixStateCommandSetText
 	| VMixStateCommandBrowserNavigate
 	| VMixStateCommanSelectIndex
+	| VMixStateCommandSetImage
 
 export enum CommandContext {
 	None = 'none',
