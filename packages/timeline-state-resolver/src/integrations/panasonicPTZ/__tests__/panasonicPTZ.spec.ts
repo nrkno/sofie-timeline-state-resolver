@@ -137,7 +137,7 @@ describe('Panasonic PTZ', () => {
 		) {
 			const device = await getInitialisedDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates(oldDevState, newDevState, {}, 0, 'test')
 
 			expect(commands).toEqual(expCommands)
 		}
@@ -177,7 +177,7 @@ describe('Panasonic PTZ', () => {
 							type: TimelineContentTypePanasonicPtz.SPEED,
 							speed: 0,
 						},
-						context: 'speed differ (0, undefined)',
+						context: 'speed differ (0, undefined) (test)',
 						timelineObjId: 'ptz_k1_s_0',
 					},
 					{
@@ -185,7 +185,7 @@ describe('Panasonic PTZ', () => {
 							type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
 							speed: 0,
 						},
-						context: 'zoom speed differ (0, undefined)',
+						context: 'zoom speed differ (0, undefined) (test)',
 						timelineObjId: 'ptz_k1_zs_0',
 					},
 					{
@@ -193,7 +193,7 @@ describe('Panasonic PTZ', () => {
 							type: TimelineContentTypePanasonicPtz.ZOOM,
 							zoom: 2,
 						},
-						context: 'zoom differ (2, undefined)',
+						context: 'zoom differ (2, undefined) (test)',
 						timelineObjId: 'ptz_k1_z_0',
 					},
 					{
@@ -201,7 +201,7 @@ describe('Panasonic PTZ', () => {
 							type: TimelineContentTypePanasonicPtz.PRESET,
 							preset: 2,
 						},
-						context: 'preset differ (2, undefined)',
+						context: 'preset differ (2, undefined) (test)',
 						timelineObjId: 'ptz_k1_0',
 					},
 				]

@@ -30,7 +30,7 @@ describe('Diff States', () => {
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
 
-		const commands = device.diffStates(undefined, state1, {})
+		const commands = device.diffStates(undefined, state1, {}, 0, 'test')
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
 		expect(diffStatesSpy).toHaveBeenNthCalledWith(
@@ -58,7 +58,7 @@ describe('Diff States', () => {
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
 
-		const commands = device.diffStates(state1, state2, {})
+		const commands = device.diffStates(state1, state2, {}, 0, 'test')
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
 		expect(diffStatesSpy).toHaveBeenNthCalledWith(1, expect.anything(), state1, state2, diffOptions)
@@ -79,7 +79,7 @@ describe('Diff States', () => {
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
 
-		const commands = device.diffStates(undefined, state1, {})
+		const commands = device.diffStates(undefined, state1, {}, 0, 'test')
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
 		expect(diffStatesSpy).toHaveBeenNthCalledWith(
@@ -115,7 +115,7 @@ describe('Diff States', () => {
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
 
-		const commands = device.diffStates(undefined, state1, mappings)
+		const commands = device.diffStates(undefined, state1, mappings, 0, 'test')
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
 		expect(diffStatesSpy).toHaveBeenNthCalledWith(
@@ -152,7 +152,7 @@ describe('Diff States', () => {
 		})
 
 		{
-			const commands = device.diffStates(undefined, deviceState1, mappings)
+			const commands = device.diffStates(undefined, deviceState1, mappings, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(2)
@@ -166,7 +166,7 @@ describe('Diff States', () => {
 		})
 
 		{
-			const commands = device.diffStates(deviceState1, deviceState2, mappings)
+			const commands = device.diffStates(deviceState1, deviceState2, mappings, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(4)
@@ -196,7 +196,7 @@ describe('Diff States', () => {
 		})
 
 		{
-			const commands = device.diffStates(undefined, deviceState1, mappings)
+			const commands = device.diffStates(undefined, deviceState1, mappings, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(4)
@@ -209,7 +209,7 @@ describe('Diff States', () => {
 		})
 
 		{
-			const commands = device.diffStates(deviceState1, deviceState2, mappings)
+			const commands = device.diffStates(deviceState1, deviceState2, mappings, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(3)
@@ -235,7 +235,7 @@ describe('Diff States', () => {
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
 
-		const commands = device.diffStates(undefined, state1, {})
+		const commands = device.diffStates(undefined, state1, {}, 0, 'test')
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
 		expect(diffStatesSpy).toHaveBeenNthCalledWith(
@@ -277,7 +277,7 @@ describe('Diff States', () => {
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
 
-		const commands = device.diffStates(undefined, state1, mappings)
+		const commands = device.diffStates(undefined, state1, mappings, 0, 'test')
 
 		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
 		expect(diffStatesSpy).toHaveBeenNthCalledWith(

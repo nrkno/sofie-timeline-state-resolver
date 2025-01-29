@@ -136,7 +136,7 @@ describe('telemetrics', () => {
 		mappings: Mappings<unknown>
 	) {
 		const deviceState = device.convertTimelineStateToDeviceState(state, mappings)
-		const commands = device.diffStates(undefined, deviceState, mappings, 1)
+		const commands = device.diffStates(undefined, deviceState, mappings, 1, 'test')
 		for (const command of commands) {
 			void device.sendCommand(command)
 		}

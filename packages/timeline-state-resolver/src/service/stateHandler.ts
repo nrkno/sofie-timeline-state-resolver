@@ -12,6 +12,8 @@ interface StateChange<DeviceState, Command extends CommandWithContext> {
 	deviceState: DeviceState
 	mappings: Mappings
 
+	timelineHash: string
+
 	measurement?: Measurement
 }
 interface ExecutedStateChange<DeviceState, Command extends CommandWithContext>
@@ -26,6 +28,9 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
 	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
 	private _executingStateChange = false
+
+	private _calculateNextStateChangeIndex = 0
+
 	private _commandExecutor: CommandExecutor<DeviceState, Command>
 
 	private clock: NodeJS.Timeout
@@ -39,7 +44,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	) {
 		this.logger = context.logger
 
-		this.setCurrentState(undefined).catch((e) => {
+		this.setCurrentState(undefined, 'startup').catch((e) => {
 			this.logger.error('Error while creating new StateHandler', e)
 		})
 
@@ -76,7 +81,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.stateQueue = []
 	}
 
-	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
+	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings, timelineHash: string) {
 		const nextState = this.stateQueue[0]
 
 		const trace = startTrace('device:convertTimelineStateToDeviceState', { deviceId: this.context.deviceId })
@@ -91,6 +96,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 				deviceState,
 				state,
 				mappings,
+				timelineHash,
 
 				measurement: new Measurement(state.time),
 			},
@@ -105,11 +111,12 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		}
 	}
 
-	async setCurrentState(state: DeviceState | undefined) {
+	async setCurrentState(state: DeviceState | undefined, reason: string) {
 		this.currentState = {
 			commands: [],
 			deviceState: state,
 			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
+			timelineHash: `reason:${reason}`,
 			mappings: this.currentState?.mappings || {},
 		}
 		await this.calculateNextStateChange()
@@ -125,13 +132,16 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		const nextState = this.stateQueue[0]
 		if (!nextState) return
 
+		this._calculateNextStateChangeIndex++
+
 		try {
 			const trace = startTrace('device:diffDeviceStates', { deviceId: this.context.deviceId })
 			nextState.commands = this.device.diffStates(
 				this.currentState?.deviceState,
 				nextState.deviceState,
 				nextState.mappings,
-				this.context.getCurrentTime()
+				this.context.getCurrentTime(),
+				`diff_${this._calculateNextStateChangeIndex}("${nextState.timelineHash}")`
 			)
 			nextState.preliminary = Math.max(0, ...nextState.commands.map((c) => c.preliminary ?? 0))
 			this.context.emitTimeTrace(endTrace(trace))

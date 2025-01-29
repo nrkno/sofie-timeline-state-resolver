@@ -104,9 +104,11 @@ export class PharosDevice extends Device<PharosOptions, PharosState, PharosComma
 	diffStates(
 		oldPharosState: PharosState | undefined,
 		newPharosState: PharosState,
-		mappings: Mappings
+		mappings: Mappings,
+		_time: number,
+		context: string
 	): Array<PharosCommandWithContext> {
-		return diffStates(oldPharosState, newPharosState, mappings)
+		return diffStates(oldPharosState, newPharosState, mappings, context)
 	}
 
 	async sendCommand({ command, context, timelineObjId }: PharosCommandWithContext): Promise<void> {

@@ -10,6 +10,7 @@ import {
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType,
 	ShotokuOptions,
+	Mappings,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
@@ -86,7 +87,13 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 
 		return deviceState
 	}
-	diffStates(oldState: ShotokuDeviceState | undefined, newState: ShotokuDeviceState): Array<ShotokuCommandWithContext> {
+	diffStates(
+		oldState: ShotokuDeviceState | undefined,
+		newState: ShotokuDeviceState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
+	): Array<ShotokuCommandWithContext> {
 		// unfortunately we don't know what shots belong to what camera, so we can't do anything smart
 
 		const commands: Array<ShotokuCommandWithContext> = []
@@ -105,7 +112,7 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 					changeOperatorScreen: newCommandContent.changeOperatorScreen,
 				}
 				commands.push({
-					context: `added: ${newCommandContent.fromTlObject}`,
+					context: `added: ${newCommandContent.fromTlObject} (${context})`,
 					timelineObjId: newCommandContent.fromTlObject,
 					command: shotokuCommand,
 				})
@@ -128,7 +135,7 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 					})),
 				}
 				commands.push({
-					context: `added: ${newCommandContent.fromTlObject}`,
+					context: `added: ${newCommandContent.fromTlObject} (${context})`,
 					timelineObjId: newCommandContent.fromTlObject,
 					command: shotokuCommand,
 				})

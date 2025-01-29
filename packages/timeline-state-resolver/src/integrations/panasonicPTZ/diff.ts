@@ -25,7 +25,8 @@ type CommandContext = any
 
 export function diffStates(
 	oldPtzState: PanasonicPtzState,
-	newPtzState: PanasonicPtzState
+	newPtzState: PanasonicPtzState,
+	context: string
 ): Array<PanasonicPtzCommandWithContext> {
 	const commands: Array<PanasonicPtzCommandWithContext> = []
 
@@ -40,7 +41,7 @@ export function diffStates(
 					type: TimelineContentTypePanasonicPtz.PRESET,
 					preset: getValue(newNode.preset),
 				},
-				context: `preset differ (${getValue(newNode.preset)}, ${getValue(oldValue.preset)})`,
+				context: `preset differ (${getValue(newNode.preset)}, ${getValue(oldValue.preset)}) (${context})`,
 				timelineObjId: newNode.preset.timelineObjId,
 			})
 		}
@@ -54,7 +55,7 @@ export function diffStates(
 					type: TimelineContentTypePanasonicPtz.SPEED,
 					speed: getValue(newNode.speed),
 				},
-				context: `speed differ (${getValue(newNode.speed)}, ${getValue(oldValue.speed)})`,
+				context: `speed differ (${getValue(newNode.speed)}, ${getValue(oldValue.speed)}) (${context})`,
 				timelineObjId: newNode.speed.timelineObjId,
 			})
 		}
@@ -68,7 +69,7 @@ export function diffStates(
 					type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
 					speed: getValue(newNode.zoomSpeed),
 				},
-				context: `zoom speed differ (${getValue(newNode.zoomSpeed)}, ${getValue(oldValue.zoomSpeed)})`,
+				context: `zoom speed differ (${getValue(newNode.zoomSpeed)}, ${getValue(oldValue.zoomSpeed)}) (${context})`,
 				timelineObjId: newNode.zoomSpeed.timelineObjId,
 			})
 		}
@@ -78,7 +79,7 @@ export function diffStates(
 					type: TimelineContentTypePanasonicPtz.ZOOM,
 					zoom: getValue(newNode.zoom),
 				},
-				context: `zoom differ (${getValue(newNode.zoom)}, ${getValue(oldValue.zoom)})`,
+				context: `zoom differ (${getValue(newNode.zoom)}, ${getValue(oldValue.zoom)}) (${context})`,
 				timelineObjId: newNode.zoom.timelineObjId,
 			})
 		}

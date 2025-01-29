@@ -196,11 +196,19 @@ export class HyperdeckDevice extends Device<HyperdeckOptions, HyperdeckDeviceSta
 	 */
 	diffStates(
 		oldHyperdeckState: HyperdeckDeviceState | undefined,
-		newHyperdeckState: HyperdeckDeviceState
+		newHyperdeckState: HyperdeckDeviceState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
 	): Array<HyperdeckCommandWithContext> {
-		return diffHyperdeckStates(oldHyperdeckState, newHyperdeckState, (err) => {
-			this.context.logger.error('Hyperdeck diffStates', err)
-		})
+		return diffHyperdeckStates(
+			oldHyperdeckState,
+			newHyperdeckState,
+			(err) => {
+				this.context.logger.error('Hyperdeck diffStates', err)
+			},
+			context
+		)
 	}
 
 	async sendCommand({ command, context, timelineObjId }: HyperdeckCommandWithContext): Promise<void> {

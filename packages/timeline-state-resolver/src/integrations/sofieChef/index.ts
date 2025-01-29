@@ -237,9 +237,11 @@ export class SofieChefDevice extends Device<SofieChefOptions, SofieChefState, So
 	public diffStates(
 		oldSofieChefState: SofieChefState | undefined,
 		newSofieChefState: SofieChefState,
-		mappings: Mappings
+		mappings: Mappings,
+		_time: number,
+		context: string
 	): Array<SofieChefCommandWithContext> {
-		return diffStates(oldSofieChefState, newSofieChefState, mappings)
+		return diffStates(oldSofieChefState, newSofieChefState, mappings, context)
 	}
 
 	public async sendCommand({ command, context, timelineObjId }: SofieChefCommandWithContext): Promise<any> {

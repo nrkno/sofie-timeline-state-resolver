@@ -9,6 +9,7 @@ import {
 	TcpSendCommandContent,
 	TCPSendOptions,
 	TcpSendActions,
+	Mappings,
 } from 'timeline-state-resolver-types'
 import { t } from '../../lib'
 import _ = require('underscore')
@@ -68,7 +69,13 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): TcpSendDeviceState {
 		return state
 	}
-	diffStates(oldState: TcpSendDeviceState | undefined, newState: TcpSendDeviceState): Array<TcpSendDeviceCommand> {
+	diffStates(
+		oldState: TcpSendDeviceState | undefined,
+		newState: TcpSendDeviceState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
+	): Array<TcpSendDeviceCommand> {
 		const commands: Array<TcpSendDeviceCommand> = []
 
 		for (const [layerKey, newLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
@@ -85,7 +92,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 							content: newLayer.content as TcpSendCommandContent,
 							layer: layerKey,
 						},
-						context: `added: ${newLayer.id}`,
+						context: `added: ${newLayer.id} (${context})`,
 						timelineObjId: newLayer.id,
 					})
 				} else {
@@ -98,7 +105,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 								content: newLayer.content as TcpSendCommandContent,
 								layer: layerKey,
 							},
-							context: `changed: ${newLayer.id}`,
+							context: `changed: ${newLayer.id} (${context})`,
 							timelineObjId: newLayer.id,
 						})
 					}
@@ -118,7 +125,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 						content: oldLayer.content as TcpSendCommandContent,
 						layer: layerKey,
 					},
-					context: `removed: ${oldLayer.id}`,
+					context: `removed: ${oldLayer.id} (${context})`,
 					timelineObjId: oldLayer.id,
 				})
 			}
@@ -163,7 +170,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 		try {
 			await this.sendCommand({
 				timelineObjId: '',
-				context: 'makeReady',
+				context: 'actionSendTcpCommand',
 				command: {
 					commandName: 'manual',
 					content: cmd,

@@ -6,6 +6,7 @@ import {
 	HTTPSendCommandContent,
 	HTTPSendOptions,
 	HttpSendActions,
+	Mappings,
 	SendCommandResult,
 	StatusCode,
 	TSRTimelineContent,
@@ -121,7 +122,13 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): HttpSendDeviceState {
 		return state
 	}
-	diffStates(oldState: HttpSendDeviceState | undefined, newState: HttpSendDeviceState): Array<HttpSendDeviceCommand> {
+	diffStates(
+		oldState: HttpSendDeviceState | undefined,
+		newState: HttpSendDeviceState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
+	): Array<HttpSendDeviceCommand> {
 		const commands: Array<HttpSendDeviceCommand> = []
 
 		_.each(newState.layers, (newLayer, layerKey: string) => {
@@ -130,7 +137,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				// added!
 				commands.push({
 					timelineObjId: newLayer.id,
-					context: `added: ${newLayer.id}`,
+					context: `added: ${newLayer.id} (${context})`,
 					command: {
 						commandName: 'added',
 						content: newLayer.content as HTTPSendCommandContent,
@@ -144,7 +151,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 					// changed!
 					commands.push({
 						timelineObjId: newLayer.id,
-						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
+						context: `changed: ${newLayer.id} (previously: ${oldLayer.id}) (${context})`,
 						command: {
 							commandName: 'changed',
 							content: newLayer.content as HTTPSendCommandContent,
@@ -162,7 +169,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				// removed!
 				commands.push({
 					timelineObjId: oldLayer.id,
-					context: `removed: ${oldLayer.id}`,
+					context: `removed: ${oldLayer.id} (${context})`,
 					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContent, layer: layerKey },
 					queueId: (oldLayer.content as HTTPSendCommandContent)?.queueId,
 				})

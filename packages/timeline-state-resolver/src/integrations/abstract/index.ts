@@ -7,6 +7,7 @@ import {
 	DeviceOptionsAbstract,
 	AbstractActions,
 	ActionExecutionResultCode,
+	Mappings,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
@@ -73,7 +74,13 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 	 * @param oldAbstractState
 	 * @param newAbstractState
 	 */
-	diffStates(oldAbstractState: AbstractDeviceState | undefined, newAbstractState: AbstractDeviceState) {
+	diffStates(
+		oldAbstractState: AbstractDeviceState | undefined,
+		newAbstractState: AbstractDeviceState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
+	) {
 		// in this abstract class, let's just cheat:
 
 		const commands: Array<AbstractCommandWithContext> = []
@@ -87,7 +94,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 				commands.push({
 					command: 'addedAbstract',
 					timelineObjId: newLayer.id,
-					context: `added: ${newLayer.id}`,
+					context: `added: ${newLayer.id} (${context})`,
 				})
 			} else {
 				// changed?
@@ -96,7 +103,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 					commands.push({
 						command: 'changedAbstract',
 						timelineObjId: newLayer.id,
-						context: `changed: ${newLayer.id}`,
+						context: `changed: ${newLayer.id} (${context})`,
 					})
 				}
 			}
@@ -112,7 +119,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 				commands.push({
 					command: 'removedAbstract',
 					timelineObjId: oldLayer.id,
-					context: `removed: ${oldLayer.id}`,
+					context: `removed: ${oldLayer.id} (${context})`,
 				})
 			}
 		}

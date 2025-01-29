@@ -5,7 +5,8 @@ import { ReceiveWSMessageType } from './api'
 export function diffStates(
 	oldSofieChefState: SofieChefState | undefined,
 	newSofieChefState: SofieChefState,
-	_mappings: Mappings
+	_mappings: Mappings,
+	context: string
 ): Array<SofieChefCommandWithContext> {
 	const commands: SofieChefCommandWithContext[] = []
 
@@ -15,7 +16,7 @@ export function diffStates(
 		if (!oldWindow) {
 			// Added
 			commands.push({
-				context: 'added',
+				context: `added (${context})`,
 				timelineObjId: window.urlTimelineObjId,
 				command: {
 					msgId: 0, // set later
@@ -28,7 +29,7 @@ export function diffStates(
 			// item is not new, but maybe it has changed:
 			if (oldWindow.url !== window.url) {
 				commands.push({
-					context: 'changed',
+					context: `changed (${context})`,
 					timelineObjId: window.urlTimelineObjId,
 					command: {
 						msgId: 0, // set later
@@ -48,7 +49,7 @@ export function diffStates(
 			if (!newWindow) {
 				// Removed
 				commands.push({
-					context: 'removed',
+					context: `removed (${context})`,
 					timelineObjId: oldWindow.urlTimelineObjId,
 					command: {
 						msgId: 0, // set later

@@ -50,7 +50,7 @@ describe('Abstract device', () => {
 		) {
 			const device = await getInitialisedDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates(oldDevState, newDevState, {}, 0, 'test')
 
 			expect(commands).toEqual(expCommands)
 		}
@@ -100,7 +100,7 @@ describe('Abstract device', () => {
 				[
 					{
 						command: 'addedAbstract',
-						context: 'added: obj0',
+						context: 'added: obj0 (test)',
 						timelineObjId: 'obj0',
 					},
 				]
@@ -126,7 +126,7 @@ describe('Abstract device', () => {
 				[
 					{
 						command: 'changedAbstract',
-						context: 'changed: obj1',
+						context: 'changed: obj1 (test)',
 						timelineObjId: 'obj1',
 					},
 				]
@@ -148,7 +148,7 @@ describe('Abstract device', () => {
 				[
 					{
 						command: 'removedAbstract',
-						context: 'removed: obj0',
+						context: 'removed: obj0 (test)',
 						timelineObjId: 'obj0',
 					},
 				]

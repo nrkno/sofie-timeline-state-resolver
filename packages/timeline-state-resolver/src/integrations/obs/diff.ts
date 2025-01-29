@@ -6,20 +6,25 @@ import { literal } from '../../lib'
 export function diffStates(
 	oldState: OBSDeviceState,
 	newState: OBSDeviceState,
+	context: string,
 	getSceneItemId: (scene: string, source: string) => number | undefined
 ): Array<OBSCommandWithContext> {
 	const commands: Array<OBSCommandWithContext> = [
-		...resolveCurrentSceneState(oldState, newState),
-		...resolveCurrentTransitionState(oldState, newState),
-		...resolveRecordingStreaming(oldState, newState),
-		...resolveScenes(oldState, newState, getSceneItemId),
-		...resolveInputSettings(oldState, newState),
+		...resolveCurrentSceneState(oldState, newState, context),
+		...resolveCurrentTransitionState(oldState, newState, context),
+		...resolveRecordingStreaming(oldState, newState, context),
+		...resolveScenes(oldState, newState, context, getSceneItemId),
+		...resolveInputSettings(oldState, newState, context),
 	]
 
 	return commands
 }
 
-function resolveCurrentSceneState(oldState: OBSDeviceState, newState: OBSDeviceState): Array<OBSCommandWithContext> {
+function resolveCurrentSceneState(
+	oldState: OBSDeviceState,
+	newState: OBSDeviceState,
+	context: string
+): Array<OBSCommandWithContext> {
 	const commands: Array<OBSCommandWithContext> = []
 
 	const oldCurrentScene = oldState.currentScene
@@ -34,7 +39,7 @@ function resolveCurrentSceneState(oldState: OBSDeviceState, newState: OBSDeviceS
 							sceneName: newCurrentScene,
 						},
 					},
-					context: `currentScene changed from "${oldCurrentScene}" to "${newCurrentScene}"`,
+					context: `currentScene changed from "${oldCurrentScene}" to "${newCurrentScene}" (${context})`,
 					timelineObjId: '',
 				})
 			)
@@ -53,7 +58,7 @@ function resolveCurrentSceneState(oldState: OBSDeviceState, newState: OBSDeviceS
 							sceneName: newPreviewScene,
 						},
 					},
-					context: `previewScene changed from "${oldPreviewScene}" to "${newPreviewScene}"`,
+					context: `previewScene changed from "${oldPreviewScene}" to "${newPreviewScene}" (${context})`,
 					timelineObjId: '',
 				})
 			)
@@ -65,7 +70,8 @@ function resolveCurrentSceneState(oldState: OBSDeviceState, newState: OBSDeviceS
 
 function resolveCurrentTransitionState(
 	oldState: OBSDeviceState,
-	newState: OBSDeviceState
+	newState: OBSDeviceState,
+	context: string
 ): Array<OBSCommandWithContext> {
 	const commands: Array<OBSCommandWithContext> = []
 
@@ -81,7 +87,7 @@ function resolveCurrentTransitionState(
 							transitionName: newCurrentTransition,
 						},
 					},
-					context: 'currentTransition changed',
+					context: `currentTransition changed (${context})`,
 					timelineObjId: '',
 				})
 			)
@@ -91,7 +97,11 @@ function resolveCurrentTransitionState(
 	return commands
 }
 
-function resolveRecordingStreaming(oldState: OBSDeviceState, newState: OBSDeviceState): Array<OBSCommandWithContext> {
+function resolveRecordingStreaming(
+	oldState: OBSDeviceState,
+	newState: OBSDeviceState,
+	context: string
+): Array<OBSCommandWithContext> {
 	const commands: Array<OBSCommandWithContext> = []
 
 	const oldRecording = oldState.recording
@@ -104,7 +114,7 @@ function resolveRecordingStreaming(oldState: OBSDeviceState, newState: OBSDevice
 						requestName: newRecording ? OBSRequestName.START_RECORDING : OBSRequestName.STOP_RECORDING,
 						args: undefined,
 					},
-					context: 'recording changed',
+					context: `recording changed (${context})`,
 					timelineObjId: '',
 				})
 			)
@@ -121,7 +131,7 @@ function resolveRecordingStreaming(oldState: OBSDeviceState, newState: OBSDevice
 						requestName: newStreaming ? OBSRequestName.START_STREAMING : OBSRequestName.STOP_STREAMING,
 						args: undefined,
 					},
-					context: 'streaming changed',
+					context: `streaming changed (${context})`,
 					timelineObjId: '',
 				})
 			)
@@ -134,6 +144,7 @@ function resolveRecordingStreaming(oldState: OBSDeviceState, newState: OBSDevice
 function resolveScenes(
 	oldState: OBSDeviceState,
 	newState: OBSDeviceState,
+	context: string,
 	getSceneItemId: (scene: string, source: string) => number | undefined
 ): Array<OBSCommandWithContext> {
 	const commands: Array<OBSCommandWithContext> = []
@@ -160,7 +171,7 @@ function resolveScenes(
 								sceneItemEnabled: newSceneItemProperties.render,
 							},
 						},
-						context: `scene ${sceneName} item ${source} changed render`,
+						context: `scene ${sceneName} item ${source} changed render (${context})`,
 						timelineObjId: '',
 					})
 				)
@@ -180,7 +191,7 @@ function resolveScenes(
 								sceneItemTransform: newSceneItemProperties.transform as any, // type assertion kind of mid - is there something typefest can fix?
 							},
 						},
-						context: `scene ${sceneName} item ${source} changed transform`,
+						context: `scene ${sceneName} item ${source} changed transform (${context})`,
 						timelineObjId: '',
 					})
 				)
@@ -191,7 +202,11 @@ function resolveScenes(
 	return commands
 }
 
-function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState): Array<OBSCommandWithContext> {
+function resolveInputSettings(
+	oldState: OBSDeviceState,
+	newState: OBSDeviceState,
+	context: string
+): Array<OBSCommandWithContext> {
 	const commands: Array<OBSCommandWithContext> = []
 
 	const oldSources = oldState.inputs
@@ -211,7 +226,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 							inputSettings: source.inputSettings?.settings,
 						},
 					},
-					context: `source ${sourceName} changed settings`,
+					context: `source ${sourceName} changed settings (${context})`,
 					timelineObjId: '',
 				})
 			)
@@ -229,7 +244,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 								inputMuted: source.audio.muted,
 							},
 						},
-						context: `source ${sourceName} changed settings`,
+						context: `source ${sourceName} changed settings (${context})`,
 						timelineObjId: '',
 					})
 				)
@@ -245,7 +260,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 								inputVolumeDb: source.audio.volume,
 							},
 						},
-						context: `source ${sourceName} changed settings`,
+						context: `source ${sourceName} changed settings (${context})`,
 						timelineObjId: '',
 					})
 				)
@@ -269,7 +284,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 										mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE',
 									},
 								},
-								context: `source ${sourceName} started playback`,
+								context: `source ${sourceName} started playback (${context})`,
 								timelineObjId: '',
 							})
 						)
@@ -285,7 +300,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 										mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY',
 									},
 								},
-								context: `source ${sourceName} playing`,
+								context: `source ${sourceName} playing (${context})`,
 								timelineObjId: '',
 							})
 						)
@@ -301,7 +316,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 										mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP',
 									},
 								},
-								context: `source ${sourceName} stopped`,
+								context: `source ${sourceName} stopped (${context})`,
 								timelineObjId: '',
 							})
 						)
@@ -326,7 +341,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 									mediaCursor: source.mediaSettings.seek,
 								},
 							},
-							context: `source ${sourceName} changed seek position`,
+							context: `source ${sourceName} changed seek position (${context})`,
 							timelineObjId: '',
 						})
 					)
@@ -345,7 +360,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 									mediaCursor: cursor,
 								},
 							},
-							context: `source ${sourceName} changed seek position or startTime`,
+							context: `source ${sourceName} changed seek position or startTime (${context})`,
 							timelineObjId: '',
 						})
 					)

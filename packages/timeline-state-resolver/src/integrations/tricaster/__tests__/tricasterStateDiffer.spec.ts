@@ -120,7 +120,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.mixEffects.main.transitionDuration.value = 200
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'main', name: '_speed', value: 200 })
@@ -134,7 +134,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.transitionEffect.value = 'fade'
 			newState.mixEffects.main.transitionDuration.value = 5.2
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 0 })
@@ -149,7 +149,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.transitionEffect.value = 5
 			newState.mixEffects.main.transitionDuration.value = 5.2
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
@@ -166,7 +166,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.transitionEffect.value = 5
 			newState.mixEffects.main.programInput.value = 'input5'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(4)
 			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
@@ -184,7 +184,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.transitionEffect.value = 'cut'
 			newState.mixEffects.main.programInput.value = 'input5'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'main_b', name: '_row_named_input', value: 'input5' })
@@ -200,7 +200,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.previewInput!.value = 'input6'
 			newState.mixEffects.main.programInput.value = 'input5'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'main_b', name: '_row_named_input', value: 'input6' })
@@ -218,7 +218,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.previewInput!.value = 'input6'
 			newState.mixEffects.main.programInput.value = 'input5'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(4)
 			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
@@ -234,7 +234,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.mixEffects.main.previewInput!.value = 'input6'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'main_b', name: '_row_named_input', value: 'input6' })
@@ -249,7 +249,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.programInput.value = 'input2'
 			newState.mixEffects.main.delegates.value = ['dsk3', 'background']
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(3)
 			expect(commands[0].command).toEqual({ target: 'main', name: '_delegate', value: 'main_background|main_dsk3' })
@@ -266,7 +266,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_select_named_input', value: 'input2' })
@@ -284,7 +284,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.keyers.dsk2.onAir.value = true
 			newState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_auto' })
@@ -300,7 +300,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.keyers.dsk2.onAir.value = true
 			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(4)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_select_index', value: 5 })
@@ -315,7 +315,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.keyers.dsk2.transitionEffect.value = 'cut'
 			newState.mixEffects.main.keyers.dsk2.onAir.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_value', value: 1 })
@@ -330,7 +330,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.keyers.dsk2.onAir.value = true
 			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_select_named_input', value: 'input2' })
@@ -345,7 +345,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 				y: { value: -1 },
 			}
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_position_x', value: 2.8 })
@@ -360,7 +360,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 				y: { value: -1 },
 			}
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_scale_x', value: 2.8 })
@@ -376,7 +376,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 				z: { value: 5.0 },
 			}
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(3)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_rotation_x', value: 2.8 })
@@ -394,7 +394,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 				down: { value: 99.9 },
 			}
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(4)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_crop_left_value', value: 10 })
@@ -408,7 +408,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.mixEffects.main.keyers.dsk2.feather.value = 50
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'main_dsk2', name: '_feather_value', value: 50 })
@@ -425,7 +425,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.v1.previewInput!.value = 'input2'
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(0)
 		})
@@ -439,7 +439,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.v1.programInput.value = 'input2'
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(0)
 		})
@@ -453,7 +453,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.v1.layers!.a!.input!.value = 'input2'
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_row_named_input', value: 'input2' })
@@ -470,7 +470,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.v1.layers!.b!.input!.value = 'input4'
 			newState.mixEffects.v1.isInEffectMode.value = false
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(0)
 		})
@@ -486,7 +486,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			}
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_position_x', value: 2.8 })
@@ -504,7 +504,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			}
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_scale_x', value: 2.8 })
@@ -523,7 +523,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			}
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(3)
 			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_rotation_x', value: 2.8 })
@@ -544,7 +544,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			}
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(4)
 			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_crop_left_value', value: 10 })
@@ -561,7 +561,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.v1.layers!.a!.feather!.value = 50
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_feather_value', value: 50 })
@@ -574,7 +574,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.mixEffects.v1.isInEffectMode.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(56)
 			const layerCommands = commands.filter(
@@ -590,7 +590,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.inputs.input2.videoActAsAlpha.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'input2', name: '_video_act_as_alpha', value: true })
@@ -601,7 +601,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.inputs.input2.videoSource!.value = 'SOME-NETWORK-SOURCE (Output 1)'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({
@@ -618,7 +618,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.audioChannels.input2.isMuted.value = false
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'input2', name: '_mute', value: false })
@@ -629,7 +629,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.audioChannels.input2.volume.value = 5
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'input2', name: '_volume', value: 5 })
@@ -642,7 +642,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.mixOutputs.mix2.source.value = 'me_preview'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'mix2', name: '_output_source', value: 'me_preview' })
@@ -653,7 +653,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.mixOutputs.mix2.meClean.value = true
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ name: 'set_output_config_video_source', output_index: 1, me_clean: true })
@@ -666,7 +666,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			newState.matrixOutputs.out2.source.value = 'input5'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'out2', name: '_crosspoint_source', value: 'input5' })
@@ -689,7 +689,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 				}
 			)
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'mix1', name: '_output_source', value: 'program' })
@@ -704,7 +704,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			oldState.mixEffects.main.keyers.dsk2.transitionEffect.value = 5
 			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(0)
 		})
@@ -725,19 +725,19 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
 			newState.mixEffects.main.keyers.dsk2.input.timelineObjId = 't3'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(2)
 			expect(commands[0]).toEqual({
 				command: { target: 'main_dsk2', name: '_select_named_input', value: 'input2' },
 				timelineObjId: 't3',
-				context: '',
+				context: 'test',
 				temporalPriority: 0,
 			})
 			expect(commands[1]).toEqual({
 				command: { target: 'main_dsk2', name: '_value', value: 1 },
 				timelineObjId: 't2',
-				context: '',
+				context: 'test',
 				temporalPriority: 0,
 			})
 		})
@@ -756,7 +756,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 			newState.mixEffects.main.keyers.dsk2.input.timelineObjId = 't3'
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(0)
 		})
@@ -773,7 +773,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.v2.keyers.dsk2.input.value = 'input3'
 			newState.mixEffects.v2.keyers.dsk2.input.temporalPriority = -1
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(3)
 			expect(commands[0]).toMatchObject({
@@ -804,7 +804,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			newState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 			newState.mixEffects.main.keyers.dsk2.input.temporalPriority = 0
 
-			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState, 'test')
 
 			expect(commands.length).toEqual(0)
 		})

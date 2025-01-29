@@ -101,7 +101,9 @@ export class TriCasterDevice extends Device<
 	diffStates(
 		oldTriCasterState: WithContext<TriCasterState> | undefined,
 		newTriCasterState: WithContext<TriCasterState>,
-		_mappings: Mappings
+		_mappings: Mappings,
+		_time: number,
+		context: string
 	): Array<TriCasterCommandWithContext> {
 		if (!this._initialized || !this._stateDiffer) {
 			// before it's initialized don't do anything
@@ -109,7 +111,7 @@ export class TriCasterDevice extends Device<
 			return []
 		}
 
-		return this._stateDiffer.getCommandsToAchieveState(newTriCasterState, oldTriCasterState)
+		return this._stateDiffer.getCommandsToAchieveState(newTriCasterState, oldTriCasterState, context)
 	}
 
 	private filterTriCasterMappings(newMappings: Mappings): MappingsTriCaster {

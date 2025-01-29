@@ -13,7 +13,7 @@ describe('Diff States', () => {
 			},
 		}
 
-		const commands = diffStates(undefined, state1, {})
+		const commands = diffStates(undefined, state1, {}, 'test')
 
 		expect(commands).toHaveLength(1)
 		expect(commands[0]).toEqual({
@@ -23,7 +23,7 @@ describe('Diff States', () => {
 				url: 'http://test.com',
 				windowId: 'test',
 			},
-			context: 'added',
+			context: 'added (test)',
 			timelineObjId: 'abc',
 		} satisfies SofieChefCommandWithContext)
 	})
@@ -63,7 +63,7 @@ describe('Diff States', () => {
 			},
 		}
 
-		const commands = diffStates(state1, state2, {})
+		const commands = diffStates(state1, state2, {}, 'test')
 
 		expect(commands).toHaveLength(3)
 		expect(commands[0]).toEqual({
@@ -73,7 +73,7 @@ describe('Diff States', () => {
 				url: 'http://two.com/2',
 				windowId: 'two',
 			},
-			context: 'changed',
+			context: 'changed (test)',
 			timelineObjId: '012',
 		} satisfies SofieChefCommandWithContext)
 		expect(commands[1]).toEqual({
@@ -83,7 +83,7 @@ describe('Diff States', () => {
 				url: 'http://another.com',
 				windowId: 'another',
 			},
-			context: 'added',
+			context: 'added (test)',
 			timelineObjId: '345',
 		} satisfies SofieChefCommandWithContext)
 		expect(commands[2]).toEqual({
@@ -92,7 +92,7 @@ describe('Diff States', () => {
 				type: ReceiveWSMessageType.STOP,
 				windowId: 'test',
 			},
-			context: 'removed',
+			context: 'removed (test)',
 			timelineObjId: 'abc',
 		} satisfies SofieChefCommandWithContext)
 	})

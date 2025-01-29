@@ -55,7 +55,7 @@ describe('Singular.Live', () => {
 			myLayerMapping
 		)
 
-		const commands = device.diffStates(undefined, deviceState, myLayerMapping, 1000)
+		const commands = device.diffStates(undefined, deviceState, myLayerMapping, 1000, 'test')
 		expect(commands).toHaveLength(1)
 		expect(commands[0].command.content).toEqual<SingularLiveControlNodeCommandContent>({
 			subCompositionName: 'Lower Third',
@@ -75,7 +75,7 @@ describe('Singular.Live', () => {
 			myLayerMapping
 		)
 
-		const commands2 = device.diffStates(deviceState, deviceState2, myLayerMapping, 2000)
+		const commands2 = device.diffStates(deviceState, deviceState2, myLayerMapping, 2000, 'test')
 		expect(commands2).toHaveLength(1)
 		expect(commands2[0].command.content).toEqual<SingularLiveControlNodeCommandContent>({
 			subCompositionName: 'Lower Third',

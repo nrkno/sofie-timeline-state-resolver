@@ -80,7 +80,11 @@ export class MockDeviceInstanceWrapper
 	}
 
 	handleState = jest.fn(
-		(_newState: Timeline.TimelineState<TSRTimelineContent>, _newMappings: Mappings<unknown>): void => {
+		(
+			_newState: Timeline.TimelineState<TSRTimelineContent>,
+			_newMappings: Mappings<unknown>,
+			_timelineHash: string
+		): void => {
 			// throw new Error('Method not implemented.')
 		}
 	)

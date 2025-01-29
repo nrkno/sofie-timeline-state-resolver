@@ -58,7 +58,7 @@ describe('HTTP-Send', () => {
 		) {
 			const device = await getInitialisedHttpDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates(oldDevState, newDevState, {}, 0, 'test')
 
 			expect(commands).toEqual(expCommands)
 		}
@@ -97,7 +97,7 @@ describe('HTTP-Send', () => {
 				[
 					{
 						timelineObjId: 'obj0',
-						context: `added: obj0`,
+						context: `added: obj0 (test)`,
 						command: {
 							commandName: 'added',
 							content,
@@ -136,7 +136,7 @@ describe('HTTP-Send', () => {
 				[
 					{
 						timelineObjId: 'obj1',
-						context: `changed: obj1 (previously: obj0)`,
+						context: `changed: obj1 (previously: obj0) (test)`,
 						command: {
 							commandName: 'changed',
 							content: {
@@ -170,7 +170,7 @@ describe('HTTP-Send', () => {
 				[
 					{
 						timelineObjId: 'obj0',
-						context: `removed: obj0`,
+						context: `removed: obj0 (test)`,
 						command: {
 							commandName: 'removed',
 							content,
@@ -189,7 +189,7 @@ describe('HTTP-Send', () => {
 			device
 				.sendCommand({
 					timelineObjId: 'abc123',
-					context: 'A context',
+					context: 'A context (test)',
 					command: {
 						commandName: 'added',
 						content: {
@@ -217,7 +217,7 @@ describe('HTTP-Send', () => {
 			device
 				.sendCommand({
 					timelineObjId: 'abc123',
-					context: 'A context',
+					context: 'A context (test)',
 					command: {
 						commandName: 'added',
 						content: {
@@ -257,7 +257,7 @@ describe('HTTP-Send', () => {
 			await device
 				.sendCommand({
 					timelineObjId: 'abc123',
-					context: 'A context',
+					context: 'A context (test)',
 					command: {
 						commandName: 'added',
 						content: {
@@ -282,7 +282,7 @@ describe('HTTP-Send', () => {
 			await device
 				.sendCommand({
 					timelineObjId: 'abc123',
-					context: 'A context',
+					context: 'A context (test)',
 					command: {
 						commandName: 'removed',
 						content: {
@@ -331,16 +331,20 @@ describe('HTTP-Send', () => {
 
 			const device = await getInitialisedHttpDevice()
 
-			await Promise.all(device.diffStates(state.genesis, state.aStart).map(async (c) => device.sendCommand(c)))
-			await Promise.all(device.diffStates(state.aStart, state.aEnd).map(async (c) => device.sendCommand(c)))
+			await Promise.all(
+				device.diffStates(state.genesis, state.aStart, {}, 0, 'test').map(async (c) => device.sendCommand(c))
+			)
+			await Promise.all(
+				device.diffStates(state.aStart, state.aEnd, {}, 0, 'test').map(async (c) => device.sendCommand(c))
+			)
 
 			{
-				const commands = device.diffStates(state.aEnd, state.bStart)
+				const commands = device.diffStates(state.aEnd, state.bStart, {}, 0, 'test')
 				// Test that the internal state in HTTPSendDevice is correct:
 				expect(commands).toStrictEqual([
 					{
 						timelineObjId: 'obj1',
-						context: `added: obj1`,
+						context: `added: obj1 (test)`,
 						command: {
 							commandName: 'added',
 							content: content,
@@ -354,10 +358,10 @@ describe('HTTP-Send', () => {
 
 			{
 				// Verify the removal commands:
-				expect(device.diffStates(state.bStart, state.bEnd)).toStrictEqual([
+				expect(device.diffStates(state.bStart, state.bEnd, {}, 0, 'test')).toStrictEqual([
 					{
 						timelineObjId: 'obj1',
-						context: `removed: obj1`,
+						context: `removed: obj1 (test)`,
 						command: {
 							commandName: 'removed',
 							content: content,

@@ -68,13 +68,13 @@ describe('TCP-Send', () => {
 	describe('diffState', () => {
 		test('From undefined', async () => {
 			const device = await getInitializedTcpDevice()
-			const commands = device.diffStates(undefined, createTimelineState({}))
+			const commands = device.diffStates(undefined, createTimelineState({}), {}, 0, 'test')
 			expect(commands).toEqual([])
 			await device.terminate()
 		})
 		test('Empty states', async () => {
 			const device = await getInitializedTcpDevice()
-			const commands = device.diffStates(createTimelineState({}), createTimelineState({}))
+			const commands = device.diffStates(createTimelineState({}), createTimelineState({}), {}, 0, 'test')
 			expect(commands).toEqual([])
 			await device.terminate()
 		})
@@ -92,12 +92,15 @@ describe('TCP-Send', () => {
 						id: 'obj0',
 						content,
 					},
-				})
+				}),
+				{},
+				0,
+				'test'
 			)
 			expect(commands).toEqual([
 				{
 					timelineObjId: 'obj0',
-					context: `added: obj0`,
+					context: `added: obj0 (test)`,
 					command: {
 						commandName: 'added',
 						content,
@@ -131,12 +134,15 @@ describe('TCP-Send', () => {
 						id: 'obj1',
 						content: content1,
 					},
-				})
+				}),
+				{},
+				0,
+				'test'
 			)
 			expect(commands).toEqual([
 				{
 					timelineObjId: 'obj1',
-					context: `changed: obj1`,
+					context: `changed: obj1 (test)`,
 					command: {
 						commandName: 'changed',
 						content: {
@@ -163,12 +169,15 @@ describe('TCP-Send', () => {
 						content,
 					},
 				}),
-				createTimelineState({})
+				createTimelineState({}),
+				{},
+				0,
+				'test'
 			)
 			expect(commands).toEqual([
 				{
 					timelineObjId: 'obj0',
-					context: `removed: obj0`,
+					context: `removed: obj0 (test)`,
 					command: {
 						commandName: 'removed',
 						content,
@@ -237,7 +246,10 @@ describe('TCP-Send', () => {
 						id: 'obj0',
 						content,
 					},
-				})
+				}),
+				{},
+				0,
+				'test'
 			)
 
 			expect(commands).toHaveLength(1)
@@ -267,7 +279,10 @@ describe('TCP-Send', () => {
 						id: 'obj0',
 						content,
 					},
-				})
+				}),
+				{},
+				0,
+				'test'
 			)
 			expect(commands).toHaveLength(1)
 

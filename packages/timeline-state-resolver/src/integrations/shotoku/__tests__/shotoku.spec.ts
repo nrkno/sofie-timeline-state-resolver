@@ -133,7 +133,7 @@ describe('Shotoku Device', () => {
 		) {
 			const device = await getInitialisedDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates(oldDevState, newDevState, {}, 0, 'test')
 
 			expect(commands).toEqual(expCommands)
 		}
@@ -185,7 +185,7 @@ describe('Shotoku Device', () => {
 							type: ShotokuCommandType.Cut,
 							shot: 1,
 						},
-						context: 'added: obj0',
+						context: 'added: obj0 (test)',
 						timelineObjId: 'obj0',
 					},
 				]
@@ -232,7 +232,7 @@ describe('Shotoku Device', () => {
 								},
 							],
 						},
-						context: 'added: obj0',
+						context: 'added: obj0 (test)',
 						timelineObjId: 'obj0',
 					},
 				]
@@ -254,7 +254,7 @@ describe('Shotoku Device', () => {
 						type: ShotokuCommandType.Cut,
 						shot: 1,
 					},
-					context: '',
+					context: 'test',
 					timelineObjId: '',
 				})
 				.catch((e) => {
@@ -287,7 +287,7 @@ describe('Shotoku Device', () => {
 							},
 						],
 					},
-					context: '',
+					context: 'test',
 					timelineObjId: '',
 				})
 				.catch((e) => {
