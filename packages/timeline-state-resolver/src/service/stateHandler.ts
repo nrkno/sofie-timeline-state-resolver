@@ -6,6 +6,8 @@ import { CommandExecutor } from './commandExecutor'
 
 interface StateChange<DeviceState, Command extends CommandWithContext> {
 	commands?: Command[]
+
+	/** commands are to be executed x ms _before_ the scheduled time */
 	preliminary?: number
 
 	state: Timeline.TimelineState<TSRTimelineContent>
@@ -24,7 +26,13 @@ interface ExecutedStateChange<DeviceState, Command extends CommandWithContext>
 const CLOCK_INTERVAL = 20
 
 export class StateHandler<DeviceState, Command extends CommandWithContext> {
+	/** A list of upcoming state changes. Ordered by $.state.time ascending. */
 	private stateQueue: StateChange<DeviceState, Command>[] = []
+
+	/**
+	 * Semaphore, is set to undefined (!) while the current state is being executed.
+	 * (prevents calculateNextStateChange from running when undefined)
+	 */
 	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
 	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
 	private _executingStateChange = false
@@ -54,21 +62,23 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 		this.clock = setInterval(() => {
 			const t = context.getCurrentTime()
-			// main clock to check if next state needs to be sent out
-			for (const state of this.stateQueue) {
-				const nextTime = Math.max(0, state?.state.time - (state?.preliminary ?? 0) - t)
-				if (nextTime > CLOCK_INTERVAL) break
-				// schedule any states between now and the next tick
+			// main clock to check if next state needs to be executed
 
-				setTimeout(() => {
-					if (!this._executingStateChange && this.stateQueue[0] === state) {
-						// if this is the next state, execute it
-						this.executeNextStateChange().catch((e) => {
-							this.logger.error('Error while executing next state change', e)
-						})
-					}
-				}, nextTime)
-			}
+			const nextState = this.stateQueue[0]
+			if (!nextState) return
+
+			const nextTime = Math.max(0, nextState.state.time - (nextState.preliminary ?? 0) - t)
+			if (nextTime > CLOCK_INTERVAL) return
+			// schedule any states between now and the next tick
+
+			setTimeout(() => {
+				if (this.stateQueue[0] === nextState) {
+					// if this is still the next state, execute it:
+					this.executeNextStateChange().catch((e) => {
+						this.logger.error('Error while executing next state change', e)
+					})
+				}
+			}, nextTime)
 		}, CLOCK_INTERVAL)
 	}
 
@@ -105,9 +115,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		if (nextState !== this.stateQueue[0]) {
 			// the next state changed
 			if (nextState) nextState.commands = undefined
-			this.calculateNextStateChange().catch((e) => {
-				this.logger.error('Error while calculating next state change', e)
-			})
+			this.calculateNextStateChange()
 		}
 	}
 
@@ -119,14 +127,14 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			timelineHash: `reason:${reason}`,
 			mappings: this.currentState?.mappings || {},
 		}
-		await this.calculateNextStateChange()
+		this.calculateNextStateChange()
 	}
 
 	clearFutureAfterTimestamp(t: number) {
 		this.stateQueue = this.stateQueue.filter((s) => s.state.time <= t)
 	}
 
-	private async calculateNextStateChange() {
+	private calculateNextStateChange() {
 		if (!this.currentState) return // a change is currently being executed, we'll be called again once it's done
 
 		const nextState = this.stateQueue[0]
@@ -153,47 +161,58 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		}
 
 		if (nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime() && this.currentState) {
-			await this.executeNextStateChange()
+			// It's time to execute the state asap
+			this.executeNextStateChange().catch((e) => {
+				this.logger.error('Error while executing next state change', e)
+			})
 		}
 	}
 
 	private async executeNextStateChange() {
-		if (!this.stateQueue[0] || this._executingStateChange) {
-			// there is no next to execute - or we are currently executing something
+		if (!this.stateQueue[0]) {
+			// there is no next to execute
 			return
 		}
+		if (this._executingStateChange) {
+			// debounce: we are currently executing
+			return
+		}
+		// Set the semaphore:
 		this._executingStateChange = true
 
-		if (!this.stateQueue[0].commands) {
-			await this.calculateNextStateChange()
+		const state = this.stateQueue.shift()
+
+		try {
+			// Type assertions, this should not be possible given our previous guard
+			if (!state) throw new Error('Assertion failed: newState is undefined')
+			if (!state.commands) throw new Error('Assertion failed: newState.commands is undefined')
+
+			// Ensure that we have calculated the commands for the state:
+			if (!state.commands) {
+				this.calculateNextStateChange()
+			}
+
+			// Set the semaphore,
+			// ie prevent calculateNextStateChange() from running while we're executing, as we're calling it afterwards anyway.
+			this.currentState = undefined
+
+			state.measurement?.executeState()
+
+			// Execute the state, ie execute the precalculated commands of the state:
+			await this._commandExecutor.executeCommands(state.commands, state.measurement)
+
+			if (state.measurement) this.context.reportStateChangeMeasurement(state.measurement.report())
+		} catch (e) {
+			this.logger.error('Error while executing next state change', e as any)
 		}
 
-		const newState = this.stateQueue.shift()
-
-		if (!newState || !newState.commands) {
-			// this should not be possible given our previous guard?
-			return
-		}
-
-		newState.measurement?.executeState()
-
-		this.currentState = undefined
-
-		this._commandExecutor
-			.executeCommands(newState.commands, newState.measurement)
-			.then(() => {
-				if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
-			})
-			.catch((e) => {
-				this.logger.error('Error while executing next state change', e)
-			})
-
-		this.currentState = newState as ExecutedStateChange<DeviceState, Command>
+		// Release the semaphore:
+		this.currentState = state as ExecutedStateChange<DeviceState, Command>
+		// Release the semaphore:
 		this._executingStateChange = false
 
-		this.calculateNextStateChange().catch((e) => {
-			this.logger.error('Error while executing next state change', e)
-		})
+		// Prepare and/or execute next state:
+		this.calculateNextStateChange()
 	}
 }
 
