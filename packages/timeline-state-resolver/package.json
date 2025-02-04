@@ -96,7 +96,7 @@
 		"casparcg-state": "3.0.3",
 		"debug": "^4.3.6",
 		"deepmerge": "^4.3.1",
-		"emberplus-connection": "^0.2.1",
+		"emberplus-connection": "^0.2.2",
 		"eventemitter3": "^4.0.7",
 		"got": "^11.8.6",
 		"hpagent": "^1.2.0",
