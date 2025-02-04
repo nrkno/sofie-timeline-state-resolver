@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [9.2.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.2.0...9.2.1) (2024-11-13)
+
+### Bug Fixes
+
+- trace and emit some helpful info in case the timeline resolver throws ([913ca75](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/913ca75412d9852b90fa093b55cdc7b840440099))
+
 ## [9.2.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.2.0-alpha.0...9.2.0) (2024-10-07)
 
 ### Bug Fixes
