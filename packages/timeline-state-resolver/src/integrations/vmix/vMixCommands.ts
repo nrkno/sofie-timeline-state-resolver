@@ -52,6 +52,19 @@ export interface VMixStateCommandAudioBusOff extends VMixStateCommandBase {
 	input: number | string
 	value: string
 }
+export interface VMixStateCommandBusAudioOn extends VMixStateCommandBase {
+	command: VMixCommand.BUS_AUDIO_ON
+	bus: string
+}
+export interface VMixStateCommandBusAudioOff extends VMixStateCommandBase {
+	command: VMixCommand.BUS_AUDIO_OFF
+	bus: string
+}
+export interface VMixStateCommandBusVolume extends VMixStateCommandBase {
+	command: VMixCommand.BUS_VOLUME
+	bus: string
+	value: number
+}
 export interface VMixStateCommandFader extends VMixStateCommandBase {
 	command: VMixCommand.FADER
 	value: number
@@ -236,6 +249,9 @@ export type VMixStateCommand =
 	| VMixStateCommandAudioAutoOff
 	| VMixStateCommandAudioBusOn
 	| VMixStateCommandAudioBusOff
+	| VMixStateCommandBusAudioOn
+	| VMixStateCommandBusAudioOff
+	| VMixStateCommandBusVolume
 	| VMixStateCommandFader
 	| VMixStateCommandSetZoom
 	| VMixStateCommandSetPanX

@@ -45,6 +45,13 @@ ${inputs?.join('\r\n') ?? defaultInputs}\r\n
 <fullscreen>False</fullscreen>
 <audio>
 <master volume="100" muted="False" meterF1="0.04211706" meterF2="0.04211706" headphonesVolume="74.80521"/>
+<busA volume="100" muted="False" meterF1="0" meterF2="0" solo="False" sendToMaster="False"/>
+<busB volume="78.07491" muted="False" meterF1="0" meterF2="0" solo="False" sendToMaster="False"/>
+<busC volume="100" muted="False" meterF1="0" meterF2="0" solo="False" sendToMaster="False"/>
+<busD volume="100" muted="False" meterF1="0" meterF2="0" solo="False" sendToMaster="False"/>
+<busE volume="100" muted="True" meterF1="0" meterF2="0" solo="False" sendToMaster="False"/>
+<busF volume="100" muted="False" meterF1="0" meterF2="0" solo="False" sendToMaster="False"/>
+<busG volume="100" muted="False" meterF1="0" meterF2="0" solo="False" sendToMaster="False"/>
 </audio>
 </vmix>\r\n`
 }

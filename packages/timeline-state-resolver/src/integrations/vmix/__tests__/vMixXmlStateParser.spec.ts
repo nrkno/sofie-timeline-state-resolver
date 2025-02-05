@@ -1,5 +1,5 @@
 import { VMixTransitionType } from 'timeline-state-resolver-types'
-import { VMixState } from '../vMixStateDiffer'
+import { VMixAudioBusesState, VMixState } from '../vMixStateDiffer'
 import { VMixXmlStateParser } from '../vMixXmlStateParser'
 import { makeMockVMixXmlState } from './vmixMock'
 import { prefixAddedInput } from './mockState'
@@ -93,15 +93,55 @@ describe('VMixXmlStateParser', () => {
 			playlist: false,
 			multiCorder: false,
 			fullscreen: false,
-			audio: [
-				{
-					volume: 100,
+			audioBuses: {
+				M: {
 					muted: false,
-					meterF1: 0.04211706,
-					meterF2: 0.04211706,
+					volume: 100,
 					headphonesVolume: 74.80521,
 				},
-			],
+				A: {
+					muted: false,
+					volume: 100,
+					sendToMaster: false,
+					solo: false,
+				},
+				B: {
+					muted: false,
+					volume: 78.07491,
+					sendToMaster: false,
+					solo: false,
+				},
+				C: {
+					muted: false,
+					volume: 100,
+					sendToMaster: false,
+					solo: false,
+				},
+				D: {
+					muted: false,
+					volume: 100,
+					sendToMaster: false,
+					solo: false,
+				},
+				E: {
+					muted: true,
+					volume: 100,
+					sendToMaster: false,
+					solo: false,
+				},
+				F: {
+					muted: false,
+					volume: 100,
+					sendToMaster: false,
+					solo: false,
+				},
+				G: {
+					muted: false,
+					volume: 100,
+					sendToMaster: false,
+					solo: false,
+				},
+			} as VMixAudioBusesState, // we're parsing a little more, might be useful down the road
 		})
 	})
 

@@ -179,6 +179,12 @@ export class VMixCommandSender {
 				return this.setAudioBusOn(command.input, command.value)
 			case VMixCommand.AUDIO_BUS_OFF:
 				return this.setAudioBusOff(command.input, command.value)
+			case VMixCommand.BUS_AUDIO_ON:
+				return this.setBusAudioOn(command.bus)
+			case VMixCommand.BUS_AUDIO_OFF:
+				return this.setBusAudioOff(command.bus)
+			case VMixCommand.BUS_VOLUME:
+				return this.setBusVolume(command.bus, command.value)
 			case VMixCommand.FADER:
 				return this.setFader(command.value)
 			case VMixCommand.START_RECORDING:
@@ -309,6 +315,18 @@ export class VMixCommandSender {
 
 	public async setAudioBusOff(input: number | string, value: string): Promise<any> {
 		return this.sendCommandFunction(`AudioBusOff`, { input, value })
+	}
+
+	public async setBusAudioOn(bus: string): Promise<any> {
+		return this.sendCommandFunction(`Bus${bus}AudioOn`, {})
+	}
+
+	public async setBusAudioOff(bus: string): Promise<any> {
+		return this.sendCommandFunction(`Bus${bus}AudioOff`, {})
+	}
+
+	public async setBusVolume(bus: string, volume: number): Promise<any> {
+		return this.sendCommandFunction(`SetBus${bus}Volume`, { value: Math.min(Math.max(volume, 0), 100) })
 	}
 
 	public async setFader(position: number): Promise<any> {
