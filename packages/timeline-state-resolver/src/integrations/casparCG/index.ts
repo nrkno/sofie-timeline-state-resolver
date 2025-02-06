@@ -32,6 +32,7 @@ import {
 	Mapping,
 	CasparCGActionExecutionPayload,
 	ListMediaResult,
+	interpolateTemplateStringIfNeeded,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -57,15 +58,7 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import {
-	actionNotFoundMessage,
-	deepMerge,
-	endTrace,
-	interpolateTemplateStringIfNeeded,
-	literal,
-	startTrace,
-	t,
-} from '../../lib'
+import { actionNotFoundMessage, deepMerge, endTrace, literal, startTrace, t } from '../../lib'
 import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')
 
