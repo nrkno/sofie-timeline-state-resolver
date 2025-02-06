@@ -5,9 +5,9 @@ import {
 	Mapping,
 	SomeMappingSofieChef,
 	DeviceType,
+	interpolateTemplateStringIfNeeded,
 } from 'timeline-state-resolver-types'
 import type { SofieChefState } from '.'
-import { interpolateTemplateStringIfNeeded } from '../../lib'
 
 export function buildSofieChefState(
 	timelineState: Timeline.TimelineState<TSRTimelineContent>,
