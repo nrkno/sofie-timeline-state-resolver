@@ -14,6 +14,10 @@
 				"setLabelToLayerName": {
 					"type": "boolean",
 					"ui:title": "Set channel label to layer name"
+				},
+				"disableDefaults": {
+					"type": "boolean",
+					"ui:title": "Do not apply default state for this layer"
 				}
 			},
 			"required": ["channel"],
@@ -27,6 +31,10 @@
 					"ui:title": "Label",
 					"ui:summaryTitle": "Label",
 					"ui:description": "Identify the channel by label (does not set the label in Sisyfos)"
+				},
+				"disableDefaults": {
+					"type": "boolean",
+					"ui:title": "Do not apply default state for this layer"
 				}
 			},
 			"required": ["label"],
@@ -34,7 +42,12 @@
 		},
 		"channels": {
 			"type": "object",
-			"properties": {},
+			"properties": {
+				"disableDefaults": {
+					"type": "boolean",
+					"ui:title": "Do not apply default state for this layer"
+				}
+			},
 			"required": [],
 			"additionalProperties": false
 		}
