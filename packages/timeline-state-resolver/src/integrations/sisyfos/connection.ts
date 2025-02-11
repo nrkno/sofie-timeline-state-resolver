@@ -489,17 +489,16 @@ export interface SisyfosState {
 
 // ------------------------------------------------------
 // Interfaces for the data that comes over OSC:
-
 export interface SisyfosChannelAPI {
-	faderLevel: number
-	pgmOn: number
-	pstOn: number
+	faderLevel: number | undefined
+	pgmOn: number | undefined
+	pstOn: number | undefined
 	label: string
-	visible: boolean
+	visible: boolean | undefined
 	fadeTime?: number
-	muteOn: boolean
-	inputGain: number
-	inputSelector: number
+	muteOn: boolean | undefined
+	inputGain: number | undefined
+	inputSelector: number | undefined
 }
 
 // ------------------------------------------------------
