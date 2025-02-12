@@ -1,4 +1,4 @@
-import { VMixCommand } from 'timeline-state-resolver-types'
+import { MappingVmixAudioBus, VMixCommand } from 'timeline-state-resolver-types'
 
 export interface VMixStateCommandBase {
 	command: VMixCommand
@@ -54,15 +54,15 @@ export interface VMixStateCommandAudioBusOff extends VMixStateCommandBase {
 }
 export interface VMixStateCommandBusAudioOn extends VMixStateCommandBase {
 	command: VMixCommand.BUS_AUDIO_ON
-	bus: string
+	bus: MappingVmixAudioBus['index']
 }
 export interface VMixStateCommandBusAudioOff extends VMixStateCommandBase {
 	command: VMixCommand.BUS_AUDIO_OFF
-	bus: string
+	bus: MappingVmixAudioBus['index']
 }
 export interface VMixStateCommandBusVolume extends VMixStateCommandBase {
 	command: VMixCommand.BUS_VOLUME
-	bus: string
+	bus: MappingVmixAudioBus['index']
 	value: number
 }
 export interface VMixStateCommandFader extends VMixStateCommandBase {
