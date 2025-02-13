@@ -1,6 +1,18 @@
 import * as xml from 'xml-js'
-import { TSR_INPUT_PREFIX, VMixInput, VMixInputAudio, VMixMix, VMixState } from './vMixStateDiffer'
+import {
+	TSR_INPUT_PREFIX,
+	VMixAudioBusBase,
+	VMixAudioBusesState,
+	VMixAudioMasterBus,
+	VMixAudioRegularBus,
+	VMixInput,
+	VMixInputAudio,
+	VMixMix,
+	VMixState,
+} from './vMixStateDiffer'
 import { VMixTransitionType } from 'timeline-state-resolver-types'
+
+const BUS_NAME_REGEX = /^bus([A-Z])$/
 
 /**
  * Parses the state incoming from vMix into a TSR representation
@@ -143,15 +155,41 @@ export class VMixXmlStateParser {
 			playlist: xmlState['vmix']['playList']['_text'] === 'True',
 			multiCorder: xmlState['vmix']['multiCorder']['_text'] === 'True',
 			fullscreen: xmlState['vmix']['fullscreen']['_text'] === 'True',
-			audio: [
-				{
-					volume: Number(xmlState['vmix']['audio']['master']['_attributes']['volume']),
-					muted: xmlState['vmix']['audio']['master']['_attributes']['muted'] === 'True',
-					meterF1: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF1']),
-					meterF2: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF2']),
-					headphonesVolume: Number(xmlState['vmix']['audio']['master']['_attributes']['headphonesVolume']),
-				},
-			],
+			audioBuses: this.parseAudioBuses(xmlState),
+		}
+	}
+
+	private parseAudioBuses(xmlState: any): VMixAudioBusesState {
+		const audioBuses: Record<string, VMixAudioBusBase> = {}
+		const audioElement = xmlState['vmix']['audio']
+
+		for (const [key, busElement] of Object.entries<any>(audioElement)) {
+			if (key === 'master') {
+				audioBuses.M = this.parseMasterAudioBus(busElement)
+			} else {
+				const match = key.match(BUS_NAME_REGEX)?.[1]
+				if (match) {
+					audioBuses[match] = this.parseRegularAudioBus(busElement)
+				}
+			}
+		}
+		return audioBuses as VMixAudioBusesState
+	}
+
+	private parseMasterAudioBus(busElement: any): VMixAudioMasterBus {
+		return {
+			volume: Number(busElement['_attributes']['volume']) || 0,
+			headphonesVolume: Number(busElement['_attributes']['headphonesVolume']) || 0,
+			muted: busElement['_attributes']['muted'] === 'True',
+		}
+	}
+
+	private parseRegularAudioBus(busElement: any): VMixAudioRegularBus {
+		return {
+			volume: Number(busElement['_attributes']['volume']) || 0,
+			muted: busElement['_attributes']['muted'] === 'True',
+			sendToMaster: busElement['_attributes']['sendToMaster'] === 'True',
+			solo: busElement['_attributes']['solo'] === 'True',
 		}
 	}
 

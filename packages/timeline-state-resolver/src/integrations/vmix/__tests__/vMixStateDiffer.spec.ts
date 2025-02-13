@@ -19,7 +19,7 @@ describe('VMixStateDiffer', () => {
 		expect(differ.getCommandsToAchieveState(Date.now(), oldState, newState)).toEqual([])
 	})
 
-	it('resets audio buses when audio starts to be controlled', () => {
+	it('resets input audio bus assignment when input audio starts to be controlled', () => {
 		const differ = createTestee()
 
 		const oldState = makeMockFullState()
@@ -455,6 +455,68 @@ describe('VMixStateDiffer', () => {
 			input: '99',
 			value: '',
 			fieldName: 'myImage1.Source',
+		})
+	})
+
+	describe('audio buses', () => {
+		it('resets audio bus when starting to control it', () => {
+			const differ = createTestee()
+
+			const oldState = makeMockFullState()
+			const newState = makeMockFullState()
+
+			delete oldState.reportedState.audioBuses.A
+			newState.reportedState.audioBuses.A = differ.getDefaultAudioBusState()
+
+			const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+			expect(commands.length).toBe(2)
+			expect(commands[0].command).toMatchObject({
+				command: VMixCommand.BUS_AUDIO_OFF,
+				bus: 'A',
+			})
+			expect(commands[1].command).toMatchObject({
+				command: VMixCommand.BUS_VOLUME,
+				bus: 'A',
+				value: 100,
+			})
+		})
+
+		it('updates audio bus volume', () => {
+			const differ = createTestee()
+
+			const oldState = makeMockFullState()
+			const newState = makeMockFullState()
+
+			newState.reportedState.audioBuses.A = { ...differ.getDefaultAudioBusState(), volume: 75.2 }
+
+			const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+			expect(commands.length).toBe(1)
+
+			expect(commands[0].command).toMatchObject({
+				command: VMixCommand.BUS_VOLUME,
+				bus: 'A',
+				value: 75.2,
+			})
+		})
+
+		it('turns audio bus on', () => {
+			const differ = createTestee()
+
+			const oldState = makeMockFullState()
+			const newState = makeMockFullState()
+
+			newState.reportedState.audioBuses.A = { ...differ.getDefaultAudioBusState(), muted: false }
+
+			const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+			expect(commands.length).toBe(1)
+
+			expect(commands[0].command).toMatchObject({
+				command: VMixCommand.BUS_AUDIO_ON,
+				bus: 'A',
+			})
 		})
 	})
 })

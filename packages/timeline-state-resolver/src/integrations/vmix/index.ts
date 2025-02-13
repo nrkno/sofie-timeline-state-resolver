@@ -101,11 +101,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			this.addToQueue(commands, this.getCurrentTime())
 		)
 
-		this._timelineStateConverter = new VMixTimelineStateConverter(
-			() => this._stateDiffer.getDefaultState(),
-			(inputNumber) => this._stateDiffer.getDefaultInputState(inputNumber),
-			(inputNumber) => this._stateDiffer.getDefaultInputAudioState(inputNumber)
-		)
+		this._timelineStateConverter = new VMixTimelineStateConverter(this._stateDiffer)
 
 		this._xmlStateParser = new VMixXmlStateParser()
 		this._stateSynchronizer = new VMixStateSynchronizer()

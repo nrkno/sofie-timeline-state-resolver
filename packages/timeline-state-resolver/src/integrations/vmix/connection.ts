@@ -1,6 +1,6 @@
 import { EventEmitter } from 'eventemitter3'
 import { Socket } from 'net'
-import { VMixCommand } from 'timeline-state-resolver-types'
+import { MappingVmixAudioBus, VMixCommand } from 'timeline-state-resolver-types'
 import { VMixStateCommand } from './vMixCommands'
 import { Response, VMixResponseStreamReader } from './vMixResponseStreamReader'
 
@@ -179,6 +179,12 @@ export class VMixCommandSender {
 				return this.setAudioBusOn(command.input, command.value)
 			case VMixCommand.AUDIO_BUS_OFF:
 				return this.setAudioBusOff(command.input, command.value)
+			case VMixCommand.BUS_AUDIO_ON:
+				return this.setBusAudioOn(command.bus)
+			case VMixCommand.BUS_AUDIO_OFF:
+				return this.setBusAudioOff(command.bus)
+			case VMixCommand.BUS_VOLUME:
+				return this.setBusVolume(command.bus, command.value)
 			case VMixCommand.FADER:
 				return this.setFader(command.value)
 			case VMixCommand.START_RECORDING:
@@ -309,6 +315,25 @@ export class VMixCommandSender {
 
 	public async setAudioBusOff(input: number | string, value: string): Promise<any> {
 		return this.sendCommandFunction(`AudioBusOff`, { input, value })
+	}
+
+	public async setBusAudioOn(bus: MappingVmixAudioBus['index']): Promise<any> {
+		return this.sendCommandFunction(`${this.busLetterToName(bus)}AudioOn`, {})
+	}
+
+	public async setBusAudioOff(bus: MappingVmixAudioBus['index']): Promise<any> {
+		return this.sendCommandFunction(`${this.busLetterToName(bus)}AudioOff`, {})
+	}
+
+	public async setBusVolume(bus: MappingVmixAudioBus['index'], volume: number): Promise<any> {
+		return this.sendCommandFunction(`Set${this.busLetterToName(bus)}Volume`, {
+			value: Math.min(Math.max(volume, 0), 100),
+		})
+	}
+
+	private busLetterToName(bus: MappingVmixAudioBus['index']): string {
+		if (bus === 'M') return 'Master'
+		return `Bus${bus}`
 	}
 
 	public async setFader(position: number): Promise<any> {
