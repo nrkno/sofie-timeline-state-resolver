@@ -140,15 +140,40 @@ export function makeMockReportedState(): VMixState {
 		playlist: false,
 		multiCorder: false,
 		fullscreen: false,
-		audio: [
-			{
+		audioBuses: {
+			M: {
+				muted: true,
 				volume: 100,
-				muted: false,
-				meterF1: 0.04211706,
-				meterF2: 0.04211706,
-				headphonesVolume: 74.80521,
 			},
-		],
+			A: {
+				muted: true,
+				volume: 100,
+			},
+			B: {
+				muted: true,
+				volume: 100,
+			},
+			C: {
+				muted: true,
+				volume: 100,
+			},
+			D: {
+				muted: true,
+				volume: 100,
+			},
+			E: {
+				muted: true,
+				volume: 100,
+			},
+			F: {
+				muted: true,
+				volume: 100,
+			},
+			G: {
+				muted: true,
+				volume: 100,
+			},
+		},
 	}
 }
 

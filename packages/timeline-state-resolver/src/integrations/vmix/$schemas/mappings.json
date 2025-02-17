@@ -65,6 +65,20 @@
 			"required": [],
 			"additionalProperties": false
 		},
+		"audioBus": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "string",
+					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
+					"description": "Name (letter) of the bus",
+					"enum": ["M", "A", "B", "C", "D", "E", "F", "G"]
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
 		"output": {
 			"type": "object",
 			"properties": {
