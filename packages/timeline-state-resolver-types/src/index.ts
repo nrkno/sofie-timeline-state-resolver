@@ -47,6 +47,7 @@ export * from './integrations/telemetrics'
 export * from './integrations/multiOsc'
 export * from './integrations/viscaOverIP'
 
+export * from './datastore'
 export * from './device'
 export * from './mapping'
 export * from './templateString'
