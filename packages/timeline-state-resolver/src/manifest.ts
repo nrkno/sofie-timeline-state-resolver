@@ -214,5 +214,11 @@ export const manifest: TSRManifest = {
 			configSchema: JSON.stringify(VMixOptions),
 			mappingsSchemas: stringifyMappingSchema(VMixMappings),
 		},
+		[DeviceType.WEBSOCKET_TCP_CLIENT]: {
+			displayName: generateTranslation('Websocket+TCP Client'),
+			// $schema to be added currently hardcoded
+			configSchema: JSON.stringify({}),
+			mappingsSchemas: {},
+		}
 	},
 }
