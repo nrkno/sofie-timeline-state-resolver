@@ -16,7 +16,10 @@ const set = (obj: Record<string, any>, path: string, val: any) => {
 	const p = path.split('.')
 	p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
 }
-export function fillStateFromDatastore(state: Timeline.TimelineState<TSRTimelineContent>, datastore: Datastore) {
+export function fillStateFromDatastore(
+	state: Timeline.TimelineState<TSRTimelineContent>,
+	datastore: Datastore
+): Timeline.TimelineState<TSRTimelineContent> {
 	// clone the state so we can freely manipulate it
 	const filledState: typeof state = JSON.parse(JSON.stringify(state))
 
