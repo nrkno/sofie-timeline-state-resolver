@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface WebSocketTCPClientOptions {
 	webSocket: {
@@ -46,3 +47,44 @@ export interface WebSocketTCPClientOptions {
 }
 
 export type SomeMappingWebsocketTcpClient = Record<string, never>
+
+export interface SendWebSocketMessagePayload {
+	/**
+	 * Message to send over WebSocket
+	 */
+	message: string
+	/**
+	 * Optional queue ID for ordered message handling
+	 */
+	queueId?: string
+}
+
+export interface SendTcpMessagePayload {
+	/**
+	 * Command to send over TCP
+	 */
+	command: string
+	/**
+	 * Optional queue ID for ordered command handling
+	 */
+	queueId?: string
+}
+
+export enum WebsocketTcpClientActions {
+	Reconnect = 'reconnect',
+	ResetState = 'resetState',
+	SendWebSocketMessage = 'sendWebSocketMessage',
+	SendTcpMessage = 'sendTcpMessage'
+}
+export interface WebsocketTcpClientActionExecutionResults {
+	reconnect: () => void,
+	resetState: () => void,
+	sendWebSocketMessage: (payload: SendWebSocketMessagePayload) => void,
+	sendTcpMessage: (payload: SendTcpMessagePayload) => void
+}
+export type WebsocketTcpClientActionExecutionPayload<A extends keyof WebsocketTcpClientActionExecutionResults> = Parameters<
+	WebsocketTcpClientActionExecutionResults[A]
+>[0]
+
+export type WebsocketTcpClientActionExecutionResult<A extends keyof WebsocketTcpClientActionExecutionResults> =
+	ActionExecutionResult<ReturnType<WebsocketTcpClientActionExecutionResults[A]>>

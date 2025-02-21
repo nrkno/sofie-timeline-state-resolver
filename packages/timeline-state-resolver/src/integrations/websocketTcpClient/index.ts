@@ -1,15 +1,17 @@
 import { CommandWithContext, Device, DeviceContextAPI } from '../../service/device'
-import { DeviceStatus, WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
+import { ActionExecutionResultCode, DeviceStatus, WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
 import { WebSocketTcpConnection } from './connection'
+import { WebsocketTcpClientActions } from 'timeline-state-resolver-types'
 
-interface WebSocketTcpCommand extends CommandWithContext{
-	command: any // need to fix command structure
-	context: string
-	timelineObjId: string
-	value?: any // 
-}
+export interface WebSocketTcpCommand extends CommandWithContext {
+	command: 'added' | 'changed' | 'removed' | 'manual'
+	content: {
+	  message?: string
+	  command?: string
+	}
+  }
 
-export class WebSocketTcpClientDevice extends Device<
+  export class WebSocketTcpClientDevice extends Device<
 	WebSocketTCPClientOptions,
 	any, //Add state later
 	WebSocketTcpCommand
@@ -26,9 +28,28 @@ export class WebSocketTcpClientDevice extends Device<
         return true
     }
 
-	public get actions(): any {
-		// Placeholder implementation
-		return {}
+	readonly actions = {
+		[WebsocketTcpClientActions.Reconnect]: async (_id: string) => {
+			await this.connection.connect()
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		[WebsocketTcpClientActions.ResetState]: async (_id: string) => {
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		[WebsocketTcpClientActions.SendWebSocketMessage]: async (_id: string, payload?: Record<string, any>) => {
+			if (!payload?.message) {
+				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing message in payload' } }
+			}
+			await this.connection.sendWebSocketMessage(payload.message)
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		[WebsocketTcpClientActions.SendTcpMessage]: async (_id: string, payload?: Record<string, any>) => {
+			if (!payload?.command) {
+				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing command in payload' } }
+			}
+			await this.connection.sendTcpMessage(payload.command)
+			return { result: ActionExecutionResultCode.Ok }
+		},
 	}
 
 	public get connected(): boolean {
@@ -41,18 +62,8 @@ export class WebSocketTcpClientDevice extends Device<
 		return state
 	}
 
-	public diffStates(oldState: any, newState: any): WebSocketTcpCommand[] {
-		// ToDo: Implement state diffing
-		const commands: WebSocketTcpCommand[] = []
-		if (oldState !== newState) {
-			commands.push({
-				command: 'update',
-				context: 'state_change',
-				timelineObjId: 'example_id',
-				value: newState,
-			})
-		}
-		return commands
+	public diffStates(_oldState: any, _newState: any): WebSocketTcpCommand[] {		
+		return []
 	}
 
 	public getStatus(): Omit<DeviceStatus, "active"> {
@@ -63,14 +74,16 @@ export class WebSocketTcpClientDevice extends Device<
 	}
 
 	public async sendCommand(command: WebSocketTcpCommand): Promise<void> {
-		// Send the command via the WebSocket connection
-		await this.connection.sendWebSocketMessage(command.value)
-	}
-	// We might end up using just one sendCommand() with a switch-case for the command type:
-	public async sendTcpCommand(command: WebSocketTcpCommand): Promise<void> {
-		// Send the command via the TCP connection
-		await this.connection.sendTcpCommand(command.value)
-	}
+		if (!command.content) return
+	
+		if (command.content.message) {
+		  await this.connection.sendWebSocketMessage(command.content.message)
+		}
+	
+		if (command.content.command) {
+		  await this.connection.sendTcpMessage(command.content.command)
+		}
+	  }
 
 	public async terminate(): Promise<void> {
 		await this.connection.disconnect()
