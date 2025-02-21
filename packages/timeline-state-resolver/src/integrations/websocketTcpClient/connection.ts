@@ -3,63 +3,100 @@ import { Socket } from 'net'
 import { WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
 
 export class WebSocketTcpConnection {
-	private ws: WebSocket | null = null
-	private tcp: Socket | null = null
-	private options: WebSocketTCPClientOptions
+  private ws?: WebSocket
+  private tcp?: Socket
+  private isConnected = false
+  private readonly options: WebSocketTCPClientOptions
 
-	constructor(options: WebSocketTCPClientOptions) {
-		this.options = options
-	}
+  constructor(options: WebSocketTCPClientOptions) {
+    this.options = options
+  }
 
-	async connect(): Promise<void> {
-		// WebSocket connection
-		this.ws = new WebSocket(this.options.webSocket.uri)
-		this.ws.on('open', () => console.log('WebSocket connected'))
-		this.ws.on('error', (err) => console.error('WebSocket error:', err))
-		this.ws.on('close', () => {
-			console.log('WebSocket closed')
-			if (this.options.webSocket.reconnectInterval) {
-				setTimeout(() => this.connect(), this.options.webSocket.reconnectInterval)
-			}
-		})
+  async connect(): Promise<void> {
+    try {
+      // WebSocket connection
+      if (this.options.webSocket?.uri) {
+        this.ws = new WebSocket(this.options.webSocket.uri)
+        
+        await new Promise<void>((resolve, reject) => {
+          if (!this.ws) return reject(new Error('WebSocket not initialized'))
+          
+          const timeout = setTimeout(() => {
+            reject(new Error('WebSocket connection timeout'))
+          }, this.options.webSocket?.reconnectInterval || 5000)
 
-		// TCP connection
-		this.tcp = new Socket()
-		this.tcp.connect(this.options.tcp.port, this.options.tcp.host, () => {
-			console.log('TCP connected')
-		})
-		this.tcp.on('error', (err) => console.error('TCP error:', err))
-		this.tcp.on('close', () => console.log('TCP closed'))
-	}
+    	this.ws.on('open', () => {
+            clearTimeout(timeout)
+            resolve()
+          })
 
-	connected(): boolean {
-		return (this.ws?.readyState === WebSocket.OPEN && this.tcp?.writable) || false
-	}
+          this.ws.on('error', (error) => {
+            clearTimeout(timeout)
+            reject(error)
+          })
+        })
+      }
 
-	sendWebSocketMessage(message: string | Uint8Array): void {
-		if (this.ws?.readyState === WebSocket.OPEN) {
-			this.ws.send(message)
-		} else {
-			console.warn('WebSocket not connected')
-		}
-	}
+      // Optional TCP connection
+      if (this.options.tcp?.host && this.options.tcp?.port) {
+        this.tcp = new Socket()
+        
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('TCP connection timeout'))
+          }, 5000)
 
-	sendTcpCommand(command: string | Uint8Array): void {
-		if (this.tcp?.writable) {
-			this.tcp.write(command)
-		} else {
-			console.warn('TCP not connected')
-		}
-	}
+          this.tcp?.connect({
+            host: this.options.tcp?.host || '',
+            port: this.options.tcp?.port || 0
+          }, () => {
+            clearTimeout(timeout)
+            resolve()
+          })
 
-	async disconnect(): Promise<void> {
-		if (this.ws) {
-			this.ws.close()
-			this.ws = null
-		}
-		if (this.tcp) {
-			this.tcp.destroy()
-			this.tcp = null
-		}
-	}
+          this.tcp?.on('error', (error) => {
+            clearTimeout(timeout)
+            reject(error)
+          })
+        })
+      }
+
+      this.isConnected = true
+    } catch (error) {
+      this.isConnected = false
+      throw error
+    }
+  }
+
+  connected(): boolean {
+    return this.isConnected
+  }
+
+  sendWebSocketMessage(message: string): void {
+    if (!this.ws) {
+      throw new Error('WebSocket not connected')
+    }
+    this.ws.send(message)
+  }
+
+  sendTcpMessage(message: string): void {
+    if (!this.tcp) {
+      throw new Error('TCP not connected')
+    }
+    this.tcp.write(message)
+  }
+
+  async disconnect(): Promise<void> {
+    if (this.ws) {
+      this.ws.close()
+      this.ws = undefined
+    }
+
+    if (this.tcp) {
+      this.tcp.destroy()
+      this.tcp = undefined
+    }
+
+    this.isConnected = false
+  }
 }
