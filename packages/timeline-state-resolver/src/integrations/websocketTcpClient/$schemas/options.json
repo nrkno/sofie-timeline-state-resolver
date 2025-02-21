@@ -1,0 +1,50 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "WebSocket & TCP Client Options",
+    "type": "object",
+    "properties": {
+      "webSocket": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "ui:title": "WebSocket URI",
+            "ui:description": "URI to connect to, e.g. 'ws://localhost:8080'",
+            "description": "URI to connect to, e.g. 'ws://localhost:8080'"
+          },
+          "reconnectInterval": {
+            "type": "integer",
+            "ui:title": "Reconnect Interval",
+            "description": "Interval between reconnection attempts in milliseconds",
+            "default": 5000
+          }
+        },
+        "required": ["uri"]
+      },
+      "tcp": {
+        "type": "object", 
+        "properties": {
+          "host": {
+            "type": "string",
+            "ui:title": "Optional - TCP Host",
+            "description": "Optional TCP server host to connect to, e.g. '127.0.0.1' - some devices may have a TCP connection too"
+          },
+          "port": {
+            "type": "integer",
+            "ui:title": "TCP Port",
+            "description": "TCP server port to connect to"
+          },
+          "bufferEncoding": {
+            "type": "string",
+            "ui:title": "Buffer Encoding",
+            "description": "Encoding to use for TCP messages",
+            "default": "utf8",
+            "enum": ["ascii", "utf8", "utf-8", "utf16le", "ucs2", "ucs-2", "base64", "base64url", "latin1", "binary", "hex"]
+          }
+        },
+        "required": ["host", "port"]
+      }
+    },
+    "required": ["webSocket", "tcp"],
+    "additionalProperties": false
+  }

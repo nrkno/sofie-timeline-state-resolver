@@ -23,7 +23,7 @@ import {
 	TriCasterOptions,
 	MultiOSCOptions,
 	ViscaOverIPOptions,
-	// currently hardcoded: WebSocketTcpClientOptions
+	WebSocketTCPClientOptions
 } from '.'
 import { DeviceCommonOptions } from './generated/common-options'
 
@@ -150,20 +150,7 @@ export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions
 export interface DeviceOptionsViscaOverIP extends DeviceOptionsBase<ViscaOverIPOptions> {
 	type: DeviceType.VISCA_OVER_IP
 }
-
-// Move this to a $schema file:
-export interface WebSocketTcpClientOptions {
-	webSocket: {
-	  uri: string; // e.g., "ws://localhost:8080"
-	  reconnectInterval?: number; // Optional, in ms
-	};
-	tcp: {
-	  host: string; // e.g., "127.0.0.1"
-	  port: number; // e.g., 12345
-	  bufferEncoding?: string; // e.g., "utf8"
-	};
-  }
   
-  export interface DeviceOptionsWebSocketTcpClient extends DeviceOptionsBase<WebSocketTcpClientOptions> {
+  export interface DeviceOptionsWebSocketTcpClient extends DeviceOptionsBase<WebSocketTCPClientOptions> {
 	type: DeviceType.WEBSOCKET_TCP_CLIENT;
   }

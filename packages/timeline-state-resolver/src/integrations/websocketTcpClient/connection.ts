@@ -1,13 +1,13 @@
 import * as WebSocket from 'ws'
 import { Socket } from 'net'
-import { WebSocketTcpClientOptions } from 'timeline-state-resolver-types/src'
+import { WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
 
 export class WebSocketTcpConnection {
 	private ws: WebSocket | null = null
 	private tcp: Socket | null = null
-	private options: WebSocketTcpClientOptions
+	private options: WebSocketTCPClientOptions
 
-	constructor(options: WebSocketTcpClientOptions) {
+	constructor(options: WebSocketTCPClientOptions) {
 		this.options = options
 	}
 

@@ -1,5 +1,5 @@
 import { CommandWithContext, Device, DeviceContextAPI } from '../../service/device'
-import { DeviceStatus, WebSocketTcpClientOptions } from 'timeline-state-resolver-types'
+import { DeviceStatus, WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
 import { WebSocketTcpConnection } from './connection'
 
 interface WebSocketTcpCommand extends CommandWithContext{
@@ -10,13 +10,13 @@ interface WebSocketTcpCommand extends CommandWithContext{
 }
 
 export class WebSocketTcpClientDevice extends Device<
-	WebSocketTcpClientOptions,
+	WebSocketTCPClientOptions,
 	any, //Add state later
 	WebSocketTcpCommand
 > {
 	private connection: WebSocketTcpConnection
 
-	constructor(context: DeviceContextAPI<any>, _options: WebSocketTcpClientOptions) {
+	constructor(context: DeviceContextAPI<any>, _options: WebSocketTCPClientOptions) {
 		super(context)
 		this.connection = new WebSocketTcpConnection(_options)
 	}

@@ -56,6 +56,7 @@ import VizMSEMappings = require('./$schemas/generated/vizMSE/mappings.json')
 import VMixOptions = require('./$schemas/generated/vmix/options.json')
 import VMixMappings = require('./$schemas/generated/vmix/mappings.json')
 import VMixActions = require('./$schemas/generated/vmix/actions.json')
+import WebSocketTCPClientOptions = require('./$schemas/generated/websocketTcpClient/options.json')
 
 import CommonOptions = require('./$schemas/common-options.json')
 import { generateTranslation } from './lib'
@@ -217,7 +218,7 @@ export const manifest: TSRManifest = {
 		[DeviceType.WEBSOCKET_TCP_CLIENT]: {
 			displayName: generateTranslation('Websocket+TCP Client'),
 			// $schema to be added currently hardcoded
-			configSchema: JSON.stringify({}),
+			configSchema: JSON.stringify(WebSocketTCPClientOptions),
 			mappingsSchemas: {},
 		}
 	},

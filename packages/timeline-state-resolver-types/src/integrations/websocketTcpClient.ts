@@ -1,4 +1,4 @@
-import { DeviceType } from 'timeline-state-resolver-types/src'
+import { DeviceType } from '..'
 
 export enum TimelineContentTypeWebSocketTcpClient {
 	WEBSOCKET_MESSAGE = 'websocketMessage',
