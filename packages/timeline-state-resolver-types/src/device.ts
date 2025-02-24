@@ -23,7 +23,7 @@ import {
 	TriCasterOptions,
 	MultiOSCOptions,
 	ViscaOverIPOptions,
-	WebSocketTCPClientOptions
+	WebSocketTCPClientOptions,
 } from '.'
 import { DeviceCommonOptions } from './generated/common-options'
 
@@ -150,7 +150,7 @@ export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions
 export interface DeviceOptionsViscaOverIP extends DeviceOptionsBase<ViscaOverIPOptions> {
 	type: DeviceType.VISCA_OVER_IP
 }
-  
-  export interface DeviceOptionsWebSocketTcpClient extends DeviceOptionsBase<WebSocketTCPClientOptions> {
-	type: DeviceType.WEBSOCKET_TCP_CLIENT;
-  }
+
+export interface DeviceOptionsWebSocketTcpClient extends DeviceOptionsBase<WebSocketTCPClientOptions> {
+	type: DeviceType.WEBSOCKET_TCP_CLIENT
+}
