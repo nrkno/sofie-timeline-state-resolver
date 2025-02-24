@@ -72,14 +72,14 @@ export class WebSocketTcpConnection {
     return this.isConnected
   }
 
-  sendWebSocketMessage(message: string): void {
+  sendWebSocketMessage(message: string | Buffer): void {
     if (!this.ws) {
       throw new Error('WebSocket not connected')
     }
     this.ws.send(message)
   }
 
-  sendTcpMessage(message: string): void {
+  sendTcpMessage(message: string | buffer): void {
     if (!this.tcp) {
       throw new Error('TCP not connected')
     }
