@@ -106,22 +106,9 @@ describe('WebSocketTcpClientDevice', () => {
 
 	describe('Timeline', () => {
 		test('convertTimelineStateToDeviceState', () => {
-			const timelineState: Timeline.TimelineState<any> = {
-				time: 1000,
-				layers: {
-					// ToDo - something like this:
-					// layer1: {
-					// 	id: 'id1',
-					// 	content: {
-					// 		deviceType: DeviceType.WEBSOCKET_TCP_CLIENT,
-					// 		type: TimelineContentTypeWebSocketTcpClient.WEBSOCKET_MESSAGE,
-					// 		message: 'test ws message',
-					// 	},
-					// },
-				},
-				nextEvents: [],
-			}
-
+			const timelineState: Timeline.TimelineState<TSRTimelineContent> = createTimelineState(
+				createWsCommandObject('layer1', 'test ws message')
+			)
 			expect(device.convertTimelineStateToDeviceState(timelineState)).toBe(timelineState)
 		})
 

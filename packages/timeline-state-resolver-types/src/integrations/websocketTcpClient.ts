@@ -18,7 +18,7 @@ export interface TimelineContentWebSocketMessage extends TimelineContentWebSocke
 	isBase64Encoded?: boolean
 }
 
-export interface TimelineContentTcpCommand extends TimelineContentWebSocketTcpClientBase {
+export interface TimelineContentTcpMessage extends TimelineContentWebSocketTcpClientBase {
 	type: TimelineContentTypeWebSocketTcpClient.TCP_MESSAGE
 	/**  Stringified data to send over TCP */
 	message: string
@@ -26,4 +26,4 @@ export interface TimelineContentTcpCommand extends TimelineContentWebSocketTcpCl
 	isBase64Encoded?: boolean
 }
 
-export type TimelineContentWebSocketTcpClientAny = TimelineContentWebSocketMessage | TimelineContentTcpCommand
+export type TimelineContentWebSocketTcpClientAny = TimelineContentWebSocketMessage | TimelineContentTcpMessage
