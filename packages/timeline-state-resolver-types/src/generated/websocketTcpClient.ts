@@ -61,11 +61,11 @@ export interface SendWebSocketMessagePayload {
 
 export interface SendTcpMessagePayload {
 	/**
-	 * Command to send over TCP
+	 * Message to send over TCP
 	 */
-	command: string
+	message: string
 	/**
-	 * Optional queue ID for ordered command handling
+	 * Optional queue ID for ordered message handling
 	 */
 	queueId?: string
 }
