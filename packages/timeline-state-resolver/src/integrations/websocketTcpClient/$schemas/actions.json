@@ -42,16 +42,16 @@
         "payload": {
           "type": "object",
           "properties": {
-            "command": {
+            "message": {
               "type": "string",
-              "description": "Command to send over TCP"
+              "description": "Message to send over TCP"
             },
             "queueId": {
               "type": "string",
-              "description": "Optional queue ID for ordered command handling"
+              "description": "Optional queue ID for ordered message handling"
             }
           },
-          "required": ["command"],
+          "required": ["message"],
           "additionalProperties": false
         }
       }
