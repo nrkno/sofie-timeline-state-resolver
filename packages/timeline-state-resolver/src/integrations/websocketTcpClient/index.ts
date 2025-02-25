@@ -45,14 +45,14 @@ export type WebSocketTcpClientDeviceState = Timeline.TimelineState<TSRTimelineCo
 			if (!payload?.message) {
 				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing message in payload' } }
 			}
-			await this.connection.sendWebSocketMessage(payload.message)
+			await this.sendCommand(payload.message)
 			return { result: ActionExecutionResultCode.Ok }
 		},
 		[WebsocketTcpClientActions.SendTcpMessage]: async (_id: string, payload?: Record<string, any>) => {
 			if (!payload?.command) {
 				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing command in payload' } }
 			}
-			await this.connection.sendTcpMessage(payload.command)
+			await this.sendCommand(payload.command)
 			return { result: ActionExecutionResultCode.Ok }
 		},
 	}
