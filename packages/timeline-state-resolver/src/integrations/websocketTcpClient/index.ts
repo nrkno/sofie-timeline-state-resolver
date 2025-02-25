@@ -60,6 +60,10 @@ export type WebSocketTcpClientDeviceState = Timeline.TimelineState<TSRTimelineCo
 		return this.connection?.connected() ?? false
 	}
 
+	public getStatus(): Omit<DeviceStatus, "active"> {
+		return this.connection?.connectionStatus() ?? { statusCode: StatusCode.BAD, messages: ['No Connection'] }
+	}
+
 	public convertTimelineStateToDeviceState(
 		state: WebSocketTcpClientDeviceState 
 	): WebSocketTcpClientDeviceState {
@@ -124,23 +128,6 @@ export type WebSocketTcpClientDeviceState = Timeline.TimelineState<TSRTimelineCo
 		}
 		
 		return commands
-	}
-
-	public getStatus(): Omit<DeviceStatus, "active"> {
-		return {
-			// ToDo implement statuses:
-			statusCode: this.connected ? StatusCode.GOOD : StatusCode.BAD,
-			messages: this.connected ? ['Connected'] : ['Disconnected']
-
-			/*
-			[
-				Look into more detaled status messages:
-				//this.connection.isTCPConnected ? 'TCP is Connected' : 'TCP is Disconnected',
-				//this.connection.isTCPConnected ? 'TCP is Connected' : 'TCP is Disconnected',
-			]
-				*/
-			
-		}
 	}
 
 	public async sendCommand(sendContext: WebSocketTcpCommand): Promise<void> {

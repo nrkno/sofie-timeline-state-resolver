@@ -1,11 +1,12 @@
 import * as WebSocket from 'ws'
 import { Socket } from 'net'
-import { WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
+import { DeviceStatus, StatusCode, WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
 
 export class WebSocketTcpConnection {
   private ws?: WebSocket
   private tcp?: Socket
-  private isConnected = false
+  private isWsConnected = false
+  private isTcpConnected = false
   private readonly options: WebSocketTCPClientOptions
 
   constructor(options: WebSocketTCPClientOptions) {
@@ -27,6 +28,7 @@ export class WebSocketTcpConnection {
 
     	this.ws.on('open', () => {
             clearTimeout(timeout)
+            this.isWsConnected = true
             resolve()
           })
 
@@ -34,6 +36,10 @@ export class WebSocketTcpConnection {
             clearTimeout(timeout)
             reject(error)
           })
+        })
+
+        this.ws.on('close', () => {
+          this.isWsConnected = false
         })
       }
 
@@ -55,25 +61,49 @@ export class WebSocketTcpConnection {
           })
 
           this.tcp?.on('error', (error) => {
+            this.isTcpConnected = false
             clearTimeout(timeout)
             reject(error)
+          })
+
+          this.tcp?.on('close', () => {
+            this.isTcpConnected = false
           })
         })
       }
 
-      this.isConnected = true
+      this.isTcpConnected = true
     } catch (error) {
-      this.isConnected = false
+      this.isTcpConnected = false
       throw error
     }
   }
 
   connected(): boolean {
-    return this.isConnected
+    // Check if both WebSocket and TCP connections are active
+    // And only use the isTcpConnected flag if the TCP connection is defined
+    const isConnected = this.isWsConnected && (this.tcp ? this.isTcpConnected : true)
+    return isConnected
+  }
+
+  connectionStatus(): Omit<DeviceStatus, "active"> {
+    // Check if both WebSocket and TCP connections are active
+    // And only use the isTcpConnected flag if the TCP connection is defined
+    const isConnected = this.isWsConnected && (this.tcp ? this.isTcpConnected : true)
+    let messages: string[] = []
+    messages.push(this.isWsConnected ? 'WS Connected' : 'WS Disconnected')
+    if (this.tcp) {
+      messages.push(this.isTcpConnected ? 'TCP Connected' : 'TCP Disconnected')
+    }
+    return {
+        statusCode: isConnected ? StatusCode.GOOD : StatusCode.BAD,
+        messages
+    }        
   }
 
   sendWebSocketMessage(message: string | Buffer): void {
     if (!this.ws) {
+      this.isWsConnected = false
       throw new Error('WebSocket not connected')
     }
     this.ws.send(message)
@@ -81,6 +111,7 @@ export class WebSocketTcpConnection {
 
   sendTcpMessage(message: string | Buffer): void {
     if (!this.tcp) {
+      this.isTcpConnected = false
       throw new Error('TCP not connected')
     }
     this.tcp.write(message)
@@ -97,6 +128,7 @@ export class WebSocketTcpConnection {
       this.tcp = undefined
     }
 
-    this.isConnected = false
+    this.isWsConnected = false
+    this.isTcpConnected = false
   }
 }
