@@ -85,6 +85,7 @@ describe('WebSocketTcpClientDevice', () => {
 
 		test('connected', () => {
 			expect(device.connected).toBe(true)
+			
 			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(false)
 			expect(device.connected).toBe(false)
 		})
@@ -92,15 +93,28 @@ describe('WebSocketTcpClientDevice', () => {
 		test('getStatus', () => {
 			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(true)
 			expect(device.getStatus()).toEqual({
+				statusCode: StatusCode.BAD,
+				messages: ["No Connection"],
+			})
+
+			//@ts-expect-error - is set to private
+			MockWebSocketTcpConnection.prototype.isTcpConnected = true
+			//@ts-expect-error - is set to private
+			MockWebSocketTcpConnection.prototype.isWsConnected = true
+			jest.spyOn(WebSocketTcpConnection.prototype, 'connectionStatus').mockReturnValue({
 				statusCode: StatusCode.GOOD,
-				messages: ["Connected"],
+				messages: ["WS Connected", "TCP Connected"],
+			})
+
+			//@ts-expect-error - is set to private
+			MockWebSocketTcpConnection.prototype.isTcpConnected = false
+			//@ts-expect-error - is set to private
+			MockWebSocketTcpConnection.prototype.isWsConnected = true
+			jest.spyOn(WebSocketTcpConnection.prototype, 'connectionStatus').mockReturnValue({
+				statusCode: StatusCode.BAD,
+				messages: ["WS DisConnected", "TCP Connected"],
 			})
 			
-			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(false)
-			expect(device.getStatus()).toEqual({
-				statusCode: StatusCode.BAD,
-				messages: ["Disconnected"],
-			})
 		})
 	})
 
