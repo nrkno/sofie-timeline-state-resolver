@@ -109,6 +109,7 @@ describe('WebSocketTcpClientDevice', () => {
 			const timelineState: Timeline.TimelineState<TSRTimelineContent> = createTimelineState(
 				createWsCommandObject('layer1', 'test ws message')
 			)
+			// As nothings is converted in this device, the result should be the same as the input:
 			expect(device.convertTimelineStateToDeviceState(timelineState)).toBe(timelineState)
 		})
 
