@@ -116,7 +116,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		this.emit('timeTrace', endTrace(convertTrace))
 
 		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const newSisyfosState = this.convertStateToSisyfosState(newState, newMappings)
+		const newSisyfosState = this.convertTimelineStateToDeviceState(newState, newMappings)
 		this.emit('timeTrace', endTrace(diffTrace))
 
 		this._handleStateInner(oldSisyfosState, newSisyfosState, previousStateTime, newState.time)
@@ -129,7 +129,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		newTime: number
 	) {
 		// Generate commands necessary to transition to the new state
-		const commandsToAchieveState: Array<Command> = this._diffStates(oldSisyfosState, newSisyfosState)
+		const commandsToAchieveState: Array<Command> = this.diffStates(oldSisyfosState, newSisyfosState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -265,11 +265,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						(m): m is Mapping<MappingSisyfosChannel> =>
 							(m as Mapping<SomeMappingSisyfos>).options.mappingType === MappingSisyfosType.Channel
 					)
-					.map((m) => m.options.channel)
-			: Object.keys(deviceStateFromAPI.channels)
+					.map((m: Mapping<MappingSisyfosChannel>) => ({
+						index: m.options.channel,
+						disableDefaults: m.options.disableDefaults,
+					}))
+			: Object.keys(deviceStateFromAPI.channels).map((index) => ({ index, disableDefaults: true }))
 
 		for (const ch of channels) {
-			const channelFromAPI = deviceStateFromAPI.channels[ch]
+			const channelFromAPI = deviceStateFromAPI.channels[ch.index]
 
 			let channel: SisyfosChannel = {
 				...channelFromAPI,
@@ -280,14 +283,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				// reset values for default state
 				channel = {
 					...channel,
-					...this.getDefaultStateChannel(),
+					...(ch.disableDefaults ? this.getBlankStateChannel() : this.getDefaultStateChannel()),
 				}
 			}
 
-			deviceState.channels[ch] = channel
+			deviceState.channels[ch.index] = channel
 		}
 		return deviceState
 	}
+
+	/** Returns a channel with defaults */
 	getDefaultStateChannel(): SisyfosChannel {
 		return {
 			faderLevel: 0.75, // 0 dB
@@ -302,12 +307,30 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 	}
 
+	/** Returns a channel without defaults */
+	getBlankStateChannel(): SisyfosChannel {
+		return {
+			label: '',
+			timelineObjIds: [],
+			// we want those undefined properties to exist
+			faderLevel: undefined,
+			pgmOn: undefined,
+			pstOn: undefined,
+			visible: undefined,
+			inputGain: undefined,
+			inputSelector: undefined,
+			muteOn: undefined,
+		}
+	}
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): SisyfosState {
+	convertTimelineStateToDeviceState(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	): SisyfosState {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names
@@ -323,7 +346,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			let channel = deviceState.channels[sisyfosMapping.options.channel] as SisyfosChannel | undefined
 
 			if (!channel) {
-				channel = this.getDefaultStateChannel()
+				channel = sisyfosMapping.options.disableDefaults ? this.getBlankStateChannel() : this.getDefaultStateChannel()
 			}
 
 			channel.label = sisyfosMapping.layerName
@@ -338,6 +361,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			isLookahead: boolean
 			timelineObjId: string
 			triggerValue?: string
+			disableDefaults?: boolean
 		} & SisyfosChannelOptions)[] = []
 
 		_.each(state.layers, (tlObject, layerName) => {
@@ -365,83 +389,80 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				foundMapping = mappings[layer.lookaheadForLayer] as Mapping<SomeMappingSisyfos> | undefined
 			}
 
-			if (foundMapping && foundMapping.deviceId === this.deviceId) {
-				// @ts-ignore backwards-compatibility:
-				if (!foundMapping.mappingType) foundMapping.mappingType = MappingSisyfosType.CHANNEL
-				// @ts-ignore backwards-compatibility:
-				if (content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
+			if (foundMapping?.deviceId !== this.deviceId) return
 
-				debug(
-					`Mapping ${foundMapping.layerName}: ${foundMapping.options.mappingType}, ${
-						(foundMapping.options as any).channel || (foundMapping.options as any).label
-					}`
-				)
+			// @ts-ignore backwards-compatibility:
+			if (!foundMapping.mappingType) foundMapping.mappingType = MappingSisyfosType.CHANNEL
+			// @ts-ignore backwards-compatibility:
+			if (content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
 
-				if (
-					foundMapping.options.mappingType === MappingSisyfosType.Channel &&
-					content.type === TimelineContentTypeSisyfos.CHANNEL
-				) {
+			debug(
+				`Mapping ${foundMapping.layerName}: ${foundMapping.options.mappingType}, ${
+					(foundMapping.options as any).channel || (foundMapping.options as any).label
+				}`
+			)
+
+			if (
+				foundMapping.options.mappingType === MappingSisyfosType.Channel &&
+				content.type === TimelineContentTypeSisyfos.CHANNEL
+			) {
+				newChannels.push({
+					...content,
+					channel: foundMapping.options.channel,
+					overridePriority: content.overridePriority || 0,
+					isLookahead: layer.isLookahead || false,
+					timelineObjId: layer.id,
+					triggerValue: content.triggerValue,
+					disableDefaults: foundMapping.options.disableDefaults,
+				})
+				deviceState.resync = deviceState.resync || content.resync || false
+			} else if (
+				foundMapping.options.mappingType === MappingSisyfosType.ChannelByLabel &&
+				content.type === TimelineContentTypeSisyfos.CHANNEL
+			) {
+				const ch = this._sisyfos.getChannelByLabel(foundMapping.options.label)
+				debug(`Channel by label ${foundMapping.options.label}(${ch}): ${content.isPgm}`)
+				if (ch === undefined) return
+
+				newChannels.push({
+					...content,
+					channel: ch,
+					overridePriority: content.overridePriority || 0,
+					isLookahead: layer.isLookahead || false,
+					timelineObjId: layer.id,
+					triggerValue: content.triggerValue,
+					disableDefaults: foundMapping.options.disableDefaults,
+				})
+				deviceState.resync = deviceState.resync || content.resync || false
+			} else if (
+				foundMapping.options.mappingType === MappingSisyfosType.Channels &&
+				content.type === TimelineContentTypeSisyfos.CHANNELS
+			) {
+				for (const channel of content.channels) {
+					const referencedMapping = mappings[channel.mappedLayer] as Mapping<SomeMappingSisyfos> | undefined
+					if (!referencedMapping) continue
+
+					let channelNumber: number | undefined
+					if (referencedMapping.options.mappingType === MappingSisyfosType.Channel) {
+						channelNumber = referencedMapping.options.channel
+					} else if (referencedMapping.options.mappingType === MappingSisyfosType.ChannelByLabel) {
+						channelNumber = this._sisyfos.getChannelByLabel(referencedMapping.options.label)
+						debug(`Channel by label ${referencedMapping.options.label}(${channelNumber}): ${channel.isPgm}`)
+					}
+
+					if (channelNumber === undefined) continue
+
 					newChannels.push({
-						...content,
-						channel: foundMapping.options.channel,
+						...channel,
+						channel: channelNumber,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
 						timelineObjId: layer.id,
 						triggerValue: content.triggerValue,
+						disableDefaults: foundMapping.options.disableDefaults,
 					})
-					deviceState.resync = deviceState.resync || content.resync || false
-				} else if (
-					foundMapping.options.mappingType === MappingSisyfosType.ChannelByLabel &&
-					content.type === TimelineContentTypeSisyfos.CHANNEL
-				) {
-					const ch = this._sisyfos.getChannelByLabel(foundMapping.options.label)
-					debug(`Channel by label ${foundMapping.options.label}(${ch}): ${content.isPgm}`)
-					if (ch === undefined) return
-
-					newChannels.push({
-						...content,
-						channel: ch,
-						overridePriority: content.overridePriority || 0,
-						isLookahead: layer.isLookahead || false,
-						timelineObjId: layer.id,
-						triggerValue: content.triggerValue,
-					})
-					deviceState.resync = deviceState.resync || content.resync || false
-				} else if (
-					foundMapping.options.mappingType === MappingSisyfosType.Channels &&
-					content.type === TimelineContentTypeSisyfos.CHANNELS
-				) {
-					_.each(content.channels, (channel) => {
-						const referencedMapping = mappings[channel.mappedLayer] as Mapping<SomeMappingSisyfos> | undefined
-						if (referencedMapping && referencedMapping.options.mappingType === MappingSisyfosType.Channel) {
-							newChannels.push({
-								...channel,
-								channel: referencedMapping.options.channel,
-								overridePriority: content.overridePriority || 0,
-								isLookahead: layer.isLookahead || false,
-								timelineObjId: layer.id,
-								triggerValue: content.triggerValue,
-							})
-						} else if (
-							referencedMapping &&
-							referencedMapping.options.mappingType === MappingSisyfosType.ChannelByLabel
-						) {
-							const ch = this._sisyfos.getChannelByLabel(referencedMapping.options.label)
-							debug(`Channel by label ${referencedMapping.options.label}(${ch}): ${channel.isPgm}`)
-							if (ch === undefined) return
-
-							newChannels.push({
-								...channel,
-								channel: ch,
-								overridePriority: content.overridePriority || 0,
-								isLookahead: layer.isLookahead || false,
-								timelineObjId: layer.id,
-								triggerValue: content.triggerValue,
-							})
-						}
-					})
-					deviceState.resync = deviceState.resync || content.resync || false
 				}
+				deviceState.resync = deviceState.resync || content.resync || false
 			}
 		})
 
@@ -450,7 +471,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			_.sortBy(newChannels, (channel) => channel.overridePriority),
 			(newChannel) => {
 				if (!deviceState.channels[newChannel.channel]) {
-					deviceState.channels[newChannel.channel] = this.getDefaultStateChannel()
+					deviceState.channels[newChannel.channel] = newChannel.disableDefaults
+						? this.getBlankStateChannel()
+						: this.getDefaultStateChannel()
 				}
 				const channel = deviceState.channels[newChannel.channel]
 
@@ -505,10 +528,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Command[] {
+	diffStates(oldOscSendState: SisyfosState | undefined, newOscSendState: SisyfosState): Command[] {
 		const commands: Command[] = []
 
-		if (newOscSendState.resync && !oldOscSendState.resync) {
+		if (newOscSendState.resync && !oldOscSendState?.resync) {
 			commands.push({
 				context: `Resyncing with Sisyfos`,
 				command: {
@@ -519,9 +542,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 
 		_.each(newOscSendState.channels, (newChannel: SisyfosChannel, index) => {
-			const oldChannel = oldOscSendState.channels[index]
+			const oldChannel: SisyfosChannel | undefined = oldOscSendState?.channels[index]
 
-			if (newOscSendState.triggerValue && newOscSendState.triggerValue !== oldOscSendState.triggerValue) {
+			if (newOscSendState.triggerValue && newOscSendState.triggerValue !== oldOscSendState?.triggerValue) {
 				// || (!oldChannel && Number(index) >= 0)) {
 				// push commands for everything
 				debug('reset channel ' + index)
@@ -552,7 +575,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				return
 			}
 
-			if (oldChannel && oldChannel.pgmOn !== newChannel.pgmOn) {
+			if (!oldChannel) return
+
+			if (oldChannel.pgmOn !== newChannel.pgmOn && newChannel.pgmOn !== undefined) {
 				debug(`Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`)
 				const values: number[] = [newChannel.pgmOn]
 				if (newChannel.fadeTime) {
@@ -569,7 +594,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				})
 			}
 
-			if (oldChannel && oldChannel.pstOn !== newChannel.pstOn) {
+			if (oldChannel.pstOn !== newChannel.pstOn && newChannel.pstOn !== undefined) {
 				debug(`Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`)
 				commands.push({
 					context: `Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`,
@@ -582,7 +607,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				})
 			}
 
-			if (oldChannel && oldChannel.faderLevel !== newChannel.faderLevel) {
+			if (oldChannel.faderLevel !== newChannel.faderLevel && newChannel.faderLevel !== undefined) {
 				debug(`change faderLevel ${index}: "${newChannel.faderLevel}"`)
 				const values: number[] = [newChannel.faderLevel]
 				if (newChannel.fadeTime) {
@@ -599,8 +624,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				})
 			}
 
-			newChannel.label = newChannel.label || (oldChannel ? oldChannel.label : '')
-			if (oldChannel && newChannel.label !== '' && oldChannel.label !== newChannel.label) {
+			newChannel.label = newChannel.label || oldChannel.label
+			if (newChannel.label !== '' && oldChannel.label !== newChannel.label) {
 				debug(`set label on fader ${index}: "${newChannel.label}"`)
 				commands.push({
 					context: 'set label on fader',
@@ -613,7 +638,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				})
 			}
 
-			if (oldChannel && oldChannel.visible !== newChannel.visible) {
+			if (oldChannel.visible !== newChannel.visible && newChannel.visible !== undefined) {
 				debug(`Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`)
 				commands.push({
 					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
@@ -626,7 +651,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				})
 			}
 
-			if (oldChannel && oldChannel.muteOn !== newChannel.muteOn) {
+			if (oldChannel.muteOn !== newChannel.muteOn && newChannel.muteOn !== undefined) {
 				debug(`Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`)
 				commands.push({
 					context: `Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`,
@@ -639,7 +664,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				})
 			}
 
-			if (oldChannel && oldChannel.inputGain !== newChannel.inputGain) {
+			if (oldChannel.inputGain !== newChannel.inputGain && newChannel.inputGain !== undefined) {
 				debug(`Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`)
 				commands.push({
 					context: `Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`,
@@ -652,7 +677,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				})
 			}
 
-			if (oldChannel && oldChannel.inputSelector !== newChannel.inputSelector) {
+			if (oldChannel.inputSelector !== newChannel.inputSelector && newChannel.inputSelector !== undefined) {
 				debug(`Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`)
 				commands.push({
 					context: `Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`,

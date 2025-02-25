@@ -14,15 +14,18 @@ export interface SisyfosOptions {
 export interface MappingSisyfosChannel {
 	channel: number
 	setLabelToLayerName?: boolean
+	disableDefaults?: boolean
 	mappingType: MappingSisyfosType.Channel
 }
 
 export interface MappingSisyfosChannelByLabel {
 	label: string
+	disableDefaults?: boolean
 	mappingType: MappingSisyfosType.ChannelByLabel
 }
 
 export interface MappingSisyfosChannels {
+	disableDefaults?: boolean
 	mappingType: MappingSisyfosType.Channels
 }
 
