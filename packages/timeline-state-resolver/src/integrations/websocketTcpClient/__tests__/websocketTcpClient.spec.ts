@@ -93,11 +93,13 @@ describe('WebSocketTcpClientDevice', () => {
 			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(true)
 			expect(device.getStatus()).toEqual({
 				statusCode: StatusCode.GOOD,
+				messages: ["Connected"],
 			})
-
+			
 			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(false)
 			expect(device.getStatus()).toEqual({
 				statusCode: StatusCode.BAD,
+				messages: ["Disconnected"],
 			})
 		})
 	})
@@ -128,6 +130,7 @@ describe('WebSocketTcpClientDevice', () => {
 			const newState = createTimelineState(createWsCommandObject('layer1', 'new test ws message state'))
 
 			const commands = device.diffStates(oldState, newState)
+
 
 			expect(commands).toHaveLength(1)
 			expect(commands[0].command.type).toBe(TimelineContentTypeWebSocketTcpClient.WEBSOCKET_MESSAGE)
