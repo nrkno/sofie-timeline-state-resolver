@@ -1,8 +1,7 @@
 import { CommandWithContext, Device, DeviceContextAPI } from '../../service/device'
-import { ActionExecutionResultCode, DeviceStatus, DeviceType, Timeline, TimelineContentTypeWebSocketTcpClient, TSRTimelineContent, WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
+import { ActionExecutionResultCode, DeviceStatus, DeviceType, StatusCode, Timeline, TimelineContentTypeWebSocketTcpClient, TSRTimelineContent, WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
 import { WebSocketTcpConnection } from './connection'
 import { WebsocketTcpClientActions } from 'timeline-state-resolver-types'
-import { isEqual } from 'underscore'
 
 
 /** this is not an extends but an implementation of the CommandWithContext */
@@ -91,7 +90,8 @@ export type WebSocketTcpClientDeviceState = Timeline.TimelineState<TSRTimelineCo
 			let changeType = 'N/A'
 			if (!oldState.layers[layerName]) {
 				changeType = 'added'
-			} else if ( isEqual(oldState.layers[layerName].content, timelineObject.content) ) {
+			} else if (JSON.stringify(oldState.layers[layerName].content) !== JSON.stringify(timelineObject.content)) {
+			//} else if ( isEqual(oldState.layers[layerName].content, timelineObject.content) ) {
 				changeType = 'changed'
 			} else {
 				continue // no changes
@@ -128,16 +128,18 @@ export type WebSocketTcpClientDeviceState = Timeline.TimelineState<TSRTimelineCo
 
 	public getStatus(): Omit<DeviceStatus, "active"> {
 		return {
-			statusCode: this.connected ? 0 : 1, // 0 = GOOD, 1 = BAD (based on StatusCode enum)
-			messages: [
+			// ToDo implement statuses:
+			statusCode: this.connected ? StatusCode.GOOD : StatusCode.BAD,
+			messages: this.connected ? ['Connected'] : ['Disconnected']
 
-
-				'Probably okay, todo :)'
+			/*
+			[
+				Look into more detaled status messages:
 				//this.connection.isTCPConnected ? 'TCP is Connected' : 'TCP is Disconnected',
 				//this.connection.isTCPConnected ? 'TCP is Connected' : 'TCP is Disconnected',
 			]
+				*/
 			
-			//  connected ? ['Connected'] : ['Disconnected'],
 		}
 	}
 
