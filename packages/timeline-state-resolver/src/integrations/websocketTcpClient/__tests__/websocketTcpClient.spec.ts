@@ -1,194 +1,222 @@
-import { WebSocketTcpClientDevice, WebSocketTcpCommand } from '../index'
-import { WebSocketTcpConnection } from '../connection'
-import { StatusCode, WebSocketTCPClientOptions } from 'timeline-state-resolver-types'
-import * as WebSocket from 'ws'
-import { Socket } from 'net'
 import { jest } from '@jest/globals'
+import {} from 'timeline-state-resolver-types/dist/integrations/websocketTcpClient'
+import { WebSocketTcpConnection } from '../connection'
+import { WebSocketTcpClientDevice, WebSocketTcpCommand } from '../index'
+import {
+	Timeline,
+	DeviceType,
+	WebSocketTCPClientOptions,
+	TimelineContentTypeWebSocketTcpClient,
+	StatusCode,
+	TSRTimelineContent,
+} from 'timeline-state-resolver-types'
+import { MockTime } from '../../../__tests__/mockTime'
+import { TimelineContentWebSocketTcpClientAny } from 'timeline-state-resolver-types/src'
 
-jest.mock('ws')
-jest.mock('net')
+// Mock the WebSocketTcpConnection??
+jest.mock('../connection')
 
-describe('WebSocketTCPClientDevice', () => {
-	const mockContext = {
-		logger: {
-			debug: jest.fn(),
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-		},
-	}
+const MockWebSocketTcpConnection = WebSocketTcpConnection as jest.MockedClass<typeof WebSocketTcpConnection>
 
-	const mockOptions: WebSocketTCPClientOptions = {
-		webSocket: {
-			uri: 'ws://localhost:8080',
-			reconnectInterval: 5000,
-		},
-		tcp: {
-			host: 'localhost',
-			port: 3000,
-			bufferEncoding: 'utf8',
-		},
-	}
-
+describe('WebSocketTcpClientDevice', () => {
+	const mockTime = new MockTime()
 	let device: WebSocketTcpClientDevice
-	let mockWs: jest.Mocked<WebSocket>
-	let mockTcp: jest.Mocked<Socket>
 
 	beforeEach(() => {
 		jest.clearAllMocks()
-		device = new WebSocketTcpClientDevice(mockContext as any, mockOptions)
-		mockWs = new WebSocket('') as jest.Mocked<WebSocket>
-		mockTcp = new Socket() as jest.Mocked<Socket>
+		mockTime.init()
+
+		// Create device context
+		const deviceContext = {
+			getCurrentTime: mockTime.getCurrentTime,
+			getTimeSinceStart: 0,
+			logger: {
+				info: jest.fn(),
+				warn: jest.fn(),
+				error: jest.fn(),
+				debug: jest.fn(),
+			},
+			emit: jest.fn(),
+			resetStateCheck: jest.fn(),
+			timeTrace: jest.fn(),
+			commandError: jest.fn(),
+			resetToState: jest.fn(),
+		}
+
+		// Create mock options
+		const options: WebSocketTCPClientOptions = {
+			webSocket: {
+				uri: 'ws://localhost:8080',
+				reconnectInterval: 5000,
+			},
+			tcp: {
+				host: '127.0.0.1',
+				port: 1234,
+				bufferEncoding: 'utf8',
+			},
+		}
+
+		device = new WebSocketTcpClientDevice(deviceContext as any, options)
+
+		// Mock connection methods
+		MockWebSocketTcpConnection.prototype.connect.mockResolvedValue()
+		MockWebSocketTcpConnection.prototype.disconnect.mockResolvedValue()
+		MockWebSocketTcpConnection.prototype.connected.mockReturnValue(true)
+		MockWebSocketTcpConnection.prototype.sendWebSocketMessage.mockImplementation(() => {})
+		MockWebSocketTcpConnection.prototype.sendTcpMessage.mockImplementation(() => {})
 	})
 
-	describe('init()', () => {
-		it('should initialize successfully', async () => {
-			const initResult = await device.init()
-			expect(initResult).toBe(true)
-		})
+	afterEach(() => {
+		//Are there something like??:
+		//mockTime.dispose()
+		// Or can we just ignore this
 	})
 
-	describe('terminate()', () => {
-		it('should terminate successfully', async () => {
+	describe('Connections', () => {
+		test('init', async () => {
 			await device.init()
+			expect(MockWebSocketTcpConnection.prototype.connect).toHaveBeenCalled()
+		})
+
+		test('terminate', async () => {
 			await device.terminate()
-			// Verify cleanup was done
+			expect(MockWebSocketTcpConnection.prototype.disconnect).toHaveBeenCalled()
 		})
-	})
 
-	describe('connection status', () => {
-		it('should report correct connection status', () => {
-			expect(device.connected).toBe(false)
-			// Mock connection
-			//device['connection'].connected = jest.fn().mockReturnValue(true)
+		test('connected', () => {
 			expect(device.connected).toBe(true)
+			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(false)
+			expect(device.connected).toBe(false)
 		})
 
-		it('should report correct device status', () => {
-			const status = device.getStatus()
-			expect(status.statusCode).toBe(StatusCode.UNKNOWN)
+		test('getStatus', () => {
+			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(true)
+			expect(device.getStatus()).toEqual({
+				statusCode: StatusCode.GOOD,
+			})
 
-			// Mock good connection
-			//device['connection'].connected = jest.fn().mockReturnValue(true)
-			expect(device.getStatus().statusCode).toBe(StatusCode.GOOD)
+			MockWebSocketTcpConnection.prototype.connected.mockReturnValue(false)
+			expect(device.getStatus()).toEqual({
+				statusCode: StatusCode.BAD,
+			})
 		})
 	})
 
-	describe('sendCommand()', () => {
-		it('should handle WebSocket messages', async () => {
-			await device.init()
+	describe('Timeline', () => {
+		test('convertTimelineStateToDeviceState', () => {
+			const timelineState: Timeline.TimelineState<any> = {
+				time: 1000,
+				layers: {
+					// ToDo - something like this:
+					// layer1: {
+					// 	id: 'id1',
+					// 	content: {
+					// 		deviceType: DeviceType.WEBSOCKET_TCP_CLIENT,
+					// 		type: TimelineContentTypeWebSocketTcpClient.WEBSOCKET_MESSAGE,
+					// 		message: 'test ws message',
+					// 	},
+					// },
+				},
+				nextEvents: [],
+			}
+
+			expect(device.convertTimelineStateToDeviceState(timelineState)).toBe(timelineState)
+		})
+
+		test('diffStates with WebSocket message command', () => {
+			const oldState = createTimelineState(createWsCommandObject('layer1', 'old ws state'))
+			const newState = createTimelineState(createWsCommandObject('layer1', 'new test ws message state'))
+
+			const commands = device.diffStates(oldState, newState)
+
+			expect(commands).toHaveLength(1)
+			expect(commands[0].command.type).toBe(TimelineContentTypeWebSocketTcpClient.WEBSOCKET_MESSAGE)
+			expect(commands[0].command.message).toBe('new test ws message state')
+		})
+
+		test('diffStates with TCP message command', () => {
+			const oldState = createTimelineState(createWsCommandObject('layer1', 'old tcp tate'))
+			const newState = createTimelineState(createTcpCommandObject('layer1', 'new test tcp message state'))
+
+			const commands = device.diffStates(oldState, newState)
+
+			expect(commands).toHaveLength(1)
+			expect(commands[0].command.type).toBe(TimelineContentTypeWebSocketTcpClient.TCP_MESSAGE)
+			expect(commands[0].command.message).toBe('new test tcp message state')
+		})
+
+		test('sendCommand with WebSocket message', async () => {
 			const command: WebSocketTcpCommand = {
-                // Commans is not yet implemented correctly in websocketTcpClient
-				command: 'added',
-				context: 'test',
+				context: 'context',
 				timelineObjId: 'obj1',
-				content: {
-					command: 'webSocket',
-					message: 'test message',
+				command: {
+					type: TimelineContentTypeWebSocketTcpClient.WEBSOCKET_MESSAGE,
+					message: 'test ws message',
 				},
 			}
+
 			await device.sendCommand(command)
-			// Verify message was sent
+
+			expect(MockWebSocketTcpConnection.prototype.sendWebSocketMessage).toHaveBeenCalledWith('test ws message')
 		})
 
-		it('should handle TCP messages', async () => {
-			await device.init()
-			// const command: WebSocketTcpCommand = {
-			// 	context: 'test',
-			// 	timelineObjId: 'obj2',
-			// 	command: {
-			// 		type: 'tcp',
-			// 		command: 'test command',
-			// 	},
-			// }
-			// await device.sendCommand(command)
-			// Verify command was sent
+		test('sendCommand with TCP command', async () => {
+			const message: WebSocketTcpCommand = {
+				context: 'context',
+				timelineObjId: 'obj1',
+				command: {
+					type: TimelineContentTypeWebSocketTcpClient.TCP_MESSAGE,
+					message: 'test tcp message',
+				},
+			}
+
+			await device.sendCommand(message)
+
+			expect(MockWebSocketTcpConnection.prototype.sendTcpMessage).toHaveBeenCalledWith('test tcp message')
 		})
 	})
 })
 
-describe('WebSocketTcpConnection', () => {
-	const mockOptions: WebSocketTCPClientOptions = {
-		webSocket: {
-			uri: 'ws://localhost:8080',
-			reconnectInterval: 5000,
-		},
-		tcp: {
-			host: 'localhost',
-			port: 3000,
-			bufferEncoding: 'utf8',
+// Helper functions to create test objects:
+function createTimelineState(
+	objs: Record<string, { id: string; content: TimelineContentWebSocketTcpClientAny }>
+): Timeline.TimelineState<TSRTimelineContent> {
+	const state: Timeline.TimelineState<TimelineContentWebSocketTcpClientAny> = {
+		time: 1000,
+		layers: objs as any,
+		nextEvents: [],
+	}
+	return state
+}
+
+function createWsCommandObject(
+	layerId: string,
+	message: string
+): Record<string, { id: string; content: TimelineContentWebSocketTcpClientAny }> {
+	return {
+		[`tcp_${layerId}`]: {
+			id: `tcp_${layerId}`,
+			content: {
+				deviceType: DeviceType.WEBSOCKET_TCP_CLIENT,
+				type: TimelineContentTypeWebSocketTcpClient.WEBSOCKET_MESSAGE,
+				message: message, // Changed from 'command' to 'message' to match the interface
+			},
 		},
 	}
+}
 
-	let connection: WebSocketTcpConnection
-	let mockWs: jest.Mocked<WebSocket>
-	let mockTcp: jest.Mocked<Socket>
-
-	beforeEach(() => {
-		jest.clearAllMocks()
-		connection = new WebSocketTcpConnection(mockOptions)
-		mockWs = new WebSocket('') as jest.Mocked<WebSocket>
-		mockTcp = new Socket() as jest.Mocked<Socket>
-	})
-
-	describe('connect()', () => {
-		it('should establish WebSocket and TCP connections', async () => {
-			const connectPromise = connection.connect()
-
-			// ToDo
-
-			await connectPromise
-			expect(connection.connected()).toBe(true)
-		})
-
-		it('should handle connection failures', async () => {
-			const connectPromise = connection.connect()
-
-			// ToDo
-
-			await expect(connectPromise).rejects.toThrow()
-			expect(connection.connected()).toBe(false)
-		})
-	})
-
-	describe('send messages', () => {
-		beforeEach(async () => {
-			await connection.connect()
-		})
-
-		it('should send WebSocket messages', () => {
-			const message = 'test message'
-			connection.sendWebSocketMessage(message)
-			expect(mockWs.send).toHaveBeenCalledWith(message)
-		})
-
-		it('should send TCP messages', () => {
-			const message = 'test command'
-			connection.sendTcpMessage(message)
-			expect(mockTcp.write).toHaveBeenCalledWith(message)
-		})
-
-		it('should handle WebSocket send errors', () => {
-			mockWs.send = jest.fn().mockImplementation(() => {
-				throw new Error('Send failed')
-			})
-			expect(() => connection.sendWebSocketMessage('test')).toThrow()
-		})
-
-		it('should handle TCP send errors', () => {
-            // ToDo:
-			expect(() => connection.sendTcpMessage('test')).toThrow()
-		})
-	})
-
-	describe('disconnect()', () => {
-		it('should close both connections', async () => {
-			await connection.connect()
-			await connection.disconnect()
-
-			expect(mockWs.close).toHaveBeenCalled()
-			expect(mockTcp.end).toHaveBeenCalled()
-			expect(connection.connected()).toBe(false)
-		})
-	})
-})
+function createTcpCommandObject(
+	layerId: string,
+	message: string
+): Record<string, { id: string; content: TimelineContentWebSocketTcpClientAny }> {
+	return {
+		[`tcp_${layerId}`]: {
+			id: `tcp_${layerId}`,
+			content: {
+				deviceType: DeviceType.WEBSOCKET_TCP_CLIENT,
+				type: TimelineContentTypeWebSocketTcpClient.TCP_MESSAGE,
+				message: message, // Changed from 'command' to 'message' to match the interface
+			},
+		},
+	}
+}
