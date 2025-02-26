@@ -20,14 +20,15 @@ export type WebSocketTcpClientDeviceState = Timeline.TimelineState<TSRTimelineCo
 	WebSocketTcpClientDeviceState,
 	WebSocketTcpCommand
 > {
-	private connection: WebSocketTcpConnection
+	// Use ! as the connection will be initialized in init:
+	private connection!: WebSocketTcpConnection
 
-	constructor(context: DeviceContextAPI<any>, _options: WebSocketTCPClientOptions) {
+	constructor(context: DeviceContextAPI<any>) {
 		super(context)
-		this.connection = new WebSocketTcpConnection(_options)
 	}
-
-    public async init(): Promise<boolean> {
+	
+    public async init(options: WebSocketTCPClientOptions): Promise<boolean> {
+		this.connection = new WebSocketTcpConnection(options)
         await this.connection.connect()
         return true
     }
