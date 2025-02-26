@@ -33,13 +33,6 @@
             "type": "integer",
             "ui:title": "TCP Port",
             "description": "TCP server port to connect to"
-          },
-          "bufferEncoding": {
-            "type": "string",
-            "ui:title": "Buffer Encoding",
-            "description": "Encoding to use for TCP messages",
-            "default": "utf8",
-            "enum": ["ascii", "utf8", "utf-8", "utf16le", "ucs2", "ucs-2", "base64", "base64url", "latin1", "binary", "hex"]
           }
         },
         "required": ["host", "port"]

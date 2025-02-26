@@ -27,21 +27,6 @@ export interface WebSocketTCPClientOptions {
 		 * TCP server port to connect to
 		 */
 		port: number
-		/**
-		 * Encoding to use for TCP messages
-		 */
-		bufferEncoding?:
-			| 'ascii'
-			| 'utf8'
-			| 'utf-8'
-			| 'utf16le'
-			| 'ucs2'
-			| 'ucs-2'
-			| 'base64'
-			| 'base64url'
-			| 'latin1'
-			| 'binary'
-			| 'hex'
 		[k: string]: unknown
 	}
 }
