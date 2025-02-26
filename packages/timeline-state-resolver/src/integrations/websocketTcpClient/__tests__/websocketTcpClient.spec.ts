@@ -22,7 +22,7 @@ describe('WebSocketTcpClientDevice', () => {
 	const mockTime = new MockTime()
 	let device: WebSocketTcpClientDevice
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		jest.clearAllMocks()
 		mockTime.init()
 
@@ -56,7 +56,7 @@ describe('WebSocketTcpClientDevice', () => {
 			},
 		}
 
-		device = new WebSocketTcpClientDevice(deviceContext as any, options)
+		device = new WebSocketTcpClientDevice(deviceContext as any)
 
 		// Mock connection methods
 		MockWebSocketTcpConnection.prototype.connect.mockResolvedValue()
@@ -64,6 +64,9 @@ describe('WebSocketTcpClientDevice', () => {
 		MockWebSocketTcpConnection.prototype.connected.mockReturnValue(true)
 		MockWebSocketTcpConnection.prototype.sendWebSocketMessage.mockImplementation(() => {})
 		MockWebSocketTcpConnection.prototype.sendTcpMessage.mockImplementation(() => {})
+
+		// Initialize device
+		await device.init( options )
 	})
 
 	afterEach(() => {
@@ -74,7 +77,6 @@ describe('WebSocketTcpClientDevice', () => {
 
 	describe('Connections', () => {
 		test('init', async () => {
-			await device.init()
 			expect(MockWebSocketTcpConnection.prototype.connect).toHaveBeenCalled()
 		})
 
