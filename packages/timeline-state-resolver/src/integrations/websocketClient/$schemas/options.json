@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "WebSocket & TCP Client Options",
+    "title": "WebSocket Client Options",
     "type": "object",
     "properties": {
       "webSocket": {
@@ -20,24 +20,8 @@
           }
         },
         "required": ["uri"]
-      },
-      "tcp": {
-        "type": "object", 
-        "properties": {
-          "host": {
-            "type": "string",
-            "ui:title": "Optional - TCP Host",
-            "description": "Optional TCP server host to connect to, e.g. '127.0.0.1' - some devices may have a TCP connection too"
-          },
-          "port": {
-            "type": "integer",
-            "ui:title": "TCP Port",
-            "description": "TCP server port to connect to"
-          }
-        },
-        "required": ["host", "port"]
       }
     },
-    "required": ["webSocket", "tcp"],
+    "required": ["webSocket"],
     "additionalProperties": false
   }

@@ -436,7 +436,7 @@ function createContainer(
 		case DeviceType.TCPSEND:
 		case DeviceType.TRICASTER:
 		case DeviceType.VISCA_OVER_IP:
-		case DeviceType.WEBSOCKET_TCP_CLIENT:
+		case DeviceType.WEBSOCKET_CLIENT:
 		case DeviceType.QUANTEL: {
 			ensureIsImplementedAsService(deviceOptions.type)
 

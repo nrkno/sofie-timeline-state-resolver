@@ -44,7 +44,7 @@ import {
 	DeviceOptionsViscaOverIP,
 	DeviceOptionsTriCaster,
 	DeviceOptionsSingularLive,
-	DeviceOptionsWebSocketTcpClient,
+	DeviceOptionsWebSocketClient,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -1219,7 +1219,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCaster
 	| DeviceOptionsViscaOverIP
-	| DeviceOptionsWebSocketTcpClient
+	| DeviceOptionsWebSocketClient
 
 function removeParentFromState(
 	o: Timeline.TimelineState<TSRTimelineContent>

@@ -83,7 +83,7 @@ exports[`index imports 1`] = `
   "TimelineContentTypeTriCaster",
   "TimelineContentTypeVMix",
   "TimelineContentTypeVizMSE",
-  "TimelineContentTypeWebSocketTcpClient",
+  "TimelineContentTypeWebSocketClient",
   "Transition",
   "TranslationsBundleType",
   "TransportStatus",
@@ -96,7 +96,7 @@ exports[`index imports 1`] = `
   "VizMSEActions",
   "VizMSEDevice",
   "VmixActions",
-  "WebsocketTcpClientActions",
+  "WebsocketClientActions",
   "manifest",
 ]
 `;

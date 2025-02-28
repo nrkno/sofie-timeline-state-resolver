@@ -33,27 +33,6 @@
           "required": ["message"],
           "additionalProperties": false
         }
-      },
-      {
-        "id": "sendTcpMessage", 
-        "name": "Send TCP Message",
-        "destructive": false,
-        "timeout": 5000,
-        "payload": {
-          "type": "object",
-          "properties": {
-            "message": {
-              "type": "string",
-              "description": "Message to send over TCP"
-            },
-            "queueId": {
-              "type": "string",
-              "description": "Optional queue ID for ordered message handling"
-            }
-          },
-          "required": ["message"],
-          "additionalProperties": false
-        }
       }
     ]
   }
