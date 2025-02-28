@@ -93,7 +93,7 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	 * This method takes in a Timeline State that describes a point
 	 * in time on the timeline and converts it into a "device state" that
 	 * describes how the device should be according to the timeline state.
-	 * This is optional, and intended to simplify diffing logic in
+	 * Transforming the DeviceState to something else is optional, and are intended to simplify diffing logic.
 	 * The order of TSR is:
 	 * - Timeline Object in Timeline State ->
 	 * - Device State (`convertTimelineStateToDeviceState()`) ->
