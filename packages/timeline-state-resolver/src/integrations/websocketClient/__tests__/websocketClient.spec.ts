@@ -62,12 +62,6 @@ describe('WebSocketClientDevice', () => {
 		await device.init(options)
 	})
 
-	afterEach(() => {
-		//Are there something like??:
-		//mockTime.dispose()
-		// Or can we just ignore this
-	})
-
 	describe('Connections', () => {
 		test('init', async () => {
 			const connectSpy = jest.spyOn(MockWebSocketConnection.prototype, 'connect')
