@@ -29,11 +29,7 @@ export class WebSocketClientDevice extends Device<
 	WebSocketCommand
 > {
 	// Use ! as the connection will be initialized in init:
-	private connection!: WebSocketConnection
-
-	constructor(context: DeviceContextAPI<any>) {
-		super(context)
-	}
+	private connection: WebSocketConnection | undefined
 
 	public async init(options: WebSocketClientOptions): Promise<boolean> {
 		this.connection = new WebSocketConnection(options)
@@ -43,7 +39,7 @@ export class WebSocketClientDevice extends Device<
 
 	readonly actions = {
 		[WebsocketClientActions.Reconnect]: async (_id: string) => {
-			await this.connection.connect()
+			await this.connection?.connect()
 			return { result: ActionExecutionResultCode.Ok }
 		},
 		[WebsocketClientActions.ResetState]: async (_id: string) => {
@@ -125,11 +121,11 @@ export class WebSocketClientDevice extends Device<
 			// convert base64 to binary
 			message = Buffer.from(message, 'base64')
 		}
-		this.connection.sendWebSocketMessage(message)
+		this.connection?.sendWebSocketMessage(message)
 	}
 
 	public async terminate(): Promise<void> {
-		await this.connection.disconnect()
+		await this.connection?.disconnect()
 		// Perform any cleanup if needed
 	}
 }
