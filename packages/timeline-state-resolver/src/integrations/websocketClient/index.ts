@@ -1,8 +1,9 @@
-import { CommandWithContext, Device, DeviceContextAPI } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 import {
 	ActionExecutionResultCode,
 	DeviceStatus,
 	DeviceType,
+	SendWebSocketMessagePayload,
 	StatusCode,
 	Timeline,
 	TimelineContentTypeWebSocketClient,
@@ -45,11 +46,16 @@ export class WebSocketClientDevice extends Device<
 		[WebsocketClientActions.ResetState]: async (_id: string) => {
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[WebsocketClientActions.SendWebSocketMessage]: async (_id: string, payload?: Record<string, any>) => {
+		[WebsocketClientActions.SendWebSocketMessage]: async (
+			_id: string,
+			payload?: Record<string, SendWebSocketMessagePayload>
+		) => {
 			if (!payload?.message) {
 				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing message in payload' } }
 			}
-			await this.sendCommand(payload.message)
+			for (const [cmd] of Object.entries<SendWebSocketMessagePayload>(payload)) {
+				this.connection?.sendWebSocketMessage(cmd)
+			}
 			return { result: ActionExecutionResultCode.Ok }
 		},
 	}
