@@ -17,7 +17,7 @@ export interface WebSocketClientOptions {
 		 */
 		reconnectInterval?: number
 	}
-	bufferEncoding:
+	bufferEncoding?:
 		| 'ascii'
 		| 'utf8'
 		| 'utf-8'

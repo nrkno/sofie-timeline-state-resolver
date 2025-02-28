@@ -44,8 +44,7 @@
     }
   },
   "required": [
-    "webSocket",
-    "bufferEncoding"
+    "webSocket"
   ],
   "additionalProperties": false
 }
