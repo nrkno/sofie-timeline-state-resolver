@@ -14,7 +14,7 @@ export class WebSocketConnection {
 		try {
 			// WebSocket connection
 			if (this.options.webSocket?.uri) {
-				this.ws = new WebSocket(this.options.webSocket.uri)
+				this.ws = new WebSocket(this.options.webSocket.uri, this.options.bufferEncoding || 'utf8')
 
 				await new Promise<void>((resolve, reject) => {
 					if (!this.ws) return reject(new Error('WebSocket not initialized'))

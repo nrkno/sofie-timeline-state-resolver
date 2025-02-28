@@ -13,8 +13,6 @@ export interface TimelineContentWebSocketMessage extends TimelineContentWebSocke
 	type: TimelineContentTypeWebSocketClient.WEBSOCKET_MESSAGE
 	/**  Stringified data to send over Websocket connection */
 	message: string
-	/** If message contains stringified Base64 binary data or UTF-8 encoded string */
-	isBase64Encoded?: boolean
 }
 
 export type TimelineContentWebSocketClientAny = TimelineContentWebSocketMessage

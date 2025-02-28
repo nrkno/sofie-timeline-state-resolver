@@ -16,8 +16,19 @@ export interface WebSocketClientOptions {
 		 * Interval between reconnection attempts in milliseconds
 		 */
 		reconnectInterval?: number
-		[k: string]: unknown
 	}
+	bufferEncoding:
+		| 'ascii'
+		| 'utf8'
+		| 'utf-8'
+		| 'utf16le'
+		| 'ucs2'
+		| 'ucs-2'
+		| 'base64'
+		| 'base64url'
+		| 'latin1'
+		| 'binary'
+		| 'hex'
 }
 
 export type SomeMappingWebsocketClient = Record<string, never>

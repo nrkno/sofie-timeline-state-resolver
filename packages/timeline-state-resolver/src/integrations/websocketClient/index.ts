@@ -18,7 +18,6 @@ export interface WebSocketCommand extends CommandWithContext {
 	command: {
 		type: TimelineContentTypeWebSocketClient
 		message: string
-		isBase64Encoded?: boolean
 	}
 	context: string
 }
@@ -109,8 +108,7 @@ export class WebSocketClientDevice extends Device<
 				commands.push({
 					command: {
 						type: TimelineContentTypeWebSocketClient.WEBSOCKET_MESSAGE,
-						message: timelineObject.content.message,
-						isBase64Encoded: timelineObject.content.isBase64Encoded,
+						message: timelineObject.content.message
 					},
 					context: `${changeType} on layer "${layerName}"`,
 					timelineObjId: timelineObject.id,
@@ -125,10 +123,6 @@ export class WebSocketClientDevice extends Device<
 		if (!sendContext.command) return
 		let message: string | Buffer = sendContext.command.message
 
-		if (sendContext.command.isBase64Encoded) {
-			// convert base64 to binary
-			message = Buffer.from(message, 'base64')
-		}
 		this.connection?.sendWebSocketMessage(message)
 	}
 
