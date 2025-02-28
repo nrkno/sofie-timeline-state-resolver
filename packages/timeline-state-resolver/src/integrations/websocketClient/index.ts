@@ -81,7 +81,10 @@ export class WebSocketClientDevice extends Device<
 	}
 
 	// ** Calculate Diffs of state and create the commands
-	public diffStates(oldState: WebSocketClientDeviceState, newState: WebSocketClientDeviceState): WebSocketCommand[] {
+	public diffStates(
+		oldState: WebSocketClientDeviceState | undefined,
+		newState: WebSocketClientDeviceState
+	): WebSocketCommand[] {
 		// This is called to calculate and creates the commands needed to make olState reflect newState.
 		// Note: We DON'T send the commands NOW, but rather we return a list of the commands, to be executed
 		// later (send to sendCommand() ).
@@ -94,10 +97,9 @@ export class WebSocketClientDevice extends Device<
 
 			// We should send the command whenever the timeline object content has been ADDED or CHANGED
 			let changeType = 'N/A'
-			if (!oldState.layers[layerName]) {
+			if (!oldState?.layers[layerName]) {
 				changeType = 'added'
-			} else if (JSON.stringify(oldState.layers[layerName].content) !== JSON.stringify(timelineObject.content)) {
-				//} else if ( isEqual(oldState.layers[layerName].content, timelineObject.content) ) {
+			} else if (JSON.stringify(oldState?.layers[layerName].content) !== JSON.stringify(timelineObject.content)) {
 				changeType = 'changed'
 			} else {
 				continue // no changes
