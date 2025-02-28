@@ -69,8 +69,8 @@ describe('WebSocketClientDevice', () => {
 		})
 
 		test('terminate', async () => {
-			await device.terminate()
 			const disConnectSpy = jest.spyOn(MockWebSocketConnection.prototype, 'disconnect')
+			await device.terminate()
 			expect(disConnectSpy).toHaveBeenCalled()
 		})
 
