@@ -70,12 +70,14 @@ describe('WebSocketClientDevice', () => {
 
 	describe('Connections', () => {
 		test('init', async () => {
-			expect(MockWebSocketConnection.prototype.connect).toHaveBeenCalled()
+			const connectSpy = jest.spyOn(MockWebSocketConnection.prototype, 'connect')
+			expect(connectSpy).toHaveBeenCalled()
 		})
 
 		test('terminate', async () => {
 			await device.terminate()
-			expect(MockWebSocketConnection.prototype.disconnect).toHaveBeenCalled()
+			const disConnectSpy = jest.spyOn(MockWebSocketConnection.prototype, 'disconnect')
+			expect(disConnectSpy).toHaveBeenCalled()
 		})
 
 		test('connected', () => {
@@ -140,7 +142,8 @@ describe('WebSocketClientDevice', () => {
 
 			await device.sendCommand(command)
 
-			expect(MockWebSocketConnection.prototype.sendWebSocketMessage).toHaveBeenCalledWith('test ws message')
+			const sendMessageSpy = jest.spyOn(MockWebSocketConnection.prototype, 'sendWebSocketMessage')
+			expect(sendMessageSpy).toHaveBeenCalledWith('test ws message')
 		})
 	})
 })
