@@ -1,27 +1,31 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "WebSocket Client Options",
-    "type": "object",
-    "properties": {
-      "webSocket": {
-        "type": "object",
-        "properties": {
-          "uri": {
-            "type": "string",
-            "ui:title": "WebSocket URI",
-            "ui:description": "URI to connect to, e.g. 'ws://localhost:8080'",
-            "description": "URI to connect to, e.g. 'ws://localhost:8080'"
-          },
-          "reconnectInterval": {
-            "type": "integer",
-            "ui:title": "Reconnect Interval",
-            "description": "Interval between reconnection attempts in milliseconds",
-            "default": 5000
-          }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocket Client Options",
+  "type": "object",
+  "properties": {
+    "webSocket": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "ui:title": "WebSocket URI",
+          "ui:description": "URI to connect to, e.g. 'ws://localhost:8080'",
+          "description": "URI to connect to, e.g. 'ws://localhost:8080'"
         },
-        "required": ["uri"]
-      }
-    },
-    "required": ["webSocket"],
-    "additionalProperties": false
-  }
+        "reconnectInterval": {
+          "type": "integer",
+          "ui:title": "Reconnect Interval",
+          "description": "Interval between reconnection attempts in milliseconds",
+          "default": 5000
+        }
+      },
+      "required": [
+        "uri"
+      ]
+    }
+  },
+  "required": [
+    "webSocket"
+  ],
+  "additionalProperties": false
+}

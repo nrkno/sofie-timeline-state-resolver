@@ -171,5 +171,5 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'WebSocket Client ' + deviceId,
 		executionMode: () => 'sequential',
-	}
+	},
 }

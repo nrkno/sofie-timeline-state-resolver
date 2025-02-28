@@ -21,7 +21,7 @@ type CommandContext = any
  */
 export type CommandWithContext = {
 	/** Device specific command (to be defined by the device itself) */
-	command: any 
+	command: any
 	/**
 	 * The context is provided for logging / troubleshooting reasons.
 	 * It should contain some kind of explanation as to WHY a command was created (like a reference, path etc.)
@@ -94,10 +94,10 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	 * in time on the timeline and converts it into a "device state" that
 	 * describes how the device should be according to the timeline state.
 	 * This is optional, and intended to simplify diffing logic in
-	 * The order of TSR is: 
-	 * - Timeline Object in Timeline State -> 
-	 * - Device State (`convertTimelineStateToDeviceState()`) -> 
-	 * - Planned Device Commands (`difStates()`) -> 
+	 * The order of TSR is:
+	 * - Timeline Object in Timeline State ->
+	 * - Device State (`convertTimelineStateToDeviceState()`) ->
+	 * - Planned Device Commands (`difStates()`) ->
 	 * - Send Command (`sendCommand()`)
 	 * @param state State obj from timeline
 	 * @param newMappings Mappings to resolve devices with
@@ -110,7 +110,7 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	/**
 	 * This method takes 2 states and returns a set of device-commands that will
 	 * transition the device from oldState to newState.
-	 * 
+	 *
 	 * This is basically the place where we generate the planned commands for the device,
 	 * to be executed later, by `sendCommand()`.
 	 */

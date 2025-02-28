@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals'
 import {} from 'timeline-state-resolver-types/dist/integrations/websocketClient'
 import { WebSocketConnection } from '../connection'
 import { WebSocketClientDevice, WebSocketCommand } from '../index'
@@ -57,10 +56,10 @@ describe('WebSocketClientDevice', () => {
 		MockWebSocketConnection.prototype.connect.mockResolvedValue()
 		MockWebSocketConnection.prototype.disconnect.mockResolvedValue()
 		MockWebSocketConnection.prototype.connected.mockReturnValue(true)
-		MockWebSocketConnection.prototype.sendWebSocketMessage.mockImplementation(() => {})
+		MockWebSocketConnection.prototype.sendWebSocketMessage.mockImplementation()
 
 		// Initialize device
-		await device.init( options )
+		await device.init(options)
 	})
 
 	afterEach(() => {
@@ -81,7 +80,7 @@ describe('WebSocketClientDevice', () => {
 
 		test('connected', () => {
 			expect(device.connected).toBe(true)
-			
+
 			MockWebSocketConnection.prototype.connected.mockReturnValue(false)
 			expect(device.connected).toBe(false)
 		})
@@ -90,23 +89,22 @@ describe('WebSocketClientDevice', () => {
 			MockWebSocketConnection.prototype.connected.mockReturnValue(true)
 			expect(device.getStatus()).toEqual({
 				statusCode: StatusCode.BAD,
-				messages: ["No Connection"],
+				messages: ['No Connection'],
 			})
 
 			//@ts-expect-error - is set to private
 			MockWebSocketConnection.prototype.isWsConnected = true
 			jest.spyOn(WebSocketConnection.prototype, 'connectionStatus').mockReturnValue({
 				statusCode: StatusCode.GOOD,
-				messages: ["WS Connected"],
+				messages: ['WS Connected'],
 			})
 
 			//@ts-expect-error - is set to private
 			MockWebSocketConnection.prototype.isWsConnected = false
 			jest.spyOn(WebSocketConnection.prototype, 'connectionStatus').mockReturnValue({
 				statusCode: StatusCode.BAD,
-				messages: ["WS DisConnected"],
+				messages: ['WS DisConnected'],
 			})
-			
 		})
 	})
 
@@ -124,7 +122,6 @@ describe('WebSocketClientDevice', () => {
 			const newState = createTimelineState(createCommandObject('layer1', 'new test ws message state'))
 
 			const commands = device.diffStates(oldState, newState)
-
 
 			expect(commands).toHaveLength(1)
 			expect(commands[0].command.type).toBe(TimelineContentTypeWebSocketClient.WEBSOCKET_MESSAGE)
@@ -145,7 +142,6 @@ describe('WebSocketClientDevice', () => {
 
 			expect(MockWebSocketConnection.prototype.sendWebSocketMessage).toHaveBeenCalledWith('test ws message')
 		})
-
 	})
 })
 
@@ -176,4 +172,3 @@ function createCommandObject(
 		},
 	}
 }
-

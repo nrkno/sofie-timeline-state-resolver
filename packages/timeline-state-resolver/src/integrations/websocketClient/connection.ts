@@ -2,77 +2,77 @@ import * as WebSocket from 'ws'
 import { DeviceStatus, StatusCode, WebSocketClientOptions } from 'timeline-state-resolver-types'
 
 export class WebSocketConnection {
-  private ws?: WebSocket
-  private isWsConnected = false
-  private readonly options: WebSocketClientOptions
+	private ws?: WebSocket
+	private isWsConnected = false
+	private readonly options: WebSocketClientOptions
 
-  constructor(options: WebSocketClientOptions) {
-    this.options = options
-  }
+	constructor(options: WebSocketClientOptions) {
+		this.options = options
+	}
 
-  async connect(): Promise<void> {
-    try {
-      // WebSocket connection
-      if (this.options.webSocket?.uri) {
-        this.ws = new WebSocket(this.options.webSocket.uri)
-        
-        await new Promise<void>((resolve, reject) => {
-          if (!this.ws) return reject(new Error('WebSocket not initialized'))
-          
-          const timeout = setTimeout(() => {
-            reject(new Error('WebSocket connection timeout'))
-          }, this.options.webSocket?.reconnectInterval || 5000)
+	async connect(): Promise<void> {
+		try {
+			// WebSocket connection
+			if (this.options.webSocket?.uri) {
+				this.ws = new WebSocket(this.options.webSocket.uri)
 
-    	this.ws.on('open', () => {
-            clearTimeout(timeout)
-            this.isWsConnected = true
-            resolve()
-          })
+				await new Promise<void>((resolve, reject) => {
+					if (!this.ws) return reject(new Error('WebSocket not initialized'))
 
-          this.ws.on('error', (error) => {
-            clearTimeout(timeout)
-            reject(error)
-          })
-        })
+					const timeout = setTimeout(() => {
+						reject(new Error('WebSocket connection timeout'))
+					}, this.options.webSocket?.reconnectInterval || 5000)
 
-        this.ws.on('close', () => {
-          this.isWsConnected = false
-        })
-      }
-    } catch (error) {
-      this.isWsConnected = false
-      throw error
-    }
-  }
+					this.ws.on('open', () => {
+						clearTimeout(timeout)
+						this.isWsConnected = true
+						resolve()
+					})
 
-  connected(): boolean {
-    return this.isWsConnected ? true : false
-  }
+					this.ws.on('error', (error) => {
+						clearTimeout(timeout)
+						reject(error)
+					})
+				})
 
-  connectionStatus(): Omit<DeviceStatus, "active"> {
-    let messages: string[] = []
-    // Prepare for more detailed status messages:
-    messages.push(this.isWsConnected ? 'WS Connected' : 'WS Disconnected')
-    return {
-        statusCode: this.isWsConnected ? StatusCode.GOOD : StatusCode.BAD,
-        messages
-    }        
-  }
+				this.ws.on('close', () => {
+					this.isWsConnected = false
+				})
+			}
+		} catch (error) {
+			this.isWsConnected = false
+			throw error
+		}
+	}
 
-  sendWebSocketMessage(message: string | Buffer): void {
-    if (!this.ws) {
-      this.isWsConnected = false
-      throw new Error('WebSocket not connected')
-    }
-    this.ws.send(message)
-  }
+	connected(): boolean {
+		return this.isWsConnected ? true : false
+	}
 
-  async disconnect(): Promise<void> {
-    if (this.ws) {
-      this.ws.close()
-      this.ws = undefined
-    }
+	connectionStatus(): Omit<DeviceStatus, 'active'> {
+		const messages: string[] = []
+		// Prepare for more detailed status messages:
+		messages.push(this.isWsConnected ? 'WS Connected' : 'WS Disconnected')
+		return {
+			statusCode: this.isWsConnected ? StatusCode.GOOD : StatusCode.BAD,
+			messages,
+		}
+	}
 
-    this.isWsConnected = false
-  }
+	sendWebSocketMessage(message: string | Buffer): void {
+		if (!this.ws) {
+			this.isWsConnected = false
+			throw new Error('WebSocket not connected')
+		}
+		this.ws.send(message)
+	}
+
+	async disconnect(): Promise<void> {
+		if (this.ws) {
+			this.ws.close()
+			this.ws = undefined
+		}
+
+		this.isWsConnected = false
+	}
 }

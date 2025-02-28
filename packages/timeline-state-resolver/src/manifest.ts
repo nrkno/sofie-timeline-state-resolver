@@ -221,6 +221,6 @@ export const manifest: TSRManifest = {
 			actions: WebSocketClientActions.actions.map(stringifyActionSchema),
 			configSchema: JSON.stringify(WebSocketClientOptions),
 			mappingsSchemas: {},
-		}
+		},
 	},
 }
