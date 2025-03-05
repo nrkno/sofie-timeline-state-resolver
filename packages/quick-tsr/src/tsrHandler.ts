@@ -2,18 +2,20 @@ import {
 	Conductor,
 	ConductorOptions,
 	TimelineTriggerTimeResult,
+	SlowSentCommandInfo,
+	SlowFulfilledCommandInfo,
+	CasparCGDevice,
+} from 'timeline-state-resolver'
+import {
 	DeviceOptionsAny,
 	Mappings,
 	TSRTimeline,
 	Datastore,
 	DeviceStatus,
-	SlowSentCommandInfo,
-	SlowFulfilledCommandInfo,
 	DeviceType,
-	CasparCGDevice,
 	CasparCGActions,
 	ActionExecutionResultCode,
-} from 'timeline-state-resolver'
+} from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 
 import { TSRSettings } from './index'

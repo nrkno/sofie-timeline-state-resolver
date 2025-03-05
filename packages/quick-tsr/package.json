@@ -65,6 +65,7 @@
 		"fast-clone": "^1.5.13",
 		"threadedclass": "^1.2.2",
 		"timeline-state-resolver": "9.4.0-release53",
+		"timeline-state-resolver-types": "9.4.0-release53",
 		"tslib": "^2.6.3",
 		"underscore": "^1.13.7"
 	}

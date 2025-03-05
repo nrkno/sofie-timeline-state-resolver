@@ -44,11 +44,12 @@ import {
 	DeviceOptionsViscaOverIP,
 	DeviceOptionsTriCaster,
 	DeviceOptionsSingularLive,
+	fillStateFromDatastore,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
-import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
+import { endTrace, FinishedTrace, startTrace } from './lib'
 
 import { CommandWithContext } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
