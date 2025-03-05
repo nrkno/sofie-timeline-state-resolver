@@ -53,7 +53,14 @@ export class WebSocketClientDevice extends Device<
 				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing message in payload' } }
 			}
 			for (const [cmd] of Object.entries<SendWebSocketMessagePayload>(payload)) {
-				this.connection?.sendWebSocketMessage(cmd)
+				this.sendCommand({
+					command: {
+						type: TimelineContentTypeWebSocketClient.WEBSOCKET_MESSAGE,
+						message: cmd,
+					},
+					context: 'SendWebSocketMessage',
+					timelineObjId: _id,
+				})
 			}
 			return { result: ActionExecutionResultCode.Ok }
 		},
