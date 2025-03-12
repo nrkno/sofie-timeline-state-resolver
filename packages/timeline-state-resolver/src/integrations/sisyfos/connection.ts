@@ -209,14 +209,14 @@ export class SisyfosApi extends EventEmitter<SisyfosApiEvents> {
 			throw new Error(`Can't set channel, OSC client not initialised`)
 		}
 		const oscApiState: SisyfosChannelOSCAPI = {
-			pgmOn: apiState.pgmOn === 1,
-			voOn: apiState.pgmOn === 2,
-			pstOn: apiState.pstOn === 1,
-			label: apiState.label ?? '',
-			faderLevel: apiState.faderLevel ?? 0.75,
-			muteOn: apiState.muteOn ?? false,
-			inputGain: apiState.inputGain ?? 0.75,
-			inputSelector: apiState.inputSelector ?? 1,
+			pgmOn: typeof apiState.pgmOn === 'boolean' ? apiState.pgmOn === 1 : undefined,
+			voOn: typeof apiState.pgmOn === 'boolean' ? apiState.pgmOn === 2 : undefined,
+			pstOn: typeof apiState.pstOn === 'boolean' ? apiState.pstOn === 1 : undefined,
+			label: apiState.label,
+			faderLevel: apiState.faderLevel,
+			muteOn: apiState.muteOn,
+			inputGain: apiState.inputGain,
+			inputSelector: apiState.inputSelector,
 			fadeTime: apiState.fadeTime,
 			showChannel: apiState.visible,
 		}
