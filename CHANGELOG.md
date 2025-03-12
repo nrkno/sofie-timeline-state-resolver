@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.3.0-release52.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.3.0-release52.0...9.3.0-release52.1) (2025-03-12)
+
+
+### Bug Fixes
+
+* disable initial timeline trace ([86035a8](https://github.com/nrkno/sofie-timeline-state-resolver/commit/86035a828e67fc09e21d994cdc5b4bf835d4c6ab))
+* update superfly-timeline library to 9.0.3, fixing a bug related to lookaheads ([a81aff9](https://github.com/nrkno/sofie-timeline-state-resolver/commit/a81aff92c3301f1c6ba53c82650194dc8d82d318))
+
+
+
 ## [9.3.0-release52.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.1...9.3.0-release52.0) (2025-02-04)
 
 
