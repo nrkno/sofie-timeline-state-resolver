@@ -12,10 +12,11 @@ import {
 import { MockTime } from '../../../__tests__/mockTime'
 import { TimelineContentWebSocketClientAny } from 'timeline-state-resolver-types/src'
 
-// Mock the WebSocketConnection??
+// Mock the WebSocketConnection
 jest.mock('../connection')
 
 const MockWebSocketConnection = WebSocketConnection as jest.MockedClass<typeof WebSocketConnection>
+let deviceContext: any
 
 describe('WebSocketClientDevice', () => {
 	const mockTime = new MockTime()
@@ -26,7 +27,7 @@ describe('WebSocketClientDevice', () => {
 		mockTime.init()
 
 		// Create device context
-		const deviceContext = {
+		deviceContext = {
 			getCurrentTime: mockTime.getCurrentTime,
 			getTimeSinceStart: 0,
 			logger: {
@@ -62,6 +63,16 @@ describe('WebSocketClientDevice', () => {
 		await device.init(options)
 	})
 
+	afterEach(async () => {
+		// Clean up to avoid race conditions
+		try {
+			await device.terminate()
+		} catch (e) {
+			// Ignore termination errors during cleanup
+		}
+		jest.resetAllMocks()
+	})
+
 	describe('Connections', () => {
 		test('init', async () => {
 			const connectSpy = jest.spyOn(MockWebSocketConnection.prototype, 'connect')
@@ -69,8 +80,17 @@ describe('WebSocketClientDevice', () => {
 		})
 
 		test('terminate', async () => {
+			// Create a separate instance for this test to avoid race conditions
+			const terminateDevice = new WebSocketClientDevice(deviceContext as any)
+			await terminateDevice.init({
+				webSocket: {
+					uri: 'ws://localhost:8080',
+					reconnectInterval: 5000,
+				},
+			})
+			
 			const disConnectSpy = jest.spyOn(MockWebSocketConnection.prototype, 'disconnect')
-			await device.terminate()
+			await terminateDevice.terminate()
 			expect(disConnectSpy).toHaveBeenCalled()
 		})
 
