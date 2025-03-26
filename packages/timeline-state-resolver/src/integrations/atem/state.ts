@@ -4,7 +4,7 @@ import { DownstreamKeyer } from 'atem-connection/dist/state/video/downstreamKeye
 import { UpstreamKeyer } from 'atem-connection/dist/state/video/upstreamKeyers'
 import { State as DeviceState } from 'atem-state'
 import { StateTracker } from './stateTracker'
-import { cloneDeep } from '../../lib'
+import { assertNever, cloneDeep } from '../../lib'
 import { AtemStateUtil } from 'atem-connection'
 import * as _ from 'underscore'
 
@@ -16,18 +16,29 @@ import * as _ from 'underscore'
  * @param state A DeviceState as is reported by atem-connection
  * @returns A record of AddressStates
  */
-export function atemStateToAddressStates(state: DeviceState): Record<string, AnyAddressState> {
+export function atemStateToAddressStates(
+	state: DeviceState & { controlValues?: Record<string, string> }
+): Record<string, AnyAddressState> {
 	const addressStates: Record<string, AnyAddressState> = {}
 
 	// mix effects
 	for (const me of state.video.mixEffects) {
 		if (!me) continue
 
-		addressStates['video.mixEffects.' + me.index + '.base'] = {
-			type: AddressType.MixEffect,
+		addressStates['video.mixEffects.' + me.index + '.pgm'] = {
+			type: AddressType.ProgramInput,
+			controlValue: state.controlValues?.['video.mixEffects.' + me.index + '.pgm'] ?? '',
 			index: [me.index],
 			state: {
 				programInput: 'input' in me ? me.input : me.programInput,
+			},
+		}
+
+		addressStates['video.mixEffects.' + me.index + '.base'] = {
+			type: AddressType.MixEffect,
+			controlValue: state.controlValues?.['video.mixEffects.' + me.index + '.base'] ?? '',
+			index: [me.index],
+			state: {
 				previewInput: 'input' in me ? undefined : me.previewInput,
 				nextStyle: me.transitionProperties.nextStyle,
 				nextSelection: me.transitionProperties.nextSelection,
@@ -36,41 +47,58 @@ export function atemStateToAddressStates(state: DeviceState): Record<string, Any
 
 		addressStates['video.mixEffects.' + me.index + '.transitionSettings'] = {
 			type: AddressType.TransitionSettings,
+			controlValue: state.controlValues?.['video.mixEffects.' + me.index + '.transitionSettings'] ?? '',
 			index: [me.index],
 			state: me.transitionSettings,
 		}
 
 		// usk's
 		for (let i in me.upstreamKeyers) {
-			if (!me.upstreamKeyers[i]) continue
+			const usk = me.upstreamKeyers[i]
+			if (!usk) continue
 
 			addressStates['video.mixEffects.' + me.index + '.keyer.' + i] = {
 				type: AddressType.UpStreamKey,
+				controlValue: state.controlValues?.['video.mixEffects.' + me.index + '.keyer.' + i] ?? '',
 				index: [me.index, i],
-				state: me.upstreamKeyers[i],
+				state: usk,
 			}
 		}
 	}
 
 	// dsk's
 	for (let i in state.video.downstreamKeyers) {
-		if (!state.video.downstreamKeyers[i]) continue
+		const dsk = state.video.downstreamKeyers[i]
+		if (!dsk) continue
 
 		addressStates['video.dsk.' + i] = {
 			type: AddressType.DownStreamKey,
+			controlValue: state.controlValues?.['video.dsk.' + i] ?? '',
 			index: [i],
-			state: state.video.downstreamKeyers[i],
+			state: dsk,
 		}
 	}
 
 	// supersource
 	for (let i in state.video.superSources) {
-		if (!state.video.superSources[i]) continue
+		const ss = state.video.superSources[i]
+		if (!ss) continue
 
 		addressStates['video.superSource.' + i] = {
 			type: AddressType.SuperSource,
+			controlValue: state.controlValues?.['video.superSource.' + i] ?? '',
 			index: [i],
-			state: state.video.superSources[i],
+			state: ss,
+		}
+	}
+
+	// auxiliaries
+	for (let i in state.video.auxilliaries) {
+		addressStates['video.auxiliaries.' + i] = {
+			type: AddressType.Auxiliary,
+			controlValue: state.controlValues?.['video.auxiliaries.' + i] ?? '',
+			index: [i],
+			state: { source: state.video.auxilliaries[i] },
 		}
 	}
 
@@ -94,10 +122,12 @@ export function updateFromAtemState(updateFn: (address: any, state: any) => void
  */
 export enum AddressType {
 	MixEffect = 'mixEffect',
+	ProgramInput = 'programInput',
 	TransitionSettings = 'transitionSettings',
 	UpStreamKey = 'upStreamKey',
 	DownStreamKey = 'downStreamKey',
 	SuperSource = 'superSource',
+	Auxiliary = 'auxiliary',
 }
 
 /**
@@ -110,6 +140,7 @@ export enum AddressType {
  */
 interface AddressState<Type extends AddressType, State extends any> {
 	type: Type
+	controlValue: string
 	index: (number | string)[]
 
 	state: State
@@ -117,19 +148,23 @@ interface AddressState<Type extends AddressType, State extends any> {
 
 type MixEffectState = AddressState<
 	AddressType.MixEffect,
-	{ programInput: number; previewInput?: number; nextStyle: TransitionStyle; nextSelection: TransitionSelection[] }
+	{ previewInput?: number; nextStyle: TransitionStyle; nextSelection: TransitionSelection[] }
 >
+type ProgramInputState = AddressState<AddressType.ProgramInput, { programInput: number }>
 type TransitionSettingsState = AddressState<AddressType.TransitionSettings, TransitionSettings>
 type UpStreamKeyState = AddressState<AddressType.UpStreamKey, UpstreamKeyer>
 type DownStreamKeyState = AddressState<AddressType.DownStreamKey, DownstreamKeyer>
 type SuperSourceState = AddressState<AddressType.SuperSource, SuperSource.SuperSource>
+type AuxState = AddressState<AddressType.Auxiliary, { source: number | undefined }>
 
 export type AnyAddressState =
 	| MixEffectState
+	| ProgramInputState
 	| TransitionSettingsState
 	| UpStreamKeyState
 	| DownStreamKeyState
 	| SuperSourceState
+	| AuxState
 
 /**
  * This function takes in a full DeviceState and returns a full DeviceState with overrides coming from  the StateTrackers state if a AddressState is blocked
@@ -175,14 +210,21 @@ export function applyAddressStateToAtemState(deviceState: DeviceState, addrState
 		case AddressType.MixEffect: {
 			const me = getMe(addrState.index[0] as number)
 			if (!me) break
-			if ('input' in me) {
-				me.input = addrState.state.programInput
-			} else {
-				me.programInput = addrState.state.programInput
+			if (!('input' in me)) {
 				me.previewInput = addrState.state.previewInput ?? me.previewInput
 			}
 			me.transitionProperties.nextStyle = addrState.state.nextStyle
 			me.transitionProperties.nextSelection = addrState.state.nextSelection
+			break
+		}
+		case AddressType.ProgramInput: {
+			const me = getMe(addrState.index[0] as number)
+			if (!me) break
+			if ('input' in me) {
+				me.input = addrState.state.programInput
+			} else {
+				me.programInput = addrState.state.programInput
+			}
 			break
 		}
 		case AddressType.TransitionSettings: {
@@ -203,6 +245,14 @@ export function applyAddressStateToAtemState(deviceState: DeviceState, addrState
 		}
 		case AddressType.SuperSource: {
 			deviceState.video.superSources[addrState.index[0]] = addrState.state
+			break
+		}
+		case AddressType.Auxiliary: {
+			deviceState.video.auxilliaries[addrState.index[0]] = addrState.state.source
+			break
+		}
+		default: {
+			assertNever(addrState)
 			break
 		}
 	}

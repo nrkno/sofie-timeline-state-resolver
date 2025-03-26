@@ -10,4 +10,5 @@ export interface DeviceCommonOptions {
 	debugState?: boolean
 	disable?: boolean
 	threadUsage?: number
+	disableSharedHardwareControl?: boolean
 }

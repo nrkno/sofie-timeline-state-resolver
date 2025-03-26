@@ -13,9 +13,11 @@ import { StateHandler } from './stateHandler'
 import { DeviceEntry, DevicesDict } from './devices'
 import type { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
 import type { StateChangeReport } from './measure'
+import { StateTracker } from './stateTracker'
 
 type Config = DeviceOptionsAnyInternal
 type DeviceState = any
+type AddressState = any
 
 export interface DeviceDetails {
 	deviceId: string
@@ -39,6 +41,7 @@ export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChan
 export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _device: Device<any, DeviceState, CommandWithContext>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
+	private _stateTracker?: StateTracker<AddressState>
 
 	private _deviceId: string
 	private _deviceType: DeviceType
@@ -70,6 +73,23 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._startTime = time
 
 		this._updateTimeSync()
+
+		if (!config.disableSharedHardwareControl && this._device.diffAddressState && this._device.applyAddressState) {
+			this._stateTracker = new StateTracker(this._device.diffAddressState)
+			// for now we just do some logging but in the future we could inform library users so they can react to a device changing
+			this._stateTracker.on('deviceAhead', (a) => {
+				this.emit('debug', 'Device ahead for: ' + a)
+			})
+			this._stateTracker.on('deviceUnderControl', (a) => {
+				this.emit('debug', 'Reasserted control over device for: ' + a)
+			})
+			// make sure the commands for the next state change are correct:
+			this._stateTracker.on('deviceUpdated', (ahead) => {
+				if (ahead) {
+					this._stateHandler.recalcDiff()
+				}
+			})
+		}
 
 		this._stateHandler = new StateHandler(
 			{
@@ -124,7 +144,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			{
 				executionType: deviceSpecs.executionMode(config.options),
 			},
-			this._device
+			this._device,
+			this._stateTracker
 		)
 	}
 
@@ -275,6 +296,10 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 
 			recalcDiff: () => {
 				this._stateHandler.recalcDiff()
+			},
+
+			setAddressState: (address, state) => {
+				this._stateTracker?.updateState(address, state)
 			},
 		}
 	}

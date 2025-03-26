@@ -22,6 +22,12 @@
 			"type": "number",
 			"ui:title": "Thread Usage",
 			"default": 0
+		},
+		"disableSharedHardwareControl": {
+			"type": "boolean",
+			"ui:title": "Disable Shared Hardware Control",
+			"ui:hint": "Some integrations provide a way to read back external state such that non-Sofie actors can control the device too, you can disable this in case the mechanism is causing issues.",
+			"default": false
 		}
 	},
 	"required": [],

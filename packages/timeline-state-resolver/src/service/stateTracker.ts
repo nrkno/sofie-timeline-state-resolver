@@ -4,7 +4,12 @@ import { EventEmitter } from 'eventemitter3'
 const SETTLE_TIME = 200 // ms
 
 export interface StateTrackerEvents {
-	blocked: [address: string]
+	/** Emitted when an address is ahead of the timeline state when it was under control */
+	deviceAhead: [address: string]
+	/** Emitted when control over an address has been reasserted, i.e. it was previously ahead of the timeline state and is now in sync */
+	deviceUnderControl: [address: string]
+	/** Emitted every time an address state changes while it is ahead of the timeline */
+	deviceUpdated: [address: string, deviceAhead: boolean]
 }
 
 /**
@@ -18,14 +23,15 @@ export interface StateTrackerEvents {
  * like video.mixEffect.0.upstreamKeyer.1 to indicate the second keyer on the
  * first ME.
  *
- * An Address is "blocked" when the device reports the state for that Address
+ * An Address is "ahead" when the device reports the state for that Address
  * is different than the expected state. To ensure we are not seeing a one-off
  * issue we make sure to wait 200ms to see if any other state updates come through
- * before marking something as "blocked".
+ * before marking something as "ahead".
  *
- * Every AddressState can also track a "ControlValue", this is a string. When
- * this string changes it indicates that TSR wants to take control back over
- * the AddressState.
+ * Internally, each address state should carry some information that tells it when
+ * control over the device is to be reasserted. This is considered the "control value".
+ * Examples are the id's of the timeline objects that affect the address state, or a
+ * timestamp indicating when it last changed. When this "control value" changes,
  */
 export class StateTracker<State> extends EventEmitter<StateTrackerEvents> {
 	private _state: {
@@ -37,27 +43,19 @@ export class StateTracker<State> extends EventEmitter<StateTrackerEvents> {
 		super()
 	}
 
-	isBlocked(address: string): boolean {
-		return this._state[address]?.blocked ?? false
-	}
-	getControlValue(address: string): string | undefined {
-		return this._state[address]?.controlValue
-	}
-	setControlValue(address: string, value: string): void {
-		this._assertAddressExists(address)
-		this._state[address].controlValue = value
+	isDeviceAhead(address: string): boolean {
+		return this._state[address]?.deviceAhead ?? false
 	}
 
-	updateExpectedState(address: string, state: State, controlValue?: string) {
+	updateExpectedState(address: string, state: State, didSetDevice: boolean) {
 		this._assertAddressExists(address)
 		this._state[address].expectedState = state
 
-		if (this._state[address].controlValue !== controlValue) {
-			// unblock when control value changes
-			if (this._state[address].blocked) console.log('unblock', address)
-			this._state[address].blocked = false
+		if (didSetDevice) {
+			// mark device as in sync
+			this._state[address].deviceAhead = false
+			this.emit('deviceUnderControl', address)
 		}
-		this._state[address].controlValue = controlValue
 	}
 
 	getExpectedState(address: string): State | undefined {
@@ -75,12 +73,12 @@ export class StateTracker<State> extends EventEmitter<StateTrackerEvents> {
 				if (this.waitToSettle.get(address)) clearTimeout(this.waitToSettle.get(address))
 
 				const expectedState = this.getExpectedState(address)
-				if (!this._state[address].blocked && (!expectedState || this.diff(state, expectedState))) {
-					this._state[address].blocked = true
-					this.emit('blocked', address)
-					// console.log(Date.now(), 'address blocked: ' + address, JSON.stringify(expectedState), JSON.stringify(state))
-					console.log('address blocked: ' + address)
+				if (!this._state[address].deviceAhead && (!expectedState || this.diff(state, expectedState))) {
+					this._state[address].deviceAhead = true
+					this.emit('deviceAhead', address)
 				}
+				// note - if seeing a lot of these events it may be worth only emitting them when the incoming update differs from what was there
+				this.emit('deviceUpdated', address, this._state[address].deviceAhead)
 			}, SETTLE_TIME)
 		)
 	}
@@ -101,14 +99,16 @@ export class StateTracker<State> extends EventEmitter<StateTrackerEvents> {
 			this._state[address] = {
 				expectedState: undefined,
 				currentState: undefined,
-				blocked: false,
+				deviceAhead: false,
 			}
 	}
 }
 
 interface InternalAddressState<State> {
+	/** State as intended by the timeline / TSR */
 	expectedState: State | undefined
+	/** State as reported by the device */
 	currentState: State | undefined
-	blocked: boolean
-	controlValue?: string
+	/** If true the device is ahead of the timeline state and the TSR should not assert its state */
+	deviceAhead: boolean
 }
