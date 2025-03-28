@@ -93,8 +93,22 @@ export interface BaseDeviceAPI<DeviceState, AddressState, Command extends Comman
 		newMappings: Mappings
 	): DeviceState | { deviceState: DeviceState; addressStates: Record<string, AddressState> }
 
+	/**
+	 * The implementation of this method should apply the state from an address to a device
+	 * state in place
+	 * @param state the state object from convertTimelineToDeviceState
+	 * @param address The address of the state to be applied
+	 * @param addressState The state to be applied
+	 */
 	applyAddressState?(state: DeviceState, address: string, addressState: AddressState): void
+	/**
+	 * The implementation should return true if the contents of the address state differ,
+	 * but not if only the control value differs
+	 */
 	diffAddressState?(state1: AddressState, state2: AddressState): boolean
+	/**
+	 * Returns true if the
+	 */
 	addressStateReassertsControl?(oldState: AddressState | undefined, newState: AddressState): boolean
 	/**
 	 * This method takes 2 states and returns a set of commands that will
