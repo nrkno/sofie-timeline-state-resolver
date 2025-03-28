@@ -24,6 +24,7 @@ import { createDiffOptions } from './diffState'
 import {
 	AnyAddressState,
 	applyAddressStateToAtemState,
+	AtemDeviceState,
 	atemStateToAddressStates,
 	diffAddressStates,
 	updateFromAtemState,
@@ -33,8 +34,6 @@ export interface AtemCommandWithContext extends CommandWithContext {
 	command: AtemCommands.ISerializableCommand[]
 	context: string
 }
-
-type AtemDeviceState = DeviceState & { controlValues?: Record<string, string> }
 
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
@@ -61,13 +60,6 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 	 * and initiates Atem State lib.
 	 */
 	async init(options: AtemOptions): Promise<boolean> {
-		this.tracker.on('blocked', () => {
-			// the tracker has found that someone/something is controlling some part of the device
-
-			// we want to make sure we send the correct (possibly none) commands to the device
-			this.context.recalcDiff()
-		})
-
 		this._atem.on('disconnected', () => {
 			this._connected = false
 			this._connectionChanged()

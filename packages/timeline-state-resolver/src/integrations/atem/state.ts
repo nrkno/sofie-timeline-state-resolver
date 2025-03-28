@@ -3,8 +3,7 @@ import { SuperSource, TransitionSettings } from 'atem-connection/dist/state/vide
 import { DownstreamKeyer } from 'atem-connection/dist/state/video/downstreamKeyers'
 import { UpstreamKeyer } from 'atem-connection/dist/state/video/upstreamKeyers'
 import { State as DeviceState } from 'atem-state'
-import { StateTracker } from './stateTracker'
-import { assertNever, cloneDeep } from '../../lib'
+import { assertNever } from '../../lib'
 import { AtemStateUtil } from 'atem-connection'
 import * as _ from 'underscore'
 
@@ -16,9 +15,7 @@ import * as _ from 'underscore'
  * @param state A DeviceState as is reported by atem-connection
  * @returns A record of AddressStates
  */
-export function atemStateToAddressStates(
-	state: DeviceState & { controlValues?: Record<string, string> }
-): Record<string, AnyAddressState> {
+export function atemStateToAddressStates(state: AtemDeviceState): Record<string, AnyAddressState> {
 	const addressStates: Record<string, AnyAddressState> = {}
 
 	// mix effects
@@ -59,8 +56,8 @@ export function atemStateToAddressStates(
 
 			addressStates['video.mixEffects.' + me.index + '.keyer.' + i] = {
 				type: AddressType.UpStreamKey,
-				controlValue: state.controlValues?.['video.mixEffects.' + me.index + '.keyer.' + i] ?? '',
-				index: [me.index, i],
+				controlValue: state.controlValues?.['video.mixEffects.' + me.index + '.keyer.' + usk.upstreamKeyerId] ?? '',
+				index: [me.index, usk.upstreamKeyerId],
 				state: usk,
 			}
 		}
@@ -86,7 +83,7 @@ export function atemStateToAddressStates(
 
 		addressStates['video.superSource.' + i] = {
 			type: AddressType.SuperSource,
-			controlValue: state.controlValues?.['video.superSource.' + i] ?? '',
+			controlValue: state.controlValues?.['video.superSource.' + ss.index] ?? '',
 			index: [i],
 			state: ss,
 		}
@@ -166,36 +163,7 @@ export type AnyAddressState =
 	| SuperSourceState
 	| AuxState
 
-/**
- * This function takes in a full DeviceState and returns a full DeviceState with overrides coming from  the StateTrackers state if a AddressState is blocked
- *
- * @param deviceState A full DeviceState
- * @param tracker A StateTracker instance
- * @param shouldBeBlocked If an AddressState has been blocked because it received an external update, should it still be blocked? To be used in conjunction with ControlValues
- */
-export function getDeviceStateWithBlockedStates(
-	deviceState: DeviceState,
-	tracker: StateTracker<AnyAddressState>,
-	shouldBeBlocked: (address: string) => boolean
-) {
-	const newDeviceState = cloneDeep(deviceState)
-	const addresses = tracker.getAllAddresses()
-
-	for (const addr of addresses) {
-		const blocked = tracker.isBlocked(addr)
-
-		if (blocked && shouldBeBlocked(addr)) {
-			// in this case we want to override with the current state (as reported by the device itself)
-
-			const currentState = tracker.getCurrentState(addr)
-			if (!currentState) continue // nothing to take from here
-
-			applyAddressStateToAtemState(newDeviceState, currentState)
-		}
-	}
-
-	return newDeviceState
-}
+export type AtemDeviceState = DeviceState & { controlValues?: Record<string, string> }
 
 /**
  * This function takes in an AddressState and **correctly** (if there are no bugs in the

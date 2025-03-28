@@ -35,9 +35,11 @@ import { Defaults, State as DeviceState, Defaults as StateDefault } from 'atem-s
 import { assertNever, cloneDeep, deepMerge, literal } from '../../lib'
 import { PartialDeep } from 'type-fest'
 
+export type InternalAtemConnectionState = AtemState & { controlValues?: Record<string, string> }
+
 export class AtemStateBuilder {
 	// Start out with default state:
-	readonly #deviceState: AtemState & { controlValues?: Record<string, string> } = AtemStateUtil.Create()
+	readonly #deviceState: InternalAtemConnectionState = AtemStateUtil.Create()
 
 	public static fromTimeline(timelineState: Timeline.StateInTime<TSRTimelineContent>, mappings: Mappings): DeviceState {
 		const builder = new AtemStateBuilder()
@@ -351,7 +353,7 @@ export class AtemStateBuilder {
 			addresses.push(
 				...content.me.upstreamKeyers
 					.filter((usk) => !!usk)
-					.map((_, i) => 'video.mixEffects.' + mapping.index + '.usk.' + i)
+					.map((usk) => 'video.mixEffects.' + mapping.index + '.usk.' + usk.upstreamKeyerId)
 			)
 		}
 
