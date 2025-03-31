@@ -51,7 +51,7 @@ export class StateTracker<State> extends EventEmitter<StateTrackerEvents> {
 		this._assertAddressExists(address)
 		this._state[address].expectedState = state
 
-		if (didSetDevice) {
+		if (this._state[address].deviceAhead && didSetDevice) {
 			// mark device as in sync
 			this._state[address].deviceAhead = false
 			this.emit('deviceUnderControl', address)
