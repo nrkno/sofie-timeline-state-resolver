@@ -34,7 +34,6 @@ import { AtemStateBuilder, InternalAtemConnectionState } from '../stateBuilder'
 import { SuperSourceArtOption } from 'atem-connection/dist/enums'
 import { cloneDeep } from '../../../lib'
 import { Defaults } from 'atem-state'
-import { AtemDeviceState } from '../state'
 
 describe('AtemStateBuilder', () => {
 	describe('MixEffect', () => {

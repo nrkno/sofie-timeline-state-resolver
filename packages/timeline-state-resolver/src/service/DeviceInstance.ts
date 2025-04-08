@@ -40,7 +40,7 @@ export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChan
  */
 export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _device: Device<any, DeviceState, CommandWithContext>
-	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
+	private _stateHandler: StateHandler<DeviceState, CommandWithContext, AddressState>
 	private _stateTracker?: StateTracker<AddressState>
 
 	private _deviceId: string
@@ -75,7 +75,10 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._updateTimeSync()
 
 		if (!config.disableSharedHardwareControl && this._device.diffAddressState && this._device.applyAddressState) {
-			this._stateTracker = new StateTracker(this._device.diffAddressState)
+			this._stateTracker = new StateTracker((state1, state2) =>
+				this._device.diffAddressState ? this._device.diffAddressState(state1, state2) : false
+			)
+
 			// for now we just do some logging but in the future we could inform library users so they can react to a device changing
 			this._stateTracker.on('deviceAhead', (a) => {
 				this.emit('debug', 'Device ahead for: ' + a)
@@ -83,6 +86,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			this._stateTracker.on('deviceUnderControl', (a) => {
 				this.emit('debug', 'Reasserted control over device for: ' + a)
 			})
+
 			// make sure the commands for the next state change are correct:
 			this._stateTracker.on('deviceUpdated', (ahead) => {
 				if (ahead) {

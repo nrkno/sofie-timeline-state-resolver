@@ -1,4 +1,3 @@
-import * as _ from 'underscore'
 import { EventEmitter } from 'eventemitter3'
 
 const SETTLE_TIME = 200 // ms

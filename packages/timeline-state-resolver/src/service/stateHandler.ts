@@ -5,27 +5,27 @@ import { Measurement, StateChangeReport } from './measure'
 import { CommandExecutor } from './commandExecutor'
 import { StateTracker } from './stateTracker'
 
-interface StateChange<DeviceState, Command extends CommandWithContext> {
+interface StateChange<DeviceState, Command extends CommandWithContext, AddressState> {
 	commands?: Command[]
 	preliminary?: number
 
 	state: Timeline.TimelineState<TSRTimelineContent>
 	deviceState: DeviceState
-	addressStates?: Record<string, any>
+	addressStates?: Record<string, AddressState>
 	mappings: Mappings
 
 	measurement?: Measurement
 }
-interface ExecutedStateChange<DeviceState, Command extends CommandWithContext>
-	extends StateChange<DeviceState | undefined, Command> {
+interface ExecutedStateChange<DeviceState, Command extends CommandWithContext, AddressState>
+	extends StateChange<DeviceState | undefined, Command, AddressState> {
 	commands: Command[]
 }
 
 const CLOCK_INTERVAL = 20
 
-export class StateHandler<DeviceState extends Object, Command extends CommandWithContext> {
-	private stateQueue: StateChange<DeviceState, Command>[] = []
-	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
+export class StateHandler<DeviceState extends Object, Command extends CommandWithContext, AddressState = any> {
+	private stateQueue: StateChange<DeviceState, Command, AddressState>[] = []
+	private currentState: ExecutedStateChange<DeviceState, Command, AddressState> | undefined
 	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
 	private _executingStateChange = false
 	private _commandExecutor: CommandExecutor<DeviceState, Command>
@@ -263,7 +263,7 @@ export class StateHandler<DeviceState extends Object, Command extends CommandWit
 			})
 
 		if (this._stateTracker && newState.addressStates && this.device.diffAddressState) {
-			for (const [a, s] of Object.entries(newState.addressStates)) {
+			for (const [a, s] of Object.entries<AddressState>(newState.addressStates)) {
 				const currentAddrState = this._stateTracker.getExpectedState(a)
 				const reassertsControl = this.device.addressStateReassertsControl
 					? this.device.addressStateReassertsControl(currentAddrState, s)
@@ -273,7 +273,7 @@ export class StateHandler<DeviceState extends Object, Command extends CommandWit
 			}
 		}
 
-		this.currentState = newState as ExecutedStateChange<DeviceState, Command>
+		this.currentState = newState as ExecutedStateChange<DeviceState, Command, AddressState>
 		this._executingStateChange = false
 
 		this.calculateNextStateChange().catch((e) => {

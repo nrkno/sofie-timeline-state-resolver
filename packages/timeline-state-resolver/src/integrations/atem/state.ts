@@ -3,7 +3,7 @@ import { SuperSource, TransitionSettings } from 'atem-connection/dist/state/vide
 import { DownstreamKeyer } from 'atem-connection/dist/state/video/downstreamKeyers'
 import { UpstreamKeyer } from 'atem-connection/dist/state/video/upstreamKeyers'
 import { State as DeviceState } from 'atem-state'
-import { assertNever } from '../../lib'
+import { assertNever, deepMerge } from '../../lib'
 import { AtemStateUtil } from 'atem-connection'
 import * as _ from 'underscore'
 
@@ -50,11 +50,10 @@ export function atemStateToAddressStates(state: AtemDeviceState): Record<string,
 		}
 
 		// usk's
-		for (let i in me.upstreamKeyers) {
-			const usk = me.upstreamKeyers[i]
+		for (const usk of me.upstreamKeyers) {
 			if (!usk) continue
 
-			addressStates['video.mixEffects.' + me.index + '.keyer.' + i] = {
+			addressStates['video.mixEffects.' + me.index + '.keyer.' + usk.upstreamKeyerId] = {
 				type: AddressType.UpStreamKey,
 				controlValue: state.controlValues?.['video.mixEffects.' + me.index + '.keyer.' + usk.upstreamKeyerId] ?? '',
 				index: [me.index, usk.upstreamKeyerId],
@@ -64,7 +63,7 @@ export function atemStateToAddressStates(state: AtemDeviceState): Record<string,
 	}
 
 	// dsk's
-	for (let i in state.video.downstreamKeyers) {
+	for (let i = 0; i < state.video.downstreamKeyers.length; i++) {
 		const dsk = state.video.downstreamKeyers[i]
 		if (!dsk) continue
 
@@ -77,20 +76,19 @@ export function atemStateToAddressStates(state: AtemDeviceState): Record<string,
 	}
 
 	// supersource
-	for (let i in state.video.superSources) {
-		const ss = state.video.superSources[i]
+	for (const ss of state.video.superSources) {
 		if (!ss) continue
 
-		addressStates['video.superSource.' + i] = {
+		addressStates['video.superSource.' + ss.index] = {
 			type: AddressType.SuperSource,
 			controlValue: state.controlValues?.['video.superSource.' + ss.index] ?? '',
-			index: [i],
+			index: [ss.index],
 			state: ss,
 		}
 	}
 
 	// auxiliaries
-	for (let i in state.video.auxilliaries) {
+	for (let i = 0; i < state.video.auxilliaries.length; i++) {
 		addressStates['video.auxiliaries.' + i] = {
 			type: AddressType.Auxiliary,
 			controlValue: state.controlValues?.['video.auxiliaries.' + i] ?? '',
@@ -109,7 +107,7 @@ export function atemStateToAddressStates(state: AtemDeviceState): Record<string,
 export function updateFromAtemState(updateFn: (address: any, state: any) => void, state: DeviceState): void {
 	const addressStates = atemStateToAddressStates(state)
 
-	for (const [address, state] of Object.entries(addressStates)) {
+	for (const [address, state] of Object.entries<AnyAddressState>(addressStates)) {
 		updateFn(address, state)
 	}
 }
@@ -135,7 +133,7 @@ export enum AddressType {
  * belongs to based on the address (a string) but that requires a bunch of regex
  * and keeping indexes seemed slightly more efficient, albeit not 100% typesafe
  */
-interface AddressState<Type extends AddressType, State extends any> {
+interface AddressState<Type extends AddressType, State> {
 	type: Type
 	controlValue: string
 	index: (number | string)[]
@@ -198,7 +196,7 @@ export function applyAddressStateToAtemState(deviceState: DeviceState, addrState
 		case AddressType.TransitionSettings: {
 			const me = getMe(addrState.index[0] as number)
 			if (!me) break
-			for (const [key, obj] of Object.entries(addrState.state)) me.transitionSettings[key] = obj
+			deepMerge(me.transitionSettings, addrState.state)
 			break
 		}
 		case AddressType.UpStreamKey: {
