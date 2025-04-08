@@ -4,32 +4,75 @@ import {
 	ResolvedTimelineObject,
 	ResolverCache,
 	resolveTimeline,
+	ResolveError,
+	ResolveOptions,
 } from 'superfly-timeline'
 import { TimelineTriggerTimeResult } from './conductor'
 import { TSRTimeline, TSRTimelineContent, TSRTimelineObj } from 'timeline-state-resolver-types'
+import { EventEmitter } from 'eventemitter3'
 
-export class AsyncResolver {
+export type AsyncResolverEvents = {
+	error: [string]
+}
+
+// This is a debug flag, to trace some helpful information when resolving fails.
+// If should be set to false in production.
+const TRACE_RESOLVING = true
+
+export class AsyncResolver extends EventEmitter<AsyncResolverEvents> {
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
 
 	private cache: Partial<ResolverCache> = {}
 
 	public constructor(onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void) {
+		super()
 		this.onSetTimelineTriggerTime = onSetTimelineTriggerTime
 	}
 
 	public resolveTimeline(resolveTime: number, timeline: TSRTimeline, limitTime: number, useCache: boolean) {
-		const objectsFixed = this._fixNowObjects(timeline, resolveTime)
+		try {
+			const objectsFixed = this._fixNowObjects(timeline, resolveTime)
 
-		const resolvedTimeline = resolveTimeline(timeline, {
-			limitCount: 999,
-			limitTime: limitTime,
-			time: resolveTime,
-			cache: useCache ? this.cache : undefined,
-		})
+			const resolvedTimeline = this._resolveTimeline(timeline, {
+				limitCount: 999,
+				limitTime: limitTime,
+				time: resolveTime,
+				cache: useCache ? this.cache : undefined,
+				traceResolving: TRACE_RESOLVING,
+			})
 
-		return {
-			resolvedTimeline,
-			objectsFixed,
+			return {
+				resolvedTimeline,
+				objectsFixed,
+			}
+		} catch (e) {
+			if (e instanceof ResolveError) {
+				// Trace some helpful information related to the error:
+				this.emit('error', 'Error resolveTrace: ' + JSON.stringify(e.resolvedTimeline.statistics.resolveTrace))
+			}
+			throw e
+		}
+	}
+
+	private _resolveTimeline(timeline: TSRTimeline, options: ResolveOptions) {
+		try {
+			return resolveTimeline(timeline, options)
+		} catch (e) {
+			if (!options.traceResolving) {
+				// Try again, but now with tracing:
+				options.traceResolving = true
+
+				// Note, we expect this to throw again:
+				const try2 = resolveTimeline(timeline, options)
+
+				// Oh, this is weird, it worked on second try! Log the error:
+				this.emit(
+					'error',
+					'Error when resolving timeline, but on second try with tracing, it worked! Original error:' + e
+				)
+				return try2
+			}
+			throw e
 		}
 	}
 
@@ -104,7 +147,7 @@ export class AsyncResolver {
 			wouldLikeToIterateAgain = false
 			dontIterateAgain = true
 
-			resolvedTimeline = resolveTimeline(Array.from(timeLineMap.values()), {
+			resolvedTimeline = this._resolveTimeline(Array.from(timeLineMap.values()), {
 				time: now,
 			})
 

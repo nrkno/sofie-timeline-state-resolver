@@ -21,11 +21,7 @@ function createTestee(): VMixTimelineStateConverter {
 			//
 		}
 	) // should those be mocks? or should this be taken from somewhere else? this is now more of an integration test, and maybe that's fine?
-	return new VMixTimelineStateConverter(
-		() => stateDiffer.getDefaultState(),
-		(inputNumber) => stateDiffer.getDefaultInputState(inputNumber),
-		(inputNumber) => stateDiffer.getDefaultInputAudioState(inputNumber)
-	)
+	return new VMixTimelineStateConverter(stateDiffer)
 }
 
 function wrapInTimelineState(
@@ -264,6 +260,48 @@ describe('VMixTimelineStateConverter', () => {
 				}
 			)
 			expect(result.reportedState.existingInputs['1'].index).toEqual(index)
+		})
+
+		it('supports images (titles)', () => {
+			const converter = createTestee()
+			const images = { 'myImage1.Source': 'foo.png', 'myImage2.Source': 'bar.jpg' }
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					inp0: wrapInTimelineObject('inp0', {
+						deviceType: DeviceType.VMIX,
+						images,
+						type: TimelineContentTypeVMix.INPUT,
+					}),
+				}),
+				{
+					inp0: wrapInMapping({
+						mappingType: MappingVmixType.Input,
+						index: '1',
+					}),
+				}
+			)
+			expect(result.reportedState.existingInputs['1'].images).toEqual(images)
+		})
+
+		it('supports audio buses', () => {
+			const converter = createTestee()
+			const bus = { muted: false, volume: 50 }
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					inp0: wrapInTimelineObject('inp0', {
+						deviceType: DeviceType.VMIX,
+						...bus,
+						type: TimelineContentTypeVMix.AUDIO_BUS,
+					}),
+				}),
+				{
+					inp0: wrapInMapping({
+						mappingType: MappingVmixType.AudioBus,
+						index: 'B',
+					}),
+				}
+			)
+			expect(result.reportedState.audioBuses.B).toEqual(bus)
 		})
 
 		// TODO: maybe we can't trust the defaults when adding an input? Make this test pass eventually

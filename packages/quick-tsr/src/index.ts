@@ -3,7 +3,7 @@ import * as chokidar from 'chokidar'
 import * as fs from 'fs'
 import * as _ from 'underscore'
 import * as path from 'path'
-import { Mappings, TSRTimeline, DeviceOptionsAny, Datastore } from 'timeline-state-resolver'
+import { Mappings, TSRTimeline, DeviceOptionsAny, Datastore } from 'timeline-state-resolver-types'
 import { TSRHandler } from './tsrHandler'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const clone = require('fast-clone')

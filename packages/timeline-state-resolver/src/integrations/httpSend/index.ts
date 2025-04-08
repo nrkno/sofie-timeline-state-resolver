@@ -13,10 +13,11 @@ import {
 	Timeline,
 	TimelineContentTypeHTTP,
 	TimelineContentTypeHTTPParamType,
+	interpolateTemplateStringIfNeeded,
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
-import { interpolateTemplateStringIfNeeded, t } from '../../lib'
+import { t } from '../../lib'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
 import CacheableLookup from 'cacheable-lookup'
 

@@ -1,15 +1,5 @@
 import { klona } from 'klona'
-import {
-	Datastore,
-	Timeline,
-	TimelineDatastoreReferencesContent,
-	TSRTimelineContent,
-	ITranslatableMessage,
-	ActionExecutionResultCode,
-	TimelineDatastoreReferences,
-	ActionExecutionResult,
-	TemplateString,
-} from 'timeline-state-resolver-types'
+import { ITranslatableMessage, ActionExecutionResultCode, ActionExecutionResult } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import { PartialDeep } from 'type-fest'
 import deepmerge = require('deepmerge')
@@ -241,57 +231,7 @@ export function deferAsync(fn: () => Promise<void>, catcher: (e: unknown) => voi
 	fn().catch(catcher)
 }
 
-/**
- * Set a value on an object from a .-delimited path
- * @param obj The base object
- * @param path Path of the value to set
- * @param val The value to set
- */
-const set = (obj: Record<string, any>, path: string, val: any) => {
-	const p = path.split('.')
-	p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
-}
-
-const updateRefs = (
-	layer: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>,
-	path: string,
-	modified: number
-) => {
-	if (!layer.datastoreRefs) layer.datastoreRefs = {}
-	layer.datastoreRefs[path] = modified
-	layer.lastModified = Math.max(modified, layer.lastModified ?? 0)
-}
-export function fillStateFromDatastore(state: Timeline.TimelineState<TSRTimelineContent>, datastore: Datastore) {
-	// clone the state so we can freely manipulate it
-	const filledState: typeof state = JSON.parse(JSON.stringify(state))
-
-	Object.values<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(filledState.layers).forEach((layer) => {
-		const { content, instance } = layer
-		if ((content as TimelineDatastoreReferencesContent).$references) {
-			Object.entries<TimelineDatastoreReferences[0]>(
-				(content as TimelineDatastoreReferencesContent).$references || {}
-			).forEach(([path, ref]) => {
-				const datastoreVal = datastore[ref.datastoreKey]
-
-				if (datastoreVal !== undefined) {
-					if (ref.overwrite) {
-						// only use the datastore value if it was changed after the tl obj started
-						if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
-							set(content, path, datastoreVal.value)
-							updateRefs(layer, path, datastoreVal.modified)
-						}
-					} else {
-						set(content, path, datastoreVal.value)
-						updateRefs(layer, path, datastoreVal.modified)
-					}
-				}
-			})
-		}
-	})
-
-	return filledState
-}
-
+/** Create a Translatable message */
 export function t(key: string, args?: { [k: string]: any }): ITranslatableMessage {
 	return {
 		key,
@@ -318,26 +258,4 @@ export function actionNotFoundMessage(id: never): ActionExecutionResult<any> {
 
 export function cloneDeep<T>(input: T): T {
 	return klona(input)
-}
-
-/**
- * Interpolate a translation style string
- */
-export function interpolateTemplateString(key: string, args: { [key: string]: any } | undefined): string {
-	if (!args || typeof key !== 'string') {
-		return String(key)
-	}
-
-	let interpolated = String(key)
-	for (const placeholder of key.match(/[^{}]+(?=})/g) || []) {
-		const value = args[placeholder] || placeholder
-		interpolated = interpolated.replace(`{{${placeholder}}}`, value)
-	}
-
-	return interpolated
-}
-
-export function interpolateTemplateStringIfNeeded(str: string | TemplateString): string {
-	if (typeof str === 'string') return str
-	return interpolateTemplateString(str.key, str.args)
 }

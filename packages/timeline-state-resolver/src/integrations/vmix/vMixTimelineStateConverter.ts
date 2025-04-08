@@ -12,7 +12,14 @@ import {
 	VMixTransition,
 	VMixTransitionType,
 } from 'timeline-state-resolver-types'
-import { TSR_INPUT_PREFIX, VMixInput, VMixInputAudio, VMixState, VMixStateExtended } from './vMixStateDiffer'
+import {
+	TSR_INPUT_PREFIX,
+	VMixDefaultStateFactory,
+	VMixInput,
+	VMixInputAudio,
+	VMixState,
+	VMixStateExtended,
+} from './vMixStateDiffer'
 import * as deepMerge from 'deepmerge'
 import _ = require('underscore')
 
@@ -29,6 +36,7 @@ const mappingPriority: { [k in MappingVmixType]: number } = {
 	[MappingVmixType.FadeToBlack]: 9,
 	[MappingVmixType.Fader]: 10,
 	[MappingVmixType.Script]: 11,
+	[MappingVmixType.AudioBus]: 11,
 }
 
 export type MappingsVmix = Mappings<SomeMappingVmix>
@@ -37,17 +45,13 @@ export type MappingsVmix = Mappings<SomeMappingVmix>
  * Converts timeline state, to a TSR representation
  */
 export class VMixTimelineStateConverter {
-	constructor(
-		private readonly getDefaultState: () => VMixStateExtended,
-		private readonly getDefaultInputState: (inputIndex: number | string | undefined) => VMixInput,
-		private readonly getDefaultInputAudioState: (inputIndex: number | string | undefined) => VMixInputAudio
-	) {}
+	constructor(private defaultStateFactory: VMixDefaultStateFactory) {}
 
 	getVMixStateFromTimelineState(
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		mappings: MappingsVmix
 	): VMixStateExtended {
-		const deviceState = this._fillStateWithMappingsDefaults(this.getDefaultState(), mappings)
+		const deviceState = this._fillStateWithMappingsDefaults(this.defaultStateFactory.getDefaultState(), mappings)
 
 		// Sort layer based on Mapping type (to make sure audio is after inputs) and Layer name
 		const sortedLayers = _.sortBy(
@@ -151,6 +155,7 @@ export class VMixTimelineStateConverter {
 									text: content.text,
 									url: content.url,
 									index: content.index,
+									images: content.images,
 								},
 								{ key: mapping.options.index, filePath: content.filePath },
 								layerName
@@ -179,6 +184,13 @@ export class VMixTimelineStateConverter {
 							deviceState.runningScripts.push(content.name)
 						}
 						break
+					case MappingVmixType.AudioBus:
+						if (content.type === TimelineContentTypeVMix.AUDIO_BUS) {
+							const existingBus = deviceState.reportedState.audioBuses[mapping.options.index]
+							if (!existingBus) break
+							existingBus.muted = content.muted ?? existingBus.muted
+							existingBus.volume = content.volume ?? existingBus.volume
+						}
 				}
 			}
 		})
@@ -204,7 +216,10 @@ export class VMixTimelineStateConverter {
 			inputKey = input.key
 		}
 		if (inputKey) {
-			inputs[inputKey] = deepMerge(inputs[inputKey] ?? this.getDefaultInputState(inputKey), filteredNewInput)
+			inputs[inputKey] = deepMerge(
+				inputs[inputKey] ?? this.defaultStateFactory.getDefaultInputState(inputKey),
+				filteredNewInput
+			)
 			deviceState.inputLayers[layerName] = inputKey as string
 		}
 		return deviceState.reportedState
@@ -225,7 +240,10 @@ export class VMixTimelineStateConverter {
 			inputKey = input.key
 		}
 		if (inputKey) {
-			inputs[inputKey] = deepMerge(inputs[inputKey] ?? this.getDefaultInputAudioState(inputKey), filteredNewInput)
+			inputs[inputKey] = deepMerge(
+				inputs[inputKey] ?? this.defaultStateFactory.getDefaultInputAudioState(inputKey),
+				filteredNewInput
+			)
 		}
 		return deviceState.reportedState
 	}
@@ -267,14 +285,15 @@ export class VMixTimelineStateConverter {
 				}
 				case MappingVmixType.Input:
 					if (mapping.options.index) {
-						state.reportedState.existingInputs[mapping.options.index] = this.getDefaultInputState(mapping.options.index)
+						state.reportedState.existingInputs[mapping.options.index] = this.defaultStateFactory.getDefaultInputState(
+							mapping.options.index
+						)
 					}
 					break
 				case MappingVmixType.AudioChannel:
 					if (mapping.options.index) {
-						state.reportedState.existingInputsAudio[mapping.options.index] = this.getDefaultInputAudioState(
-							mapping.options.index
-						)
+						state.reportedState.existingInputsAudio[mapping.options.index] =
+							this.defaultStateFactory.getDefaultInputAudioState(mapping.options.index)
 					}
 					break
 				case MappingVmixType.Recording:
@@ -294,6 +313,9 @@ export class VMixTimelineStateConverter {
 						number: mapping.options.index,
 						input: undefined,
 					}
+					break
+				case MappingVmixType.AudioBus:
+					state.reportedState.audioBuses[mapping.options.index] = this.defaultStateFactory.getDefaultAudioBusState()
 					break
 			}
 		}

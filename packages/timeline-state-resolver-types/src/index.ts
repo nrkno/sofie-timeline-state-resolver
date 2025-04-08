@@ -47,8 +47,10 @@ export * from './integrations/telemetrics'
 export * from './integrations/multiOsc'
 export * from './integrations/viscaOverIP'
 
+export * from './datastore'
 export * from './device'
 export * from './mapping'
+export * from './templateString'
 
 export { Timeline }
 export * from './mapping'
@@ -174,14 +176,4 @@ export enum ActionExecutionResultCode {
 	Error = 'ERROR',
 	IgnoredNotRelevant = 'IGNORED',
 	Ok = 'OK',
-}
-
-/** This resolves to a string, where parts can be defined by the datastore */
-export interface TemplateString {
-	/** The string template. Example: "http://google.com?q={{searchString}}" */
-	key: string
-	/** Values for the arguments in the key string. Example: { searchString: "TSR" } */
-	args?: {
-		[k: string]: any
-	}
 }

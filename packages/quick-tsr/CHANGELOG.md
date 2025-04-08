@@ -3,7 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-### [9.2.0-release52](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.1.0...9.2.0-release52) (2024-08-19)
+## [9.3.0-release52.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.1...9.3.0-release52.0) (2025-02-04)
+
+
+### Bug Fixes
+
+* quickTSR - return error info if an object does not reference to a mapped layer ([547247f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/547247f3b1174f43c9322410e5918d4f7a9eb0d2))
+
+
+
+### [9.2.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.0...9.2.1) (2024-11-13)
+
+**Note:** Version bump only for package quick-tsr
 
 ## [9.2.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.0-alpha.0...9.2.0) (2024-10-07)
 

@@ -95,6 +95,9 @@ exports[`index imports 1`] = `
   "VizMSEActions",
   "VizMSEDevice",
   "VmixActions",
+  "fillStateFromDatastore",
+  "interpolateTemplateString",
+  "interpolateTemplateStringIfNeeded",
   "manifest",
 ]
 `;

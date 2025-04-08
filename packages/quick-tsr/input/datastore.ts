@@ -1,4 +1,4 @@
-import { Datastore } from 'timeline-state-resolver'
+import { Datastore } from 'timeline-state-resolver-types'
 import { literal } from 'timeline-state-resolver/dist/lib'
 import { TSRInput } from '../src'
 

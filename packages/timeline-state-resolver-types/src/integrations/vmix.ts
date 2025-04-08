@@ -3,6 +3,8 @@ import { DeviceType } from '..'
 export enum VMixCommand {
 	PREVIEW_INPUT = 'PREVIEW_INPUT',
 	TRANSITION = 'TRANSITION',
+
+	// input audio
 	AUDIO_VOLUME = 'AUDIO_VOLUME',
 	AUDIO_BALANCE = 'AUDIO_BALANCE',
 	AUDIO_ON = 'AUDIO_ON',
@@ -11,7 +13,15 @@ export enum VMixCommand {
 	AUDIO_AUTO_OFF = 'AUDIO_AUTO_OFF',
 	AUDIO_BUS_ON = 'AUDIO_BUS_ON',
 	AUDIO_BUS_OFF = 'AUDIO_BUS_OFF',
+
+	// audio bus
+	BUS_AUDIO_ON = 'BUS_AUDIO_ON',
+	BUS_AUDIO_OFF = 'BUS_AUDIO_OFF',
+	BUS_VOLUME = 'BUS_VOLUME',
+
+	// the T-bar
 	FADER = 'FADER',
+
 	SET_PAN_X = 'SET_PAN_X',
 	SET_PAN_Y = 'SET_PAN_Y',
 	SET_ZOOM = 'SET_ZOOM',
@@ -48,12 +58,14 @@ export enum VMixCommand {
 	SET_TEXT = 'SET_TEXT',
 	BROWSER_NAVIGATE = 'BROWSER_NAVIGATE',
 	SELECT_INDEX = 'SELECT_INDEX',
+	SET_IMAGE = 'SET_IMAGE',
 }
 
 export type TimelineContentVMixAny =
 	| TimelineContentVMixProgram
 	| TimelineContentVMixPreview
 	| TimelineContentVMixAudio
+	| TimelineContentVMixAudioBus
 	| TimelineContentVMixFader
 	| TimelineContentVMixRecording
 	| TimelineContentVMixStreaming
@@ -68,6 +80,7 @@ export enum TimelineContentTypeVMix {
 	PROGRAM = 'PROGRAM',
 	PREVIEW = 'PREVIEW',
 	AUDIO = 'AUDIO',
+	AUDIO_BUS = 'AUDIO_BUS',
 	FADER = 'FADER',
 	STREAMING = 'STREAMING',
 	RECORDING = 'RECORDING',
@@ -123,6 +136,16 @@ export interface TimelineContentVMixAudio extends TimelineContentVMixBase {
 
 	/** Audio follow video */
 	audioAuto?: boolean
+}
+
+export interface TimelineContentVMixAudioBus extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.AUDIO_BUS
+
+	/** Bus volume (0 - 100) */
+	volume?: number
+
+	/** If bus is muted */
+	muted?: boolean
 }
 
 export interface TimelineContentVMixFader extends TimelineContentVMixBase {
@@ -206,6 +229,11 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 	 * starts from 1
 	 */
 	index?: number
+
+	/**
+	 * Titles (GT): Sets the filenames of image fields by name
+	 */
+	images?: VMixImages
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {
@@ -262,6 +290,10 @@ export interface VMixInputOverlays {
 }
 
 export interface VMixText {
+	[index: string]: string
+}
+
+export interface VMixImages {
 	[index: string]: string
 }
 

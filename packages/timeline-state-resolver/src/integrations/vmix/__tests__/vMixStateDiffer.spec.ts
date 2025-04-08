@@ -19,7 +19,7 @@ describe('VMixStateDiffer', () => {
 		expect(differ.getCommandsToAchieveState(Date.now(), oldState, newState)).toEqual([])
 	})
 
-	it('resets audio buses when audio starts to be controlled', () => {
+	it('resets input audio bus assignment when input audio starts to be controlled', () => {
 		const differ = createTestee()
 
 		const oldState = makeMockFullState()
@@ -321,6 +321,202 @@ describe('VMixStateDiffer', () => {
 			command: VMixCommand.SELECT_INDEX,
 			input: '99',
 			value: index,
+		})
+	})
+
+	it('sets images', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'].images = {
+			'myImage.Source': 'image.png',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_IMAGE,
+			input: '99',
+			value: 'image.png',
+			fieldName: 'myImage.Source',
+		})
+	})
+
+	it('sets multiple images', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'].images = {
+			'myImage1.Source': 'foo.png',
+			'myImage2.Source': 'bar.jpg',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(2)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_IMAGE,
+			input: '99',
+			value: 'foo.png',
+			fieldName: 'myImage1.Source',
+		})
+		expect(commands[1].command).toMatchObject({
+			command: VMixCommand.SET_IMAGE,
+			input: '99',
+			value: 'bar.jpg',
+			fieldName: 'myImage2.Source',
+		})
+	})
+
+	it('does not unset image', () => {
+		// it would have to be explicitly set to an empty string on the timeline
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		oldState.reportedState.existingInputs['99'].images = {
+			'myImage1.Source': 'foo.png',
+			'myImage2.Source': 'bar.jpg',
+		}
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		newState.reportedState.existingInputs['99'].images = {
+			'myImage2.Source': 'bar.jpg',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(0)
+	})
+
+	it('updates image', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		oldState.reportedState.existingInputs['99'].images = {
+			'myImage1.Source': 'foo.png',
+		}
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		newState.reportedState.existingInputs['99'].images = {
+			'myImage1.Source': 'bar.jpg',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_IMAGE,
+			input: '99',
+			value: 'bar.jpg',
+			fieldName: 'myImage1.Source',
+		})
+	})
+
+	it('updates image to an empty one', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		oldState.reportedState.existingInputs['99'].images = {
+			'myImage1.Source': 'foo.png',
+		}
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		newState.reportedState.existingInputs['99'].images = {
+			'myImage1.Source': '',
+		}
+
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.SET_IMAGE,
+			input: '99',
+			value: '',
+			fieldName: 'myImage1.Source',
+		})
+	})
+
+	describe('audio buses', () => {
+		it('resets audio bus when starting to control it', () => {
+			const differ = createTestee()
+
+			const oldState = makeMockFullState()
+			const newState = makeMockFullState()
+
+			delete oldState.reportedState.audioBuses.A
+			newState.reportedState.audioBuses.A = differ.getDefaultAudioBusState()
+
+			const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+			expect(commands.length).toBe(2)
+			expect(commands[0].command).toMatchObject({
+				command: VMixCommand.BUS_AUDIO_OFF,
+				bus: 'A',
+			})
+			expect(commands[1].command).toMatchObject({
+				command: VMixCommand.BUS_VOLUME,
+				bus: 'A',
+				value: 100,
+			})
+		})
+
+		it('updates audio bus volume', () => {
+			const differ = createTestee()
+
+			const oldState = makeMockFullState()
+			const newState = makeMockFullState()
+
+			newState.reportedState.audioBuses.A = { ...differ.getDefaultAudioBusState(), volume: 75.2 }
+
+			const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+			expect(commands.length).toBe(1)
+
+			expect(commands[0].command).toMatchObject({
+				command: VMixCommand.BUS_VOLUME,
+				bus: 'A',
+				value: 75.2,
+			})
+		})
+
+		it('turns audio bus on', () => {
+			const differ = createTestee()
+
+			const oldState = makeMockFullState()
+			const newState = makeMockFullState()
+
+			newState.reportedState.audioBuses.A = { ...differ.getDefaultAudioBusState(), muted: false }
+
+			const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
+
+			expect(commands.length).toBe(1)
+
+			expect(commands[0].command).toMatchObject({
+				command: VMixCommand.BUS_AUDIO_ON,
+				bus: 'A',
+			})
 		})
 	})
 })

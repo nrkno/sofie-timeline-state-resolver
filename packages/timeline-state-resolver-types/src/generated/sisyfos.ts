@@ -14,15 +14,18 @@ export interface SisyfosOptions {
 export interface MappingSisyfosChannel {
 	channel: number
 	setLabelToLayerName?: boolean
+	disableDefaults?: boolean
 	mappingType: MappingSisyfosType.Channel
 }
 
 export interface MappingSisyfosChannelByLabel {
 	label: string
+	disableDefaults?: boolean
 	mappingType: MappingSisyfosType.ChannelByLabel
 }
 
 export interface MappingSisyfosChannels {
+	disableDefaults?: boolean
 	mappingType: MappingSisyfosType.Channels
 }
 
@@ -38,13 +41,22 @@ export interface SetSisyfosChannelStatePayload {
 	channel: number
 }
 
+export interface LoadMixerPresetPayload {
+	/**
+	 * The name of the preset to load
+	 */
+	name: string
+}
+
 export enum SisyfosActions {
 	Reinit = 'reinit',
-	SetSisyfosChannelState = 'setSisyfosChannelState'
+	SetSisyfosChannelState = 'setSisyfosChannelState',
+	LoadMixerPreset = 'loadMixerPreset'
 }
 export interface SisyfosActionExecutionResults {
 	reinit: () => void,
-	setSisyfosChannelState: (payload: SetSisyfosChannelStatePayload) => void
+	setSisyfosChannelState: (payload: SetSisyfosChannelStatePayload) => void,
+	loadMixerPreset: (payload: LoadMixerPresetPayload) => void
 }
 export type SisyfosActionExecutionPayload<A extends keyof SisyfosActionExecutionResults> = Parameters<
 	SisyfosActionExecutionResults[A]

@@ -51,6 +51,14 @@ export interface MappingVmixAudioChannel {
 	mappingType: MappingVmixType.AudioChannel
 }
 
+export interface MappingVmixAudioBus {
+	/**
+	 * Name (letter) of the bus
+	 */
+	index: 'M' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+	mappingType: MappingVmixType.AudioBus
+}
+
 export interface MappingVmixOutput {
 	/**
 	 * Output
@@ -96,6 +104,7 @@ export enum MappingVmixType {
 	Preview = 'preview',
 	Input = 'input',
 	AudioChannel = 'audioChannel',
+	AudioBus = 'audioBus',
 	Output = 'output',
 	Overlay = 'overlay',
 	Recording = 'recording',
@@ -106,7 +115,7 @@ export enum MappingVmixType {
 	Script = 'script',
 }
 
-export type SomeMappingVmix = MappingVmixProgram | MappingVmixPreview | MappingVmixInput | MappingVmixAudioChannel | MappingVmixOutput | MappingVmixOverlay | MappingVmixRecording | MappingVmixStreaming | MappingVmixExternal | MappingVmixFadeToBlack | MappingVmixFader | MappingVmixScript
+export type SomeMappingVmix = MappingVmixProgram | MappingVmixPreview | MappingVmixInput | MappingVmixAudioChannel | MappingVmixAudioBus | MappingVmixOutput | MappingVmixOverlay | MappingVmixRecording | MappingVmixStreaming | MappingVmixExternal | MappingVmixFadeToBlack | MappingVmixFader | MappingVmixScript
 
 export interface OpenPresetPayload {
 	/**

@@ -3,9 +3,55 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-### [9.2.0-release52](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.1.0...9.2.0-release52) (2024-08-19)
+## [9.3.0-release52.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.2.1...9.3.0-release52.0) (2025-02-04)
 
-**Note:** Version bump only for package timeline-state-resolver
+
+### Features
+
+* add option to resync states without resolving tl ([eb03434](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/eb03434c1d8a05c33f165d100c0799121a71e8c7))
+* **atem:** add stinger support ([d4378e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d4378e1ee99462c5abbdb84c999647d6420365bb))
+* **EAV-266:** add more PTZ actions for obtaining values ([bd336f2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bd336f24eae8cdbaef1c8f77d1e3ec5029839675))
+* **EAV-266:** add return types to PTZ actions ([5299a2b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5299a2b67ba09402a804efff1fd59e4aa544a039))
+* **EAV-266:** implement Panasonic PTZ actions ([b7cccbf](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b7cccbfe19c093afa03ea14d663dd545c404f81b))
+* **EAV-321:** support browser source url in vMix ([db67a61](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/db67a618b7649d039a123d80e9c109e00ce3e94b))
+* **EAV-343:** support index (list, photo, virtual set) in vMix ([02db182](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/02db182ec8d60a444e8c667fc6ff36ee2f4de0ad))
+* **EAV-410:** add sisyfos action to load mixer preset ([8895f87](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8895f8710458139fa60c2ab1cb09a94daad5a862))
+* **EAV-411:** support setting text in vMix titles ([41c1f93](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/41c1f9312d74403a65cfcc2b04ba12a6392d6511))
+* **EAV-423:** add actions to start and stop External in vMix ([e002d0f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e002d0fbcabd3ea7102abc3a40524b884b6d64ff))
+* **EAV-464:** add images support for GT titles in vMix ([8905200](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/89052002c322d6515b3a91d32d4ba062e7ebf0db))
+* **EAV-54:** allow overriding vMix transition from a separate layer ([d6f4e81](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d6f4e81c533f7c124697ebb9cc1d74bc3efbc294))
+* http url interpolation SOFIE-3310 ([#342](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/342)) ([01593a3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/01593a34898c1ecc8de3544545efba69fa69d5b8))
+* SetSisyfosChannelState action implemented ([685fbf9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/685fbf9cc967f8c0fc767f32d0245f0a5527cc6f))
+* Sisyfos - remove re-sync channel functionality. (triggerValue has the functionality) ([4e77eb2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4e77eb27c5123e2a01d5960d15557384b81327c3))
+* Sisyfos add support for mute, gain, selector in triggerValues. Refactor SET_CHANNEL ([25c6516](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/25c6516f38c8e5f5d005fdd1fba2c264537340f6))
+* Sisyfos support for set input gain and set input selector ([2f7d553](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2f7d553693d8ec66e701dd85e1b7ba647c09193e))
+* update ws dependency to v8 ([6fef9f7](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6fef9f7ca7fd92f51cda69cc3cd85559bf1dcf16))
+
+
+### Bug Fixes
+
+* actions.json payload format ([116bd76](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/116bd765e91ef6257365c11549836792f67cfc1f))
+* **EAV-266:** add VISCA_OVER_IP to ConnectionManager ([4e04e0e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4e04e0ee2dabd60a2fc4741ce9a118201a85b701))
+* **EAV-411:** SelectedName parameter support ([3c56693](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3c56693d39eae92f41c66f567eca3a7730cab6ac))
+* fadeTime should be optional ([dcfa14f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dcfa14f97576bcfc0a20c9e622c62163820a1b74))
+* function name started with uppercase ([6823634](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/68236341d91407f95a114fafc74a060314539e55))
+* setState when received update from Sisyfos ([f04970c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f04970c9237e8bfe232a6fbfdbd5e3103a1bf1d5))
+* Sisyfos add mute, gain and inputselctor to diif ([67d566e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/67d566eba78ff83044863b614ae4f8d1609dbdee))
+* sisyfos receive channel number as index ([b06a79b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b06a79b46532bcc3678a9bbe9a8d31ae936e6aac))
+* Sisyfos setchannel wrong index and osc format ([e36853f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e36853f6795c0d658498793552625ab0a8fd8f64))
+* Sisyfos Typings and conversion for pgmOn and visibilty between TSR and Sisyfos ([9af2d5c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9af2d5c0a1fdc4377c6e1cc08d4e61edf26fbdfb))
+* Sisyfos update mute, inputgain, selector in state from new state ([5bd34b3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5bd34b356e32584955b5965569e5ba2bc73c77bd))
+* **sisyfos:** trigger value per channel ([54734d5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/54734d51d986f408acb8b20fb1a1e44666b3f347))
+* **sisyfos:** Use nullish check rather than or on channel reset ([65a73c5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/65a73c5afd45afcb95fe4d6d34f4f96327aa3fd9))
+* viz and quantel callback leak ([#344](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/344)) ([29ad13d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/29ad13d381416639edcaf1da3fbda07a7a6ad91b))
+
+
+
+### [9.2.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.2.0...9.2.1) (2024-11-13)
+
+### Bug Fixes
+
+- trace and emit some helpful info in case the timeline resolver throws ([913ca75](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/913ca75412d9852b90fa093b55cdc7b840440099))
 
 ## [9.2.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.2.0-alpha.0...9.2.0) (2024-10-07)
 

@@ -4349,9 +4349,9 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"emberplus-connection@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "emberplus-connection@npm:0.2.1"
+"emberplus-connection@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "emberplus-connection@npm:0.3.0"
   dependencies:
     asn1: evs-broadcast/node-asn1
     debug: ^4.3.4
@@ -4359,7 +4359,7 @@ asn1@evs-broadcast/node-asn1:
     long: ^3.2.0
     smart-buffer: ^3.0.3
     tslib: ^2.6.2
-  checksum: 80cad87885ae7e57694e309734c3fea0efe1687d774ff772287213e3e0d5caa170fb6df4f7bd7ad393c7d1c12a62732e8f34f5ca60878d3a50b72ac75d6822af
+  checksum: 439e246d2158eca481bcf1084a56c00ff2cda90c1954ba070eaefbb16ce6648f3abf55148668def7ee7c1404f473fd1ee74d22e0d6c47a354fa3b4790469c1b7
   languageName: node
   linkType: hard
 
@@ -9856,7 +9856,8 @@ asn1@evs-broadcast/node-asn1:
     chokidar: ^3.6.0
     fast-clone: ^1.5.13
     threadedclass: ^1.2.2
-    timeline-state-resolver: 9.2.0-release52
+    timeline-state-resolver: 9.4.0-release53
+    timeline-state-resolver-types: 9.4.0-release53
     tslib: ^2.6.3
     underscore: ^1.13.7
   languageName: unknown
@@ -11029,11 +11030,11 @@ asn1@evs-broadcast/node-asn1:
   linkType: hard
 
 "superfly-timeline@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "superfly-timeline@npm:9.0.1"
+  version: 9.0.2
+  resolution: "superfly-timeline@npm:9.0.2"
   dependencies:
     tslib: ^2.6.0
-  checksum: 4267eed691fe9ce9f89bf17c8aed1a98206938dd6d850c64b083e4fd3a3dc5329801c76c757450c9520375bad100ce512cc6d6a3e4a997bdfa14a4e7d65f09f2
+  checksum: d628d467d5384f5667bc10b877478c5b8b0a91774b5d5c5e9d9d3134b8f1b760225f2fbbb0f9ccd3e55f930c9f3719f81b9347b94ea853fbc0a18bc121d97665
   languageName: node
   linkType: hard
 
@@ -11294,7 +11295,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver-types@9.2.0-release52, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
+"timeline-state-resolver-types@9.4.0-release53, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types"
   dependencies:
@@ -11302,7 +11303,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver@9.2.0-release52, timeline-state-resolver@workspace:packages/timeline-state-resolver":
+"timeline-state-resolver@9.4.0-release53, timeline-state-resolver@workspace:packages/timeline-state-resolver":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
@@ -11315,7 +11316,7 @@ asn1@evs-broadcast/node-asn1:
     casparcg-state: 3.0.3
     debug: ^4.3.6
     deepmerge: ^4.3.1
-    emberplus-connection: ^0.2.1
+    emberplus-connection: ^0.3.0
     eventemitter3: ^4.0.7
     got: ^11.8.6
     hpagent: ^1.2.0
@@ -11335,7 +11336,7 @@ asn1@evs-broadcast/node-asn1:
     sprintf-js: ^1.1.3
     superfly-timeline: ^9.0.1
     threadedclass: ^1.2.2
-    timeline-state-resolver-types: 9.2.0-release52
+    timeline-state-resolver-types: 9.4.0-release53
     tslib: ^2.6.3
     tv-automation-quantel-gateway-client: ^3.1.7
     type-fest: ^3.13.1

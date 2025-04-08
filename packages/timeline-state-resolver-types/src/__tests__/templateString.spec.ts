@@ -1,4 +1,4 @@
-import { interpolateTemplateString, interpolateTemplateStringIfNeeded } from '../lib'
+import { interpolateTemplateString, interpolateTemplateStringIfNeeded } from '../templateString'
 
 describe('interpolateTemplateString', () => {
 	test('basic input', () => {
