@@ -67,8 +67,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 		this._atem.on('error', (e) => this.context.logger.error('Atem', new Error(e)))
 		this._atem.on('stateChanged', (state) => {
 			// the external device is communicating something changed, the tracker should be updated (and may fire a "blocked" event if the change is caused by someone else)
-			// updateFromAtemState((addr, addrState) => this.tracker.updateState(addr, addrState), state) // todo - only update depending on the actual paths that changed?
-			updateFromAtemState((addr, addrState) => this.context.setAddressState(addr, addrState), state) // todo - only update depending on the actual paths that changed?
+			updateFromAtemState((addr, addrState) => this.context.setAddressState(addr, addrState), state) // note - improvement can be to update depending on the actual paths that changed
 
 			// old stuff for connection statuses/events:
 			this._onAtemStateChanged(state)
