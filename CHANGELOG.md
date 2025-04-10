@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.3.0-release52.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.3.0-release52.1...9.3.0-release52.2) (2025-04-10)
+
+
+### Bug Fixes
+
+* update timeline dependency ([de503d9](https://github.com/nrkno/sofie-timeline-state-resolver/commit/de503d91ad37480b5fe5691032996fd072e2bc54))
+
+
+
 ## [9.3.0-release52.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.3.0-release52.0...9.3.0-release52.1) (2025-03-12)
 
 
