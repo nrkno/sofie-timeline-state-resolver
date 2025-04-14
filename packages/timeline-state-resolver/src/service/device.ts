@@ -28,7 +28,7 @@ export type CommandWithContext = {
 export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext, AddressState = void>
 	implements BaseDeviceAPI<DeviceState, AddressState, Command>
 {
-	constructor(protected context: DeviceContextAPI<DeviceState>) {
+	constructor(protected context: DeviceContextAPI<DeviceState, AddressState>) {
 		// Nothing
 	}
 	/**

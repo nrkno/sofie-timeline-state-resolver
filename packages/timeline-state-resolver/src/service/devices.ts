@@ -21,7 +21,7 @@ import { SingularLiveDevice } from '../integrations/singularLive'
 import { MultiOSCMessageDevice } from '../integrations/multiOsc'
 
 export interface DeviceEntry {
-	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any, any>
+	deviceClass: new (context: DeviceContextAPI<any, any>) => Device<any, any, any, any>
 	canConnect: boolean
 	deviceName: (deviceId: string, options: any) => string
 	executionMode: (options: any) => 'salvo' | 'sequential'
