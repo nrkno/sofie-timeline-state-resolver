@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocket Client Options",
+  "type": "object",
+  "properties": {
+    "webSocket": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "ui:title": "WebSocket URI",
+          "ui:description": "URI to connect to, e.g. 'ws://localhost:8080'",
+          "description": "URI to connect to, e.g. 'ws://localhost:8080'"
+        },
+        "reconnectInterval": {
+          "type": "integer",
+          "ui:title": "Reconnect Interval",
+          "description": "Interval between reconnection attempts in milliseconds",
+          "default": 5000
+        }
+      },
+      "required": [
+        "uri"
+      ],
+      "additionalProperties": false
+    },
+    "bufferEncoding": {
+      "type": "string",
+      "ui:title": "Buffer Encoding",
+      "enum": [
+        "ascii",
+        "utf8",
+        "utf-8",
+        "utf16le",
+        "ucs2",
+        "ucs-2",
+        "base64",
+        "base64url",
+        "latin1",
+        "binary",
+        "hex"
+      ],
+      "default": "utf8"
+    }
+  },
+  "required": [
+    "webSocket"
+  ],
+  "additionalProperties": false
+}

@@ -56,6 +56,8 @@ import VizMSEMappings = require('./$schemas/generated/vizMSE/mappings.json')
 import VMixOptions = require('./$schemas/generated/vmix/options.json')
 import VMixMappings = require('./$schemas/generated/vmix/mappings.json')
 import VMixActions = require('./$schemas/generated/vmix/actions.json')
+import WebSocketClientOptions = require('./$schemas/generated/websocketClient/options.json')
+import WebSocketClientActions = require('./$schemas/generated/websocketClient/actions.json')
 
 import CommonOptions = require('./$schemas/common-options.json')
 import { generateTranslation } from './lib'
@@ -213,6 +215,12 @@ export const manifest: TSRManifest = {
 			actions: VMixActions.actions.map(stringifyActionSchema),
 			configSchema: JSON.stringify(VMixOptions),
 			mappingsSchemas: stringifyMappingSchema(VMixMappings),
+		},
+		[DeviceType.WEBSOCKET_CLIENT]: {
+			displayName: generateTranslation('Websocket Client'),
+			actions: WebSocketClientActions.actions.map(stringifyActionSchema),
+			configSchema: JSON.stringify(WebSocketClientOptions),
+			mappingsSchemas: {},
 		},
 	},
 }

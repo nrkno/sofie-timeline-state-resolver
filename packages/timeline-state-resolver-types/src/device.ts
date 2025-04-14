@@ -23,6 +23,7 @@ import {
 	TriCasterOptions,
 	MultiOSCOptions,
 	ViscaOverIPOptions,
+	WebSocketClientOptions,
 } from '.'
 import { DeviceCommonOptions } from './generated/common-options'
 
@@ -78,6 +79,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsTriCaster
 	| DeviceOptionsMultiOSC
 	| DeviceOptionsViscaOverIP
+	| DeviceOptionsWebSocketClient
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -147,4 +149,8 @@ export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions
 }
 export interface DeviceOptionsViscaOverIP extends DeviceOptionsBase<ViscaOverIPOptions> {
 	type: DeviceType.VISCA_OVER_IP
+}
+
+export interface DeviceOptionsWebSocketClient extends DeviceOptionsBase<WebSocketClientOptions> {
+	type: DeviceType.WEBSOCKET_CLIENT
 }

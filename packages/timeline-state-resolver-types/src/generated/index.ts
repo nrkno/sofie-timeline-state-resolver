@@ -76,6 +76,9 @@ import { SomeMappingVizMSE } from './vizMSE'
 export * from './vmix'
 import { SomeMappingVmix } from './vmix'
 
+export * from './websocketClient'
+import { SomeMappingWebsocketClient } from './websocketClient'
+
 export type TSRMappingOptions =
 	| SomeMappingAbstract
 	| SomeMappingAtem
@@ -100,3 +103,4 @@ export type TSRMappingOptions =
 	| SomeMappingViscaOverIP
 	| SomeMappingVizMSE
 	| SomeMappingVmix
+	| SomeMappingWebsocketClient
