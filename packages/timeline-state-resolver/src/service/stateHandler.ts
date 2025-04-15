@@ -30,20 +30,29 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private stateQueue: StateChange<DeviceState, Command>[] = []
 
 	/**
-	 * Semaphore, is set to undefined (!) while the current state is being executed.
-	 * (prevents calculateNextStateChange from running when undefined)
+	 * Contains the most recent state that was used with diffState to generate commands
 	 */
-	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
-	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
-	private _executingStateChange = false
+	private currentStateMemo: ExecutedStateChange<DeviceState | undefined, Command> | undefined
 
-	private _calculateNextStateChangeIndex = 0
+	/** This used for debugging/logging purposes only */
+	private generateCommandsFromStateToStateIndex = 0
 
 	private _commandExecutor: CommandExecutor<DeviceState, Command>
 
 	private clock: NodeJS.Timeout
 
 	private logger: StateHandlerContext['logger']
+
+	private scheduledStateChangeExecutionTimeout: NodeJS.Timeout | undefined = undefined
+	/** Semaphore, ensures that we're only calling this.executeNextStateChange() on at a time  */
+	private isCurrentlyExecutingStateChange = false
+	private flushPromise:
+		| {
+				promise: Promise<void>
+				resolve: () => void
+				reject: (e: unknown) => void
+		  }
+		| undefined = undefined
 
 	constructor(
 		private context: StateHandlerContext,
@@ -52,43 +61,28 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	) {
 		this.logger = context.logger
 
-		this.setCurrentState(undefined, 'startup').catch((e) => {
-			this.logger.error('Error while creating new StateHandler', e)
-		})
+		this.setCurrentState(undefined, 'startup')
 
 		this._commandExecutor = new CommandExecutor(context.logger, this.config.executionType, async (c) =>
 			device.sendCommand(c)
 		)
 
 		this.clock = setInterval(() => {
-			const t = context.getCurrentTime()
 			// main clock to check if next state needs to be executed
-
-			const nextState = this.stateQueue[0]
-			if (!nextState) return
-
-			const nextTime = Math.max(0, nextState.state.time - (nextState.preliminary ?? 0) - t)
-			if (nextTime > CLOCK_INTERVAL) return
-			// schedule any states between now and the next tick
-
-			setTimeout(() => {
-				if (this.stateQueue[0] === nextState) {
-					// if this is still the next state, execute it:
-					this.executeNextStateChange().catch((e) => {
-						this.logger.error('Error while executing next state change', e)
-					})
-				}
-			}, nextTime)
+			this.scheduleNearestStateChangeExecution()
 		}, CLOCK_INTERVAL)
 	}
 
-	async terminate() {
+	terminate() {
 		clearInterval(this.clock)
+		clearTimeout(this.scheduledStateChangeExecutionTimeout)
 		this.stateQueue = []
+		this.flushPromise?.resolve()
 	}
 
-	async clearFutureStates() {
+	clearFutureStates() {
 		this.stateQueue = []
+		this.scheduleNearestStateChangeExecution()
 	}
 
 	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings, timelineHash: string) {
@@ -113,90 +107,128 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		]
 
 		if (nextState !== this.stateQueue[0]) {
-			// the next state changed
+			// The next state changed
 			if (nextState) nextState.commands = undefined
-			this.calculateNextStateChange()
+			this.scheduleNearestStateChangeExecution()
 		}
 	}
 
-	async setCurrentState(state: DeviceState | undefined, reason: string) {
-		this.currentState = {
+	setCurrentState(state: DeviceState | undefined, reason: string) {
+		this.currentStateMemo = {
 			commands: [],
 			deviceState: state,
-			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
+			state: this.currentStateMemo?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
 			timelineHash: `reason:${reason}`,
-			mappings: this.currentState?.mappings || {},
+			mappings: this.currentStateMemo?.mappings || {},
 		}
-		this.calculateNextStateChange()
+		// The current state changed, so next state commands need to be regenerated:
+		if (this.stateQueue[0]) this.stateQueue[0].commands = undefined
+
+		this.scheduleNearestStateChangeExecution()
 	}
 
 	clearFutureAfterTimestamp(t: number) {
 		this.stateQueue = this.stateQueue.filter((s) => s.state.time <= t)
+		this.scheduleNearestStateChangeExecution()
 	}
 
-	private calculateNextStateChange() {
-		if (!this.currentState) return // a change is currently being executed, we'll be called again once it's done
+	/** Returns a promise that will resolve once all pending state changes have been processed */
+	async flush(): Promise<void> {
+		if (this.flushPromise) return this.flushPromise.promise
+
+		if (this.stateQueue.length === 0) return // Return immediately
+
+		let flushPromiseResolve = () => {
+			// noop
+		}
+		let flushPromiseReject = (_reason?: any) => {
+			// noop
+		}
+
+		// Set up a new Promise that will resolve some time later:
+		const p = new Promise<void>((resolve, reject) => {
+			flushPromiseResolve = resolve
+			flushPromiseReject = reject
+		}).finally(() => {
+			// This promise is done now, delete it so that next call to flush() creates a new one.
+			delete this.flushPromise
+		})
+
+		this.flushPromise = {
+			promise: p,
+			resolve: flushPromiseResolve,
+			reject: flushPromiseReject,
+		}
+		return this.flushPromise.promise
+	}
+
+	/**
+	 * Clear the previously scheduled state change execution and schedule a new one if needed.
+	 * This can be called anytime. */
+	private scheduleNearestStateChangeExecution() {
+		// This method can be called at any point in time, by anyone, so semaphores are used to ensure synchronous execution.
+
+		clearTimeout(this.scheduledStateChangeExecutionTimeout) // clear any previously scheduled timeouts
+
+		if (this.isCurrentlyExecutingStateChange) return // return early, scheduleNearestStateChangeExecutions() will be called again when the executeNextStateChange has finished executing
 
 		const nextState = this.stateQueue[0]
-		if (!nextState) return
-
-		this._calculateNextStateChangeIndex++
-
-		try {
-			const trace = startTrace('device:diffDeviceStates', { deviceId: this.context.deviceId })
-			nextState.commands = this.device.diffStates(
-				this.currentState?.deviceState,
-				nextState.deviceState,
-				nextState.mappings,
-				this.context.getCurrentTime(),
-				`diff_${this._calculateNextStateChangeIndex}("${nextState.timelineHash}")`
-			)
-			nextState.preliminary = Math.max(0, ...nextState.commands.map((c) => c.preliminary ?? 0))
-			this.context.emitTimeTrace(endTrace(trace))
-		} catch (e) {
-			// todo - log an error
-			this.logger.error('diffDeviceState failed, t = ' + nextState.state.time, e as Error)
-			// we don't want to get stuck, so we should act as if this can be executed anyway
-			nextState.commands = []
+		if (!nextState) {
+			this.flushPromise?.resolve()
+			return
 		}
 
-		if (nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime() && this.currentState) {
-			// It's time to execute the state asap
-			this.executeNextStateChange().catch((e) => {
-				this.logger.error('Error while executing next state change', e)
-			})
-		}
+		const t = this.context.getCurrentTime()
+
+		// Pre-generate the commands, to have an updated nextState.preliminary and not waste time when we need to send out commands
+		this.generateCommandsInNextStateBasedOnCurrentState()
+
+		const nextTime = Math.max(0, nextState.state.time - (nextState.preliminary ?? 0) - t)
+		if (nextTime > CLOCK_INTERVAL) return
+
+		// Schedule the next state between now and the next CLOCK_INTERVAL tick:
+		this.scheduledStateChangeExecutionTimeout = setTimeout(() => {
+			// trigger an execute at this point in time:
+
+			if (this.isCurrentlyExecutingStateChange) return
+
+			this.isCurrentlyExecutingStateChange = true
+			// Note: This must be the only place from which executeNextStateChange() is called, to ensure
+			this.executeNextStateChange()
+				.catch((e) => {
+					this.logger.error('Error while executing next state change', e)
+				})
+				.finally(() => {
+					this.isCurrentlyExecutingStateChange = false
+					// this will schedule the next state change to be executed, potentially "too late",
+					// if this `executeNextStateChange` took too long
+					this.scheduleNearestStateChangeExecution()
+				})
+		}, nextTime)
 	}
 
+	/** This method must only be called once at a time. **The caller must ensure this.** */
 	private async executeNextStateChange() {
 		if (!this.stateQueue[0]) {
 			// there is no next to execute
 			return
 		}
-		if (this._executingStateChange) {
-			// debounce: we are currently executing
-			return
-		}
-		// Set the semaphore:
-		this._executingStateChange = true
 
 		const state = this.stateQueue.shift()
 
 		try {
 			// Type assertions, this should not be possible given our previous guard
 			if (!state) throw new Error('Assertion failed: newState is undefined')
-			if (!state.commands) throw new Error('Assertion failed: newState.commands is undefined')
 
-			// Ensure that we have calculated the commands for the state:
-			if (!state.commands) {
-				this.calculateNextStateChange()
-			}
-
-			// Set the semaphore,
-			// ie prevent calculateNextStateChange() from running while we're executing, as we're calling it afterwards anyway.
-			this.currentState = undefined
+			// Generate commands for the next state, if needed:
+			const stateWihCommands = this.generateCommandsInNextStateBasedOnCurrentState()
+			if (!state.commands) throw new Error('Internal error: state.commands not set!') // Just a type guard, this should never happen.
 
 			state.measurement?.executeState()
+
+			// This is the point where we execute the commands,
+			// so this is the point where we can memoize the new state
+			this.currentStateMemo = stateWihCommands
 
 			// Execute the state, ie execute the precalculated commands of the state:
 			await this._commandExecutor.executeCommands(state.commands, state.measurement)
@@ -205,14 +237,37 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		} catch (e) {
 			this.logger.error('Error while executing next state change', e as any)
 		}
+	}
+	private generateCommandsInNextStateBasedOnCurrentState() {
+		const nextState = this.stateQueue[0]
+		if (!nextState) return
+		// if nextState.commands is populated, that means that there's nothing to generate. States can be replaced,
+		// but not changed.
+		if (nextState.commands) return
 
-		// Release the semaphore:
-		this.currentState = state as ExecutedStateChange<DeviceState, Command>
-		// Release the semaphore:
-		this._executingStateChange = false
+		this.generateCommandsFromStateToStateIndex++
 
-		// Prepare and/or execute next state:
-		this.calculateNextStateChange()
+		try {
+			const trace = startTrace('device:diffDeviceStates', { deviceId: this.context.deviceId })
+			nextState.commands = this.device.diffStates(
+				this.currentStateMemo?.deviceState,
+				nextState.deviceState,
+				nextState.mappings,
+				this.context.getCurrentTime(),
+				`diff_${this.generateCommandsFromStateToStateIndex}("${nextState.timelineHash}")`
+			)
+			nextState.preliminary = Math.max(0, ...nextState.commands.map((c) => c.preliminary ?? 0))
+			this.context.emitTimeTrace(endTrace(trace))
+		} catch (e) {
+			// todo - log an error
+			this.logger.error('diffDeviceState failed, t = ' + nextState.state.time, e as Error)
+
+			// we don't want to get stuck, so we should act as if this can be executed anyway:
+			nextState.commands = []
+			nextState.preliminary = 0
+		}
+
+		return nextState as ExecutedStateChange<DeviceState | undefined, Command>
 	}
 }
 

@@ -132,7 +132,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		return this._device.init(this.config.options)
 	}
 	async terminate() {
-		await this._stateHandler.terminate()
+		this._stateHandler.terminate()
 		return this._device.terminate()
 	}
 
@@ -262,14 +262,17 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			},
 
 			resetState: async () => {
-				await this._stateHandler.setCurrentState(undefined, 'resetState')
-				await this._stateHandler.clearFutureStates()
+				this._stateHandler.setCurrentState(undefined, 'resetState')
+				this._stateHandler.clearFutureStates()
+				await this._stateHandler.flush()
+
 				this.emit('resetResolver')
 			},
 
 			resetToState: async (state: any) => {
-				await this._stateHandler.setCurrentState(state, 'resetToState')
-				await this._stateHandler.clearFutureStates()
+				this._stateHandler.setCurrentState(state, 'resetToState')
+				this._stateHandler.clearFutureStates()
+				await this._stateHandler.flush()
 				this.emit('resetResolver')
 			},
 		}

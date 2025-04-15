@@ -76,22 +76,19 @@ describe('stateHandler', () => {
 	test('transition to a new state', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler
-			.setCurrentState(
-				{
-					entry1: { value: true },
-				},
-				'test'
-			)
-			.catch((e) => {
-				console.error('Error while setting current state', e)
-			})
+		stateHandler.setCurrentState(
+			{
+				entry1: { value: true },
+			},
+			'test'
+		)
+		await stateHandler.flush()
 
 		stateHandler.handleState(createTimelineState(10000, {}), {}, 'test').catch((e) => {
 			console.error('Error while handling state', e)
 		})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
@@ -105,22 +102,19 @@ describe('stateHandler', () => {
 	test('transition to 2 new states', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler
-			.setCurrentState(
-				{
-					entry1: { value: true },
-				},
-				'test'
-			)
-			.catch((e) => {
-				console.error('Error while setting current state', e)
-			})
+		stateHandler.setCurrentState(
+			{
+				entry1: { value: true },
+			},
+			'test'
+		)
+		await stateHandler.flush()
 
 		stateHandler.handleState(createTimelineState(10000, {}), {}, 'test').catch((e) => {
 			console.error('Error while handling state', e)
 		})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
@@ -142,7 +136,7 @@ describe('stateHandler', () => {
 				console.error('Error while handling state', e)
 			})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		// do not expect to be called because this is in the future
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
@@ -164,9 +158,8 @@ describe('stateHandler', () => {
 	test('transition to a new state with preliminary commands', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler.setCurrentState({}, 'test').catch((e) => {
-			console.error('Error while setting current state', e)
-		})
+		stateHandler.setCurrentState({}, 'test')
+		await stateHandler.flush()
 
 		stateHandler
 			.handleState(
@@ -186,7 +179,7 @@ describe('stateHandler', () => {
 				console.error('Error while handling state', e)
 			})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(0)
 

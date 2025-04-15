@@ -527,7 +527,7 @@ describe('Conductor', () => {
 		const timeline: TSRTimeline = [video0]
 
 		const device0Container = conductor.getDevice('device0')
-		const device0 = device0Container!.device as ThreadedClass<DeviceInstanceWrapper>
+		const device0 = device0Container?.device as ThreadedClass<DeviceInstanceWrapper>
 		expect(device0).toBeTruthy()
 
 		conductor.setTimelineAndMappings(timeline)
