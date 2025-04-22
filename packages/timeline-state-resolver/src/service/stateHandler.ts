@@ -213,15 +213,14 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			// there is no next to execute
 			return
 		}
-
-		const state = this.stateQueue.shift()
-
 		try {
-			// Type assertions, this should not be possible given our previous guard
-			if (!state) throw new Error('Assertion failed: newState is undefined')
-
 			// Generate commands for the next state, if needed:
 			const stateWihCommands = this.generateCommandsInNextStateBasedOnCurrentState()
+
+			const state = this.stateQueue.shift()
+
+			// Type assertions, this should not be possible given our previous guard
+			if (!state) throw new Error('Assertion failed: state is undefined')
 			if (!state.commands) throw new Error('Internal error: state.commands not set!') // Just a type guard, this should never happen.
 
 			state.measurement?.executeState()
