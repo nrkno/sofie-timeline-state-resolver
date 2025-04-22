@@ -124,7 +124,7 @@ describe('Atem', () => {
 
 		const deviceState = device.convertTimelineStateToDeviceState(mockState, {})
 
-		const commands = device.diffStates(undefined, deviceState, {})
+		const commands = device.diffStates(undefined, deviceState, {}, 0, 'test')
 
 		expect(commands).toHaveLength(0)
 	})
@@ -161,7 +161,7 @@ describe('Atem', () => {
 		})
 
 		{
-			const commands = device.diffStates(undefined, deviceState1, myLayerMapping)
+			const commands = device.diffStates(undefined, deviceState1, myLayerMapping, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(2)
@@ -198,7 +198,7 @@ describe('Atem', () => {
 		})
 
 		{
-			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping)
+			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(2)
@@ -240,12 +240,12 @@ describe('Atem', () => {
 		})
 
 		// Expect that a command has been scheduled
-		const commands = device.diffStates(undefined, deviceState, myLayerMapping)
+		const commands = device.diffStates(undefined, deviceState, myLayerMapping, 0, 'test')
 		const allCommands = extractAllCommands(commands)
 		expect(allCommands).toHaveLength(2)
 
 		// Diff the same state, after the commands have been sent
-		const commands2 = device.diffStates(deviceState, deviceState, myLayerMapping)
+		const commands2 = device.diffStates(deviceState, deviceState, myLayerMapping, 0, 'test')
 		expect(commands2).toHaveLength(0)
 	})
 
@@ -282,7 +282,7 @@ describe('Atem', () => {
 		})
 
 		{
-			const commands = device.diffStates(undefined, deviceState1, myLayerMapping)
+			const commands = device.diffStates(undefined, deviceState1, myLayerMapping, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(2)
@@ -319,7 +319,7 @@ describe('Atem', () => {
 		})
 
 		{
-			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping)
+			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping, 0, 'test')
 
 			const allCommands = extractAllCommands(commands)
 			expect(allCommands).toHaveLength(5)

@@ -52,6 +52,7 @@ type CommandGeneratorFunction<T, K extends keyof T> = (args: {
 	state: Readonly<NonNullable<WithContext<T>>>
 	oldState: Readonly<WithContext<T>> | undefined
 	target: string
+	context: string
 }) => TriCasterCommandWithContext[] | null
 
 type CommandGeneratorValue<T, K extends keyof T> =
@@ -143,6 +144,7 @@ export class TriCasterStateDiffer {
 
 	public readonly timelineStateConverter: TriCasterTimelineStateConverter
 	public readonly shortcutStateConverter: TriCasterShortcutStateConverter
+	private _currentContext: string | undefined = undefined
 
 	constructor(options: TriCasterStateDifferOptions) {
 		this.inputCount = options.inputCount
@@ -271,11 +273,15 @@ export class TriCasterStateDiffer {
 
 	getCommandsToAchieveState(
 		newState: WithContext<TriCasterState>,
-		oldState: WithContext<TriCasterState> | undefined
+		oldState: WithContext<TriCasterState> | undefined,
+		context: string
 	): TriCasterCommandWithContext[] {
+		this._currentContext = context
 		const commands: TriCasterCommandWithContext[] = []
-		this.recursivelyGenerateCommands<TriCasterState>(commands, this.commandGenerator, newState, oldState, '')
-		return commands.sort((a, b) => a.temporalPriority - b.temporalPriority) // is this fast enough? consider bucket sort
+		this.recursivelyGenerateCommands<TriCasterState>(commands, this.commandGenerator, newState, oldState, '', context)
+		const sortedCommands = commands.sort((a, b) => a.temporalPriority - b.temporalPriority) // is this fast enough? consider bucket sort
+		this._currentContext = undefined
+		return sortedCommands
 	}
 
 	private getGenerator(): CommandGenerator<TriCasterState> {
@@ -287,10 +293,10 @@ export class TriCasterStateDiffer {
 				...this.audioCommandGenerator,
 			})),
 			isRecording: ({ entry }) => [
-				wrapInContext({ name: CommandName.RECORD_TOGGLE, value: entry.value ? 1 : 0 }, entry),
+				this.wrapInContext({ name: CommandName.RECORD_TOGGLE, value: entry.value ? 1 : 0 }, entry),
 			],
 			isStreaming: ({ entry }) => [
-				wrapInContext({ name: CommandName.STREAMING_TOGGLE, value: entry.value ? 1 : 0 }, entry),
+				this.wrapInContext({ name: CommandName.STREAMING_TOGGLE, value: entry.value ? 1 : 0 }, entry),
 			],
 			mixOutputs: fillRecord(this.mixOutputNames, (mixOutputName) => ({
 				$target: mixOutputName,
@@ -318,7 +324,7 @@ export class TriCasterStateDiffer {
 		meClean: ({ entry, target }) => {
 			const outputIndex = Number(target.match(/\d+/)?.[0]) - 1
 			return [
-				wrapInContext(
+				this.wrapInContext(
 					{ name: CommandName.SET_OUTPUT_CONFIG_VIDEO_SOURCE, output_index: outputIndex, me_clean: entry.value },
 					entry
 				),
@@ -345,8 +351,8 @@ export class TriCasterStateDiffer {
 			}
 			const value = entry.value === 'fade' ? 0 : entry.value
 			return [
-				wrapInContext({ name: selectCommand, target, value }, entry),
-				wrapInContext(
+				this.wrapInContext({ name: selectCommand, target, value }, entry),
+				this.wrapInContext(
 					{ name: CommandName.SPEED, target, value: state.transitionDuration?.value ?? DEFAULT_TRANSITION_DURATION },
 					entry
 				),
@@ -361,7 +367,7 @@ export class TriCasterStateDiffer {
 		if (!oldState || state.transitionEffect?.value !== oldState.transitionEffect?.value) {
 			return []
 		}
-		return [wrapInContext({ name: CommandName.SPEED, target, value: entry.value }, entry)]
+		return [this.wrapInContext({ name: CommandName.SPEED, target, value: entry.value }, entry)]
 	}
 
 	private layerCommandGenerator: CommandGenerator<TriCasterLayerState> = {
@@ -396,19 +402,19 @@ export class TriCasterStateDiffer {
 		input: CommandName.SELECT_NAMED_INPUT,
 		onAir: ({ state, target, entry }) => {
 			if (state.transitionEffect?.value === 'cut') {
-				return [wrapInContext({ name: CommandName.VALUE, target, value: entry.value ? 1 : 0 }, entry)]
+				return [this.wrapInContext({ name: CommandName.VALUE, target, value: entry.value ? 1 : 0 }, entry)]
 			}
 			// @todo: transitions on keyers are dangerous when mappings change on the fly and
 			// an uncontrolled ME becomes controlled (the state might get flipped)
 			// fixing it is out of scope for now
-			return [wrapInContext({ name: CommandName.AUTO, target }, entry)]
+			return [this.wrapInContext({ name: CommandName.AUTO, target }, entry)]
 		},
 	}
 
 	private getMixEffectGenerator(
 		meName: TriCasterMixEffectName
 	): CommandGeneratorFunction<TriCasterState['mixEffects'], TriCasterMixEffectName> {
-		return ({ entry, oldEntry, target }) => {
+		return ({ entry, oldEntry, target, context }) => {
 			const commands: TriCasterCommandWithContext[] = []
 			this.recursivelyGenerateCommands<TriCasterMixEffectState>(
 				commands,
@@ -425,7 +431,8 @@ export class TriCasterStateDiffer {
 				},
 				entry,
 				oldEntry,
-				target
+				target,
+				context
 			)
 			if (entry.isInEffectMode?.value && entry.layers) {
 				this.recursivelyGenerateCommands<Partial<Record<TriCasterLayerName, TriCasterLayerState>>>(
@@ -436,7 +443,8 @@ export class TriCasterStateDiffer {
 					})),
 					entry.layers,
 					entry.isInEffectMode.value !== oldEntry?.isInEffectMode?.value ? undefined : oldEntry?.layers,
-					meName
+					meName,
+					context
 				)
 			}
 			return commands
@@ -452,7 +460,7 @@ export class TriCasterStateDiffer {
 		const oldValue = oldEntry?.value ? [...oldEntry.value].sort() : []
 		if (_.isEqual(newValue, oldValue)) return null
 		const combinedValue = newValue.map((delegateName) => `${target}_${delegateName}`).join('|')
-		return [wrapInContext({ name: CommandName.DELEGATE, target, value: combinedValue }, entry)]
+		return [this.wrapInContext({ name: CommandName.DELEGATE, target, value: combinedValue }, entry)]
 	}
 
 	private previewInputCommandGenerator: CommandGeneratorFunction<TriCasterMixEffectState, 'previewInput'> = ({
@@ -464,7 +472,10 @@ export class TriCasterStateDiffer {
 			return null
 		}
 		return [
-			wrapInContext({ name: CommandName.ROW_NAMED_INPUT, value: entry.value, target: target + B_ROW_SUFFIX }, entry),
+			this.wrapInContext(
+				{ name: CommandName.ROW_NAMED_INPUT, value: entry.value, target: target + B_ROW_SUFFIX },
+				entry
+			),
 		]
 	}
 
@@ -476,20 +487,26 @@ export class TriCasterStateDiffer {
 		if (state.transitionEffect?.value === 'cut') {
 			if (!state.previewInput?.value) {
 				return [
-					wrapInContext(
+					this.wrapInContext(
 						{ name: CommandName.ROW_NAMED_INPUT, value: entry.value, target: target + B_ROW_SUFFIX },
 						entry
 					),
-					wrapInContext({ name: CommandName.TAKE, target }, entry),
+					this.wrapInContext({ name: CommandName.TAKE, target }, entry),
 				]
 			}
 			return [
-				wrapInContext({ name: CommandName.ROW_NAMED_INPUT, value: entry.value, target: target + A_ROW_SUFFIX }, entry),
+				this.wrapInContext(
+					{ name: CommandName.ROW_NAMED_INPUT, value: entry.value, target: target + A_ROW_SUFFIX },
+					entry
+				),
 			]
 		}
 		return [
-			wrapInContext({ name: CommandName.ROW_NAMED_INPUT, value: entry.value, target: target + B_ROW_SUFFIX }, entry),
-			wrapInContext({ name: CommandName.AUTO, target }, entry),
+			this.wrapInContext(
+				{ name: CommandName.ROW_NAMED_INPUT, value: entry.value, target: target + B_ROW_SUFFIX },
+				entry
+			),
+			this.wrapInContext({ name: CommandName.AUTO, target }, entry),
 		]
 	}
 
@@ -498,7 +515,8 @@ export class TriCasterStateDiffer {
 		rootCommandGenerator: CommandGenerator<T>,
 		state: WithContext<T>,
 		oldState: WithContext<T> | undefined,
-		target: string
+		target: string,
+		context: string
 	) {
 		if (rootCommandGenerator.$target) {
 			target += `${target ? '_' : ''}${rootCommandGenerator.$target}`
@@ -518,13 +536,14 @@ export class TriCasterStateDiffer {
 					state: state as NonNullable<WithContext<T>>,
 					oldState,
 					target,
+					context,
 				})
 				if (!generatedCommands) continue
 				commandsOut.push(...generatedCommands)
 			} else if (typeof generator === 'string') {
 				if (!isStateEntry(entry) || this.isEqual(entry, oldEntry)) continue
 				commandsOut.push(
-					wrapInContext({ name: generator, value: entry.value, target } as TriCasterGenericCommand, entry)
+					this.wrapInContext({ name: generator, value: entry.value, target } as TriCasterGenericCommand, entry)
 				)
 			} else if (generator) {
 				this.recursivelyGenerateCommands(
@@ -532,7 +551,8 @@ export class TriCasterStateDiffer {
 					generator,
 					entry as WithContext<T[keyof T]>,
 					oldEntry as WithContext<T[keyof T]>,
-					target
+					target,
+					context
 				)
 			}
 		}
@@ -551,6 +571,14 @@ export class TriCasterStateDiffer {
 			entry === null ||
 			(isStateEntry(entry) && (entry.value === undefined || entry.value === null))
 		)
+	}
+	private wrapInContext(command: TriCasterCommand, entry: StateEntry<any>): TriCasterCommandWithContext {
+		return {
+			command,
+			context: this._currentContext,
+			timelineObjId: entry.timelineObjId ?? '',
+			temporalPriority: entry.temporalPriority ?? DEFAULT_TEMPORAL_PRIORITY,
+		}
 	}
 }
 
@@ -576,15 +604,6 @@ export function wrapStateInContext<T extends object>(state: T): WithContext<T> {
 		return _.mapObject(state, (value) => wrapStateInContext(value)) as WithContext<T>
 	}
 	return { value: state } as WithContext<T>
-}
-
-export function wrapInContext(command: TriCasterCommand, entry: StateEntry<any>): TriCasterCommandWithContext {
-	return {
-		command,
-		context: '',
-		timelineObjId: entry.timelineObjId ?? '',
-		temporalPriority: entry.temporalPriority ?? DEFAULT_TEMPORAL_PRIORITY,
-	}
 }
 
 export function isStateEntry(

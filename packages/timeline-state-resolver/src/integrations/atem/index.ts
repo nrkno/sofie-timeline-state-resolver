@@ -153,7 +153,9 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 	diffStates(
 		oldAtemState: AtemDeviceState | undefined,
 		newAtemState: AtemDeviceState,
-		mappings: Mappings
+		mappings: Mappings,
+		_time: number,
+		context: string
 	): Array<AtemCommandWithContext> {
 		// Skip diffing if not connected, a resolverReset will be fired upon reconnection
 		if (!this._connected) return []
@@ -168,7 +170,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 			return [
 				{
 					command: commands,
-					context: '',
+					context: context,
 					timelineObjId: '',
 				},
 			]

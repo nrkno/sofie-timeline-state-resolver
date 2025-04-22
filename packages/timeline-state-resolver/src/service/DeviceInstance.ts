@@ -132,7 +132,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		return this._device.init(this.config.options)
 	}
 	async terminate() {
-		await this._stateHandler.terminate()
+		this._stateHandler.terminate()
 		return this._device.terminate()
 	}
 
@@ -160,8 +160,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		//
 	}
 
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		this._stateHandler.handleState(newState, newMappings).catch((e) => {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings, timelineHash: string) {
+		this._stateHandler.handleState(newState, newMappings, timelineHash).catch((e) => {
 			this.emit('error', 'Error while handling state', e)
 		})
 
@@ -262,14 +262,17 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			},
 
 			resetState: async () => {
-				await this._stateHandler.setCurrentState(undefined)
-				await this._stateHandler.clearFutureStates()
+				this._stateHandler.setCurrentState(undefined, 'resetState')
+				this._stateHandler.clearFutureStates()
+				await this._stateHandler.flush()
+
 				this.emit('resetResolver')
 			},
 
 			resetToState: async (state: any) => {
-				await this._stateHandler.setCurrentState(state)
-				await this._stateHandler.clearFutureStates()
+				this._stateHandler.setCurrentState(state, 'resetToState')
+				this._stateHandler.clearFutureStates()
+				await this._stateHandler.flush()
 				this.emit('resetResolver')
 			},
 		}

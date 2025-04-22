@@ -117,7 +117,7 @@ describe('Pharos', () => {
 		}
 
 		const state0: PharosState = {}
-		const commands0 = pharos.diffStates(undefined, state0, myLayerMapping)
+		const commands0 = pharos.diffStates(undefined, state0, myLayerMapping, 0, 'test')
 		expect(commands0).toHaveLength(0)
 
 		const state1: PharosState = {
@@ -136,7 +136,7 @@ describe('Pharos', () => {
 				},
 			}),
 		}
-		const commands1 = pharos.diffStates(state0, state1, myLayerMapping)
+		const commands1 = pharos.diffStates(state0, state1, myLayerMapping, 0, 'test')
 		expect(commands1).toHaveLength(1)
 
 		for (const command of commands1) await pharos.sendCommand(command)
@@ -160,7 +160,7 @@ describe('Pharos', () => {
 				},
 			}),
 		}
-		const commands2 = pharos.diffStates(state1, state2, myLayerMapping)
+		const commands2 = pharos.diffStates(state1, state2, myLayerMapping, 0, 'test')
 		expect(commands2).toHaveLength(2)
 
 		for (const command of commands2) await pharos.sendCommand(command)
@@ -188,7 +188,7 @@ describe('Pharos', () => {
 				},
 			}),
 		}
-		const commands3 = pharos.diffStates(state2, state3, myLayerMapping)
+		const commands3 = pharos.diffStates(state2, state3, myLayerMapping, 0, 'test')
 		expect(commands3).toHaveLength(2)
 
 		for (const command of commands3) await pharos.sendCommand(command)
@@ -200,7 +200,7 @@ describe('Pharos', () => {
 		mockApi.commandCalls = []
 
 		const state4: PharosState = {}
-		const commands4 = pharos.diffStates(state3, state4, myLayerMapping)
+		const commands4 = pharos.diffStates(state3, state4, myLayerMapping, 0, 'test')
 		expect(commands4).toHaveLength(1)
 
 		for (const command of commands4) await pharos.sendCommand(command)

@@ -75,14 +75,15 @@ export class TelemetricsDevice extends Device<TelemetricsOptions, TelemetricsSta
 		oldState: TelemetricsState | undefined,
 		newState: TelemetricsState,
 		_mappings: Mappings<unknown>,
-		_time: number
+		_time: number,
+		context: string
 	): TelemetricsCommandWithContext[] {
 		return newState.presetShotIdentifiers
 			.filter((preset) => !oldState || !oldState.presetShotIdentifiers.includes(preset))
 			.map((presetShotIdentifier) => {
 				return {
 					command: { presetShotIdentifier },
-					context: '',
+					context: `(${context})`,
 					timelineObjId: '',
 				}
 			})

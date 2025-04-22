@@ -108,7 +108,7 @@ describe('DeviceInstance', () => {
 
 	test('handleState', () => {
 		const dev = getDeviceInstance()
-		dev.handleState({ time: 100, layers: {}, nextEvents: [] }, {})
+		dev.handleState({ time: 100, layers: {}, nextEvents: [] }, {}, 'test')
 
 		expect(StateHandler.handleState).toHaveBeenCalled()
 	})
@@ -149,7 +149,8 @@ describe('DeviceInstance', () => {
 
 		dev.handleState(
 			{ time: 1, layers: {}, nextEvents: [] },
-			{ test: { device: DeviceType.ABSTRACT, deviceId: 'wrapper0', options: {} } }
+			{ test: { device: DeviceType.ABSTRACT, deviceId: 'wrapper0', options: {} } },
+			'test'
 		)
 		const status2 = dev.getStatus()
 

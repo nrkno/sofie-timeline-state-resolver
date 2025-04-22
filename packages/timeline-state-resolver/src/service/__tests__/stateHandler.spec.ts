@@ -48,22 +48,22 @@ describe('stateHandler', () => {
 			},
 			{
 				convertTimelineStateToDeviceState: (s) => s.layers as unknown as DeviceState,
-				diffStates: (o, n) =>
+				diffStates: (oldState, newState, _mapping, _time, context: string) =>
 					[
-						...Object.keys(n)
-							.filter((e) => !(o || {})[e])
+						...Object.keys(newState)
+							.filter((e) => !(oldState || {})[e])
 							.map((e) => ({
 								command: {
-									type: 'added',
+									type: `added (${context})`,
 									property: e,
 								},
-								preliminary: n[e].preliminary,
+								preliminary: newState[e].preliminary,
 							})),
-						...Object.keys(o || {})
-							.filter((e) => !n[e])
+						...Object.keys(oldState || {})
+							.filter((e) => !newState[e])
 							.map((e) => ({
 								command: {
-									type: 'removed',
+									type: `removed (${context})`,
 									property: e,
 								},
 							})),
@@ -76,24 +76,24 @@ describe('stateHandler', () => {
 	test('transition to a new state', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler
-			.setCurrentState({
+		stateHandler.setCurrentState(
+			{
 				entry1: { value: true },
-			})
-			.catch((e) => {
-				console.error('Error while setting current state', e)
-			})
+			},
+			'test'
+		)
+		await stateHandler.flush()
 
-		stateHandler.handleState(createTimelineState(10000, {}), {}).catch((e) => {
+		stateHandler.handleState(createTimelineState(10000, {}), {}, 'test').catch((e) => {
 			console.error('Error while handling state', e)
 		})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
-				type: 'removed',
+				type: 'removed (diff_1("test"))',
 				property: 'entry1',
 			},
 		})
@@ -102,24 +102,24 @@ describe('stateHandler', () => {
 	test('transition to 2 new states', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler
-			.setCurrentState({
+		stateHandler.setCurrentState(
+			{
 				entry1: { value: true },
-			})
-			.catch((e) => {
-				console.error('Error while setting current state', e)
-			})
+			},
+			'test'
+		)
+		await stateHandler.flush()
 
-		stateHandler.handleState(createTimelineState(10000, {}), {}).catch((e) => {
+		stateHandler.handleState(createTimelineState(10000, {}), {}, 'test').catch((e) => {
 			console.error('Error while handling state', e)
 		})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
-				type: 'removed',
+				type: expect.stringContaining('removed'),
 				property: 'entry1',
 			},
 		})
@@ -129,13 +129,14 @@ describe('stateHandler', () => {
 				createTimelineState(10100, {
 					entry1: { value: true },
 				}),
-				{}
+				{},
+				'test'
 			)
 			.catch((e) => {
 				console.error('Error while handling state', e)
 			})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		// do not expect to be called because this is in the future
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
@@ -148,7 +149,7 @@ describe('stateHandler', () => {
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
-				type: 'added',
+				type: expect.stringContaining('added'),
 				property: 'entry1',
 			},
 		})
@@ -157,9 +158,8 @@ describe('stateHandler', () => {
 	test('transition to a new state with preliminary commands', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler.setCurrentState({}).catch((e) => {
-			console.error('Error while setting current state', e)
-		})
+		stateHandler.setCurrentState({}, 'test')
+		await stateHandler.flush()
 
 		stateHandler
 			.handleState(
@@ -172,13 +172,14 @@ describe('stateHandler', () => {
 						value: true,
 					},
 				}),
-				{}
+				{},
+				'test'
 			)
 			.catch((e) => {
 				console.error('Error while handling state', e)
 			})
 
-		await mockTime.tick()
+		mockTime.advanceTime(1)
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(0)
 
@@ -187,7 +188,7 @@ describe('stateHandler', () => {
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenNthCalledWith(1, {
 			command: {
-				type: 'added',
+				type: expect.stringContaining('added'),
 				property: 'entry1',
 			},
 			preliminary: 300,
@@ -198,7 +199,7 @@ describe('stateHandler', () => {
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(2)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenNthCalledWith(2, {
 			command: {
-				type: 'added',
+				type: expect.stringContaining('added'),
 				property: 'entry2',
 			},
 		})

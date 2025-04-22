@@ -36,9 +36,12 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 	}
 	diffStates(
 		oldState: PanasonicPtzState | undefined,
-		newState: PanasonicPtzState
+		newState: PanasonicPtzState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
 	): Array<PanasonicPtzCommandWithContext> {
-		return diffStates(oldState ?? getDefaultState(), newState)
+		return diffStates(oldState ?? getDefaultState(), newState, context)
 	}
 	async sendCommand(command: PanasonicPtzCommandWithContext): Promise<void> {
 		this.context.logger.debug(command)

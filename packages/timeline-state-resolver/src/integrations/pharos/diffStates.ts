@@ -20,7 +20,8 @@ const isPharosObject = (obj: TimelineObjAny | undefined): obj is TimelineObjPhar
 export function diffStates(
 	oldPharosState: PharosState | undefined,
 	newPharosState: PharosState,
-	_mappings: Mappings
+	_mappings: Mappings,
+	context: string
 ): Array<PharosCommandWithContext> {
 	const commands: PharosCommandWithContext[] = []
 
@@ -42,7 +43,7 @@ export function diffStates(
 				command: {
 					fcn: async (pharos) => pharos.releaseScene(scene, fade),
 				},
-				context: `${reason}: ${oldLayer.id} ${scene}`,
+				context: `${reason}: ${oldLayer.id} ${scene} (${context})`,
 				timelineObjId: oldLayer.id,
 			})
 		} else if (oldLayer.content.type === TimelineContentTypePharos.TIMELINE) {
@@ -55,7 +56,7 @@ export function diffStates(
 				command: {
 					fcn: async (pharos) => pharos.releaseTimeline(timeline, fade),
 				},
-				context: `${reason}: ${oldLayer.id} ${timeline}`,
+				context: `${reason}: ${oldLayer.id} ${timeline} (${context})`,
 				timelineObjId: oldLayer.id,
 			})
 		}
@@ -74,7 +75,7 @@ export function diffStates(
 						command: {
 							fcn: async (pharos) => pharos.pauseTimeline(timeline),
 						},
-						context: `pause timeline: ${newLayer.id} ${timeline}`,
+						context: `pause timeline: ${newLayer.id} ${timeline} (${context})`,
 						timelineObjId: newLayer.id,
 					})
 				} else {
@@ -82,7 +83,7 @@ export function diffStates(
 						command: {
 							fcn: async (pharos) => pharos.resumeTimeline(timeline),
 						},
-						context: `resume timeline: ${newLayer.id} ${timeline}`,
+						context: `resume timeline: ${newLayer.id} ${timeline} (${context})`,
 						timelineObjId: newLayer.id,
 					})
 				}
@@ -98,7 +99,7 @@ export function diffStates(
 					command: {
 						fcn: async (pharos) => pharos.setTimelineRate(timeline, rate ?? 0),
 					},
-					context: `pause timeline: ${newLayer.id} ${timeline}: ${rate}`,
+					context: `pause timeline: ${newLayer.id} ${timeline}: ${rate} (${context})`,
 					timelineObjId: newLayer.id,
 				})
 			}
@@ -119,7 +120,7 @@ export function diffStates(
 				command: {
 					fcn: async (pharos) => pharos.startScene(scene),
 				},
-				context: `${reason}: ${newLayer.id} ${scene}`,
+				context: `${reason}: ${newLayer.id} ${scene} (${context})`,
 				timelineObjId: newLayer.id,
 			})
 		} else if (newLayer.content.type === TimelineContentTypePharos.TIMELINE) {
@@ -131,7 +132,7 @@ export function diffStates(
 				command: {
 					fcn: async (pharos) => pharos.startTimeline(timeline),
 				},
-				context: `${reason}: ${newLayer.id} ${timeline}`,
+				context: `${reason}: ${newLayer.id} ${timeline} (${context})`,
 				timelineObjId: newLayer.id,
 			})
 			modifyTimelinePlay(newLayer)

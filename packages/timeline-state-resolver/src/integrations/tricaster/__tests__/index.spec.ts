@@ -69,7 +69,7 @@ describe('TriCasterDevice', () => {
 
 		const state1: Timeline.TimelineState<TSRTimelineContent> = { time: 11000, layers: {}, nextEvents: [] }
 		const tricasterState1 = device.convertTimelineStateToDeviceState(state1, mappings)
-		const commands1 = device.diffStates(undefined, tricasterState1, mappings)
+		const commands1 = device.diffStates(undefined, tricasterState1, mappings, 0, 'test')
 		expect(commands1).not.toHaveLength(0)
 
 		const state2: Timeline.TimelineState<TSRTimelineContent> = {
@@ -89,7 +89,7 @@ describe('TriCasterDevice', () => {
 			nextEvents: [],
 		}
 		const tricasterState2 = device.convertTimelineStateToDeviceState(state2, mappings)
-		const commands2 = device.diffStates(tricasterState1, tricasterState2, mappings)
+		const commands2 = device.diffStates(tricasterState1, tricasterState2, mappings, 0, 'test')
 		expect(commands2).toHaveLength(4)
 		expect(commands2[0].command).toMatchObject({ target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
 		expect(commands2[1].command).toMatchObject({ target: 'main', name: '_speed', value: 20 })

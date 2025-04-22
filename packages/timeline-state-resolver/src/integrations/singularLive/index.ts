@@ -130,7 +130,8 @@ export class SingularLiveDevice extends Device<SingularLiveOptions, SingularLive
 		oldSingularLiveState: SingularLiveState | undefined,
 		newSingularLiveState: SingularLiveState,
 		_mappings: Mappings<unknown>,
-		_time: number
+		_time: number,
+		context: string
 	): SingularLiveCommandContext[] {
 		const commands: Array<SingularLiveCommandContext> = []
 
@@ -140,7 +141,7 @@ export class SingularLiveDevice extends Device<SingularLiveOptions, SingularLive
 				// added!
 				commands.push({
 					timelineObjId: composition.timelineObjId,
-					context: `added: ${composition.timelineObjId}`,
+					context: `added: ${composition.timelineObjId} (${context})`,
 					command: {
 						commandName: 'added',
 						content: literal<SingularLiveControlNodeCommandContent>({
@@ -157,7 +158,7 @@ export class SingularLiveDevice extends Device<SingularLiveOptions, SingularLive
 					// changed!
 					commands.push({
 						timelineObjId: composition.timelineObjId,
-						context: `changed: ${composition.timelineObjId}  (previously: ${oldComposition.timelineObjId})`,
+						context: `changed: ${composition.timelineObjId}  (previously: ${oldComposition.timelineObjId}) (${context})`,
 						command: {
 							commandName: 'changed',
 							content: literal<SingularLiveControlNodeCommandContent>({
@@ -179,7 +180,7 @@ export class SingularLiveDevice extends Device<SingularLiveOptions, SingularLive
 					// removed!
 					commands.push({
 						timelineObjId: composition.timelineObjId,
-						context: `removed: ${composition.timelineObjId}`,
+						context: `removed: ${composition.timelineObjId} (${context})`,
 						command: {
 							commandName: 'removed',
 							content: literal<SingularLiveControlNodeCommandContent>({
@@ -230,7 +231,7 @@ export class SingularLiveDevice extends Device<SingularLiveOptions, SingularLive
 				})
 				.catch((error) => {
 					this.context.logger.error(
-						`SingularLive.response error ${command.content.subCompositionName} (${context}`,
+						`SingularLive.response error ${command.content.subCompositionName} ((${context})`,
 						error
 					)
 					throw error

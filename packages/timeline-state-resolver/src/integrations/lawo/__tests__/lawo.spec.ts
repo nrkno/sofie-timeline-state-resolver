@@ -253,7 +253,7 @@ describe('Lawo', () => {
 		) {
 			const device = await getInitialisedLawoDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates(oldDevState, newDevState, {}, 0, 'test')
 
 			expect(commands).toEqual(expCommands)
 		}
@@ -282,7 +282,7 @@ describe('Lawo', () => {
 
 							priority: 0,
 						},
-						context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+						context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 						timelineObjId: 'id0',
 					},
 				]
@@ -313,7 +313,7 @@ describe('Lawo', () => {
 
 							priority: 0,
 						},
-						context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+						context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 						timelineObjId: 'id0',
 					},
 				]
@@ -357,7 +357,7 @@ describe('Lawo', () => {
 
 							priority: 8,
 						},
-						context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+						context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 						timelineObjId: 'id1',
 					},
 					{
@@ -369,7 +369,7 @@ describe('Lawo', () => {
 
 							priority: 3,
 						},
-						context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+						context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 						timelineObjId: 'id2',
 					},
 					{
@@ -381,7 +381,7 @@ describe('Lawo', () => {
 
 							priority: 0,
 						},
-						context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+						context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 						timelineObjId: 'id0',
 					},
 				]
@@ -425,7 +425,7 @@ describe('Lawo', () => {
 
 							priority: 0,
 						},
-						context: 'Values: "0" !== "0", Changed TriggerValue: true',
+						context: 'Values: "0" !== "0", Changed TriggerValue: true (test)',
 						timelineObjId: 'id0',
 					},
 				]
@@ -447,7 +447,7 @@ describe('Lawo', () => {
 
 					priority: 0,
 				},
-				context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+				context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 				timelineObjId: 'id0',
 			})
 
@@ -477,7 +477,7 @@ describe('Lawo', () => {
 
 					priority: 0,
 				},
-				context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+				context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 				timelineObjId: 'id0',
 			})
 
@@ -534,7 +534,7 @@ describe('Lawo', () => {
 
 					priority: 0,
 				},
-				context: 'Values: "undefined" !== "0", Changed TriggerValue: false',
+				context: 'Values: "undefined" !== "0", Changed TriggerValue: false (test)',
 				timelineObjId: 'id0',
 			})
 

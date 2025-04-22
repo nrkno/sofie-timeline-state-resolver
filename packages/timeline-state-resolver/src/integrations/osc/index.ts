@@ -2,6 +2,7 @@ import {
 	ActionExecutionResult,
 	DeviceStatus,
 	DeviceType,
+	Mappings,
 	OSCDeviceType,
 	OSCMessageCommandContent,
 	OSCOptions,
@@ -109,7 +110,13 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 
 		return addrToOSCMessage
 	}
-	diffStates(oldState: OscDeviceState | undefined, newState: OscDeviceState): Array<OscCommandWithContext> {
+	diffStates(
+		oldState: OscDeviceState | undefined,
+		newState: OscDeviceState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
+	): Array<OscCommandWithContext> {
 		const commands: Array<OscCommandWithContext> = []
 
 		Object.entries<OSCDeviceStateContent>(newState).forEach(([address, newCommandContent]) => {
@@ -117,7 +124,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 			if (!oldLayer) {
 				// added!
 				commands.push({
-					context: `added: ${newCommandContent.fromTlObject}`,
+					context: `added: ${newCommandContent.fromTlObject} (${context})`,
 					timelineObjId: newCommandContent.fromTlObject,
 					command: newCommandContent,
 				})
@@ -126,7 +133,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 				if (!_.isEqual(oldLayer, newCommandContent)) {
 					// changed!
 					commands.push({
-						context: `changed: ${newCommandContent.fromTlObject}`,
+						context: `changed: ${newCommandContent.fromTlObject} (${context})`,
 						timelineObjId: newCommandContent.fromTlObject,
 						command: newCommandContent,
 					})

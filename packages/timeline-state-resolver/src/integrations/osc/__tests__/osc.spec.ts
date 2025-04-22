@@ -173,7 +173,7 @@ describe('OSC Device', () => {
 		) {
 			const device = await getInitialisedOscDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates(oldDevState, newDevState, {}, 0, 'test')
 
 			expect(commands).toEqual(expCommands)
 		}
@@ -205,7 +205,7 @@ describe('OSC Device', () => {
 							type: TimelineContentTypeOSC.OSC,
 							values: [],
 						},
-						context: 'added: obj0',
+						context: 'added: obj0 (test)',
 						timelineObjId: 'obj0',
 					},
 				]
@@ -262,7 +262,7 @@ describe('OSC Device', () => {
 						type: TimelineContentTypeOSC.OSC,
 						values: [],
 					},
-					context: '',
+					context: 'test',
 					timelineObjId: '',
 				})
 				.catch((e) => {
@@ -308,7 +308,7 @@ describe('OSC Device', () => {
 							direction: 'None',
 						},
 					},
-					context: '',
+					context: 'test',
 					timelineObjId: '',
 				})
 				.catch((e) => {

@@ -85,6 +85,8 @@ describe('Conductor', () => {
 				options: {},
 			})
 
+			conductor.timelineHash = 'timelineHashABC'
+
 			// add something that will play in a seconds time
 			const abstractThing0: TSRTimelineObj<any> = {
 				id: 'a0',
@@ -145,14 +147,16 @@ describe('Conductor', () => {
 					},
 					time: 10005,
 				}),
-				device0Mappings
+				device0Mappings,
+				'timelineHashABC'
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				2,
 				expect.objectContaining({
 					time: 11000,
 				}),
-				device0Mappings
+				device0Mappings,
+				'timelineHashABC'
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				3,
@@ -160,7 +164,8 @@ describe('Conductor', () => {
 					layers: {},
 					time: 12000,
 				}),
-				device0Mappings
+				device0Mappings,
+				'timelineHashABC'
 			)
 
 			// Ensure device1 has been fed sensible states
@@ -171,7 +176,8 @@ describe('Conductor', () => {
 				expect.objectContaining({
 					layers: {},
 				}),
-				device1Mappings
+				device1Mappings,
+				'timelineHashABC'
 			)
 			expect(device1.handleState).toHaveBeenNthCalledWith(
 				2,
@@ -186,14 +192,16 @@ describe('Conductor', () => {
 						}),
 					},
 				}),
-				device1Mappings
+				device1Mappings,
+				'timelineHashABC'
 			)
 			expect(device1.handleState).toHaveBeenNthCalledWith(
 				3,
 				expect.objectContaining({
 					layers: {},
 				}),
-				device1Mappings
+				device1Mappings,
+				'timelineHashABC'
 			)
 
 			// Remove the device
@@ -230,6 +238,8 @@ describe('Conductor', () => {
 				type: DeviceType.ABSTRACT,
 				options: {},
 			})
+
+			conductor.timelineHash = 'timelineHashABC'
 
 			// add something that will play "now"
 			const abstractThing0: TSRTimelineObj<any> = {
@@ -323,7 +333,8 @@ describe('Conductor', () => {
 					},
 					time: 10000,
 				}),
-				myLayerMapping
+				myLayerMapping,
+				'timelineHashABC'
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				2, // setTimelineTriggerTime
@@ -339,7 +350,8 @@ describe('Conductor', () => {
 					},
 					time: 10000,
 				}),
-				myLayerMapping
+				myLayerMapping,
+				'timelineHashABC'
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				3, // End of object
@@ -355,7 +367,8 @@ describe('Conductor', () => {
 					},
 					time: 10300,
 				}),
-				myLayerMapping
+				myLayerMapping,
+				'timelineHashABC'
 			)
 
 			device0.handleState.mockClear()
@@ -370,7 +383,8 @@ describe('Conductor', () => {
 					layers: {},
 					time: 15300,
 				}),
-				myLayerMapping
+				myLayerMapping,
+				'timelineHashABC'
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				1,
@@ -378,7 +392,8 @@ describe('Conductor', () => {
 					layers: {},
 					time: 15300,
 				}),
-				myLayerMapping
+				myLayerMapping,
+				'timelineHashABC'
 			)
 		} finally {
 			await conductor.destroy()
@@ -512,7 +527,7 @@ describe('Conductor', () => {
 		const timeline: TSRTimeline = [video0]
 
 		const device0Container = conductor.getDevice('device0')
-		const device0 = device0Container!.device as ThreadedClass<DeviceInstanceWrapper>
+		const device0 = device0Container?.device as ThreadedClass<DeviceInstanceWrapper>
 		expect(device0).toBeTruthy()
 
 		conductor.setTimelineAndMappings(timeline)

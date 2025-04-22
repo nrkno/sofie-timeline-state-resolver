@@ -78,8 +78,14 @@ export class OBSDevice extends Device<OBSOptions, OBSDeviceState, OBSCommandWith
 		return convertStateToOBS(state, newMappings)
 	}
 
-	diffStates(oldState: OBSDeviceState | undefined, newState: OBSDeviceState): Array<OBSCommandWithContext> {
-		return diffStates(oldState ?? getDefaultState(newState.time), newState, (scene, source) =>
+	diffStates(
+		oldState: OBSDeviceState | undefined,
+		newState: OBSDeviceState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
+	): Array<OBSCommandWithContext> {
+		return diffStates(oldState ?? getDefaultState(newState.time), newState, context, (scene, source) =>
 			this._obs?.getSceneItemId(scene, source)
 		)
 	}

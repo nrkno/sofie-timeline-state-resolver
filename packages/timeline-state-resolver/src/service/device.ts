@@ -66,7 +66,8 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 		oldState: DeviceState | undefined,
 		newState: DeviceState,
 		mappings: Mappings,
-		time: number
+		time: number,
+		context: string
 	): Array<Command>
 	abstract sendCommand(command: Command): Promise<void>
 	// -------------------------------------------------------------------
@@ -96,7 +97,8 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 		oldState: DeviceState | undefined,
 		newState: DeviceState,
 		mappings: Mappings,
-		currentTime: number
+		currentTime: number,
+		context: string
 	): Array<Command>
 	/** This method will take a command and send it to the device */
 	sendCommand(command: Command): Promise<void>

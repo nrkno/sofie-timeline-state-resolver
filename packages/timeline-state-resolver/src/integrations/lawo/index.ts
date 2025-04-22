@@ -49,8 +49,14 @@ export class LawoDevice extends Device<LawoOptions, LawoState, LawoCommandWithCo
 	): LawoState {
 		return convertTimelineStateToLawoState(timelineState, mappings)
 	}
-	diffStates(oldState: LawoState | undefined, newState: LawoState): Array<LawoCommandWithContext> {
-		return diffLawoStates(oldState, newState)
+	diffStates(
+		oldState: LawoState | undefined,
+		newState: LawoState,
+		_mappings: Mappings,
+		_time: number,
+		context: string
+	): Array<LawoCommandWithContext> {
+		return diffLawoStates(oldState, newState, context)
 	}
 	async sendCommand(cwc: LawoCommandWithContext): Promise<any> {
 		const { command } = cwc

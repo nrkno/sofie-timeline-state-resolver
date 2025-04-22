@@ -981,7 +981,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					// Pass along the state to the device, it will generate its commands and execute them:
 					try {
 						// await device.device.handleState(removeParentFromState(subState), this._mappings)
-						await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
+						await this._setDeviceState(
+							device.deviceId,
+							tlState.time,
+							removeParentFromState(subState),
+							this._mappings,
+							this.timelineHash ?? 'NoTimelineHash'
+						)
 					} catch (e) {
 						this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
 					}
@@ -1111,7 +1117,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		time: number,
 		state: Timeline.TimelineState<TSRTimelineContent>,
-		unfilteredMappings: Mappings
+		unfilteredMappings: Mappings,
+		timelineHash: string
 	) {
 		// only take mappings that are for this deviceId
 		const mappings = Object.fromEntries(
@@ -1151,7 +1158,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const filledState = fillStateFromDatastore(state, this._datastore)
 
 		// send the filled state to the device handler
-		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
+		return this.getDevice(deviceId)?.device.handleState(filledState, mappings, timelineHash)
 	}
 
 	setDatastore(newStore: Datastore) {
@@ -1184,7 +1191,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 						const filledState = fillStateFromDatastore(s.state, this._datastore)
 
 						this.getDevice(deviceId)
-							?.device.handleState(filledState, s.mappings)
+							?.device.handleState(filledState, s.mappings, 'dataStoreChanged')
 							.catch((e) => this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack))
 					}
 				}

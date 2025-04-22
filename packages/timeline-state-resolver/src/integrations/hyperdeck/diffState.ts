@@ -41,7 +41,8 @@ function diffHyperdeckNotifyStates(
 export function diffHyperdeckStates(
 	oldHyperdeckState: HyperdeckDeviceState | undefined,
 	newHyperdeckState: HyperdeckDeviceState,
-	logError: (err: Error) => void
+	logError: (err: Error) => void,
+	context?: string
 ): Array<HyperdeckCommandWithContext> {
 	const commandsToAchieveState: HyperdeckCommandWithContext[] = []
 
@@ -62,6 +63,7 @@ export function diffHyperdeckStates(
 					context: {
 						oldState: oldHyperdeckState?.transport,
 						newState: newHyperdeckState.transport,
+						context,
 					},
 					timelineObjId: newHyperdeckState.timelineObjId,
 				})
@@ -72,6 +74,7 @@ export function diffHyperdeckStates(
 					context: {
 						oldState: oldHyperdeckState.transport,
 						newState: newHyperdeckState.transport,
+						context,
 					},
 					timelineObjId: newHyperdeckState.timelineObjId,
 				})
@@ -80,6 +83,7 @@ export function diffHyperdeckStates(
 					context: {
 						oldState: oldHyperdeckState.transport,
 						newState: newHyperdeckState.transport,
+						context,
 					},
 					timelineObjId: newHyperdeckState.timelineObjId,
 				})

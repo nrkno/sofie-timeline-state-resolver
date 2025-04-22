@@ -167,7 +167,7 @@ describe('OBS Device', () => {
 		) {
 			const device = await getInitialisedObsDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates(oldDevState, newDevState, {}, 0, 'test')
 
 			expect(commands).toEqual(expCommands)
 		}
@@ -192,7 +192,7 @@ describe('OBS Device', () => {
 							},
 						},
 						timelineObjId: '',
-						context: 'currentScene changed from "undefined" to "scene1"',
+						context: 'currentScene changed from "undefined" to "scene1" (test)',
 					},
 				]
 			)
@@ -214,7 +214,7 @@ describe('OBS Device', () => {
 							},
 						},
 						timelineObjId: '',
-						context: 'currentTransition changed',
+						context: 'currentTransition changed (test)',
 					},
 				]
 			)
@@ -250,7 +250,7 @@ describe('OBS Device', () => {
 					// 		},
 					// 	},
 					// 	timelineObjId: '',
-					// 	context: 'currentTransition changed',
+					// 	context: 'currentTransition changed (test)',
 					// },
 				]
 			)
@@ -284,7 +284,7 @@ describe('OBS Device', () => {
 							},
 						},
 						timelineObjId: '',
-						context: 'source input1 changed settings',
+						context: 'source input1 changed settings (test)',
 					},
 				]
 			)
@@ -313,7 +313,7 @@ describe('OBS Device', () => {
 							},
 						},
 						timelineObjId: '',
-						context: 'source input1 changed settings',
+						context: 'source input1 changed settings (test)',
 					},
 				]
 			)
@@ -345,7 +345,7 @@ describe('OBS Device', () => {
 							},
 						},
 						timelineObjId: '',
-						context: 'source input1 playing',
+						context: 'source input1 playing (test)',
 					},
 					{
 						command: {
@@ -356,7 +356,7 @@ describe('OBS Device', () => {
 							},
 						},
 						timelineObjId: '',
-						context: 'source input1 changed seek position or startTime',
+						context: 'source input1 changed seek position or startTime (test)',
 					},
 				]
 			)

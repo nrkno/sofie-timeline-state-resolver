@@ -38,7 +38,11 @@ export interface LawoSetValueCommand {
 	priority: number
 }
 
-export function diffLawoStates(oldState: LawoState | undefined, newState: LawoState): LawoCommandWithContext[] {
+export function diffLawoStates(
+	oldState: LawoState | undefined,
+	newState: LawoState,
+	context: string
+): LawoCommandWithContext[] {
 	const commands: LawoCommandWithContext[] = []
 
 	// changed triggerValue => reset all faders and nodes
@@ -63,7 +67,7 @@ export function diffLawoStates(oldState: LawoState | undefined, newState: LawoSt
 					from: oldFader?.value,
 					priority: newFader.priority,
 				}),
-				context: `Values: "${oldFader?.value}" !== "${newFader.value}", Changed TriggerValue: ${changedTriggerValue}`,
+				context: `Values: "${oldFader?.value}" !== "${newFader.value}", Changed TriggerValue: ${changedTriggerValue} (${context})`,
 				timelineObjId: newFader.timelineObjId,
 			})
 		}
@@ -83,7 +87,7 @@ export function diffLawoStates(oldState: LawoState | undefined, newState: LawoSt
 					valueType: newNode.valueType,
 					priority: newNode.priority,
 				}),
-				context: `Values: "${oldNode?.value}" !== "${newNode.value}", Changed TriggerValue: ${changedTriggerValue}`,
+				context: `Values: "${oldNode?.value}" !== "${newNode.value}", Changed TriggerValue: ${changedTriggerValue} (${context})`,
 				timelineObjId: newNode.timelineObjId,
 			})
 		}
