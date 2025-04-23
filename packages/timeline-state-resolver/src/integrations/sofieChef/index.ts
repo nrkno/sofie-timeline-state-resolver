@@ -26,9 +26,7 @@ import { CommandWithContext, Device } from '../../service/device'
 import { diffStates } from './diffStates'
 import { buildSofieChefState } from './stateBuilder'
 
-export interface SofieChefCommandWithContext extends CommandWithContext {
-	command: ReceiveWSMessageAny
-}
+export type SofieChefCommandWithContext = CommandWithContext<ReceiveWSMessageAny, string>
 export interface SofieChefState {
 	windows: {
 		[windowId: string]: {
@@ -247,18 +245,13 @@ export class SofieChefDevice extends Device<SofieChefOptions, SofieChefState, So
 		return diffStates(oldSofieChefState, newSofieChefState, mappings)
 	}
 
-	public async sendCommand({ command, context, timelineObjId }: SofieChefCommandWithContext): Promise<any> {
+	public async sendCommand(cwc: SofieChefCommandWithContext): Promise<any> {
 		// emit the command to debug:
-		const cwc: CommandWithContext = {
-			context,
-			command,
-			timelineObjId,
-		}
 		this.context.logger.debug(cwc)
 
 		// execute the command here
 		try {
-			await this._sendMessage(command)
+			await this._sendMessage(cwc.command)
 		} catch (e) {
 			this.context.commandError(e as Error, cwc)
 		}

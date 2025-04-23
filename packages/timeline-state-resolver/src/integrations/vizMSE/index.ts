@@ -942,7 +942,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		context: string,
 		timelineObjId: string
 	): Promise<any> {
-		const cwc: CommandWithContext = {
+		const cwc: CommandWithContext<any, any> = {
 			context: context,
 			timelineObjId: timelineObjId,
 			command: cmd,

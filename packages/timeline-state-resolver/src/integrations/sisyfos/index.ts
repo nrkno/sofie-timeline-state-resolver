@@ -34,9 +34,7 @@ export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
 	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (time: number, cmd: SisyfosCommand, context: any, timelineObjId: string) => Promise<any>
-interface Command extends CommandWithContext {
-	command: SisyfosCommand
-}
+type Command = CommandWithContext<SisyfosCommand, string>
 
 /**
  * This is a generic wrapper for any osc-enabled device.
@@ -699,7 +697,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		context: string,
 		timelineObjId: string
 	): Promise<any> {
-		const cwc: CommandWithContext = {
+		const cwc: CommandWithContext<any, any> = {
 			context,
 			command: cmd,
 			timelineObjId,

@@ -22,10 +22,7 @@ import { CommandWithContext, Device } from '../../service/device'
 import { AtemStateBuilder } from './stateBuilder'
 import { createDiffOptions } from './diffState'
 
-export interface AtemCommandWithContext extends CommandWithContext {
-	command: AtemCommands.ISerializableCommand[]
-	context: string
-}
+export type AtemCommandWithContext = CommandWithContext<AtemCommands.ISerializableCommand[], string>
 
 type AtemDeviceState = DeviceState
 
@@ -177,7 +174,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 	}
 
 	async sendCommand({ command, context, timelineObjId }: AtemCommandWithContext): Promise<void> {
-		const cwc: CommandWithContext = {
+		const cwc: AtemCommandWithContext = {
 			context,
 			command,
 			timelineObjId,

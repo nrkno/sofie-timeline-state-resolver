@@ -10,11 +10,17 @@ import { CommandWithContext, Device } from '../../service/device'
 
 type HTTPWatcherDeviceState = Record<string, never>
 
+type HTTPWatcherCommandWithContext = CommandWithContext<never, never>
+
 /**
  * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches
  * it's response.
  */
-export class HTTPWatcherDevice extends Device<HTTPWatcherOptions, HTTPWatcherDeviceState, CommandWithContext> {
+export class HTTPWatcherDevice extends Device<
+	HTTPWatcherOptions,
+	HTTPWatcherDeviceState,
+	HTTPWatcherCommandWithContext
+> {
 	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private uri?: string
@@ -127,7 +133,7 @@ export class HTTPWatcherDevice extends Device<HTTPWatcherOptions, HTTPWatcherDev
 		// Noop
 		return {}
 	}
-	diffStates(): Array<CommandWithContext> {
+	diffStates(): Array<HTTPWatcherCommandWithContext> {
 		// Noop
 		return []
 	}

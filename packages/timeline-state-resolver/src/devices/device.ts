@@ -15,7 +15,7 @@ import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import { FinishedTrace, t } from '../lib'
-import { DeviceEvents, CommandWithContext as ServiceCommandWithContext } from '../service/device'
+import { DeviceEvents, CommandWithContext } from '../service/device'
 
 // =================================================================================================
 // =================================================================================================
@@ -40,9 +40,7 @@ export interface DeviceCommandContainer {
 	commands: Array<DeviceCommand>
 }
 
-export type CommandWithContext = ServiceCommandWithContext
-
-export { DeviceStatus, StatusCode }
+export { DeviceStatus, StatusCode, CommandWithContext }
 
 /**
  * These are the old Device events, emitted by the devices and listened to by conductor.
@@ -67,7 +65,7 @@ export type DeviceEventsOLD = {
 	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]
 
 	/** Something went wrong when executing a command  */
-	commandError: [error: Error, context: CommandWithContext]
+	commandError: [error: Error, context: CommandWithContext<any, any>]
 	/** Update a MediaObject  */
 	updateMediaObject: [collectionId: string, docId: string, doc: MediaObject | null]
 	/** Clear a MediaObjects collection */

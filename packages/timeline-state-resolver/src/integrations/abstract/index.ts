@@ -10,9 +10,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
-export interface AbstractCommandWithContext extends CommandWithContext {
-	command: string
-}
+export type AbstractCommandWithContext = CommandWithContext<string, string>
 
 export type DeviceOptionsAbstractInternal = DeviceOptionsAbstract
 

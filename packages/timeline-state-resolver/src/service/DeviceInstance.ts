@@ -37,8 +37,8 @@ export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChan
  * Top level container for setting up and interacting with any device integrations
  */
 export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
-	private _device: Device<any, DeviceState, CommandWithContext>
-	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
+	private _device: Device<any, DeviceState, CommandWithContext<any, any>>
+	private _stateHandler: StateHandler<DeviceState, CommandWithContext<any, any>>
 
 	private _deviceId: string
 	private _deviceType: DeviceType
@@ -247,7 +247,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 				this.emit('resetResolver')
 			},
 
-			commandError: (error: Error, context: CommandWithContext) => {
+			commandError: (error: Error, context: CommandWithContext<any, any>) => {
 				this.emit('commandError', error, context)
 			},
 			updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => {

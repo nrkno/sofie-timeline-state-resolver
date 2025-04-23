@@ -14,13 +14,13 @@ import { WebSocketConnection } from './connection'
 import { WebsocketClientActions } from 'timeline-state-resolver-types'
 
 /** this is not an extends but an implementation of the CommandWithContext */
-export interface WebSocketCommand extends CommandWithContext {
-	command: {
+export type WebSocketCommand = CommandWithContext<
+	{
 		type: TimelineContentTypeWebSocketClient
 		message: string
-	}
-	context: string
-}
+	},
+	string
+>
 export type WebSocketClientDeviceState = Timeline.TimelineState<TSRTimelineContent>
 
 export class WebSocketClientDevice extends Device<

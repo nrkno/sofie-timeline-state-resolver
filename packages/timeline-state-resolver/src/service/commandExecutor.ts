@@ -5,7 +5,7 @@ import { StateHandlerContext } from './stateHandler'
 
 const wait = async (t: number) => new Promise<void>((r) => setTimeout(() => r(), t))
 
-export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
+export class CommandExecutor<DeviceState, Command extends CommandWithContext<any, any>> {
 	constructor(
 		private logger: StateHandlerContext['logger'],
 		private mode: 'salvo' | 'sequential',

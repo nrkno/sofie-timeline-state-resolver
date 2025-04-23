@@ -16,13 +16,14 @@ import { TcpConnection } from './tcpConnection'
 
 export type TcpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
 
-export interface TcpSendDeviceCommand extends CommandWithContext {
-	command: {
+export type TcpSendDeviceCommand = CommandWithContext<
+	{
 		commandName: 'added' | 'changed' | 'removed' | 'manual'
 		content: TcpSendCommandContent
 		layer: string
-	}
-}
+	},
+	string
+>
 export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, TcpSendDeviceCommand> {
 	private activeLayers = new Map<string, string>()
 	private _terminated = false

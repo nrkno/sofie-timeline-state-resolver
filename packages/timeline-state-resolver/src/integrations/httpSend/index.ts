@@ -23,13 +23,14 @@ import CacheableLookup from 'cacheable-lookup'
 
 export type HttpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
 
-export interface HttpSendDeviceCommand extends CommandWithContext {
-	command: {
+export type HttpSendDeviceCommand = CommandWithContext<
+	{
 		commandName: 'added' | 'changed' | 'removed' | 'retry' | 'manual'
 		content: HTTPSendCommandContentExt
 		layer: string
-	}
-}
+	},
+	string
+>
 
 export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand> {
 	/** Setup in init */
@@ -208,11 +209,6 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			}
 		}
 
-		const cwc: CommandWithContext = {
-			context,
-			command,
-			timelineObjId,
-		}
 		this.context.logger.debug({ context, timelineObjId, command })
 
 		const t = Date.now()
@@ -286,7 +282,11 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				`HTTPSend.response error on ${command.content.type} "${command.content.url}" (${context})`,
 				err
 			)
-			this.context.commandError(err, cwc)
+			this.context.commandError(err, {
+				context,
+				command,
+				timelineObjId,
+			})
 
 			if ('code' in err) {
 				const retryCodes = [

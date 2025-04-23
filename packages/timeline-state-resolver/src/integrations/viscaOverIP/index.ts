@@ -33,9 +33,7 @@ import { ViscaValueConverter } from './connection/lib/ViscaValueConverter'
 
 export type ViscaDeviceState = Timeline.TimelineState<TSRTimelineContent>
 
-export interface ViscaDeviceCommand extends CommandWithContext {
-	command: {}
-}
+export type ViscaDeviceCommand = CommandWithContext<{}, string>
 
 export class ViscaOverIpDevice extends Device<ViscaOverIPOptions, ViscaDeviceState, ViscaDeviceCommand> {
 	protected _terminated = false

@@ -433,7 +433,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._expectingPolledState = false
 		this._pollingTimer?.postponeNextTick(BACKOFF_VMIX_POLL_INTERVAL)
 
-		const cwc: CommandWithContext = {
+		const cwc: CommandWithContext<any, any> = {
 			context: context,
 			command: cmd,
 			timelineObjId: timelineObjId,

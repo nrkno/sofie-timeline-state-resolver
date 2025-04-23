@@ -2,9 +2,15 @@ import { Commands as HyperdeckCommands, TransportStatus } from 'hyperdeck-connec
 import { CommandWithContext } from '../..'
 import type { HyperdeckDeviceState } from './stateBuilder'
 
-export interface HyperdeckCommandWithContext extends CommandWithContext {
-	command: HyperdeckCommands.AbstractCommand<any>
+export interface HyperdeckCommandContext {
+	oldState: HyperdeckDeviceState['transport'] | HyperdeckDeviceState['notify'] | undefined
+	newState: HyperdeckDeviceState['transport'] | HyperdeckDeviceState['notify']
 }
+
+export type HyperdeckCommandWithContext = CommandWithContext<
+	HyperdeckCommands.AbstractCommand<any>,
+	HyperdeckCommandContext
+>
 
 function diffHyperdeckNotifyStates(
 	oldHyperdeckState: HyperdeckDeviceState | undefined,
