@@ -48,7 +48,7 @@
 	],
 	"scripts": {
 		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-		"build": "run -T rimraf dist && run build:main && run translations:bundle",
+		"build": "run -T rimraf dist && run translations:bundle && run build:main",
 		"build:main": "run -T tsc -p tsconfig.build.json",
 		"lint:raw": "run -T eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
 		"lint": "run lint:raw .",
@@ -63,9 +63,11 @@
 		"cov-open": "run -T open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn npm audit --environment production && run license-validate",
 		"validate:dev-dependencies": "yarn npm audit --environment development",
-		"generate-schema-types": "node ./scripts/schema-types.mjs",
-		"translations:extract": "node ./scripts/translation/extract.mjs",
-		"translations:bundle": "node ./scripts/translation/bundle.mjs"
+		"generate-schema-types": "run schema:deref && run schema:types && node scripts/schema-common-types.mjs",
+		"translations:extract": "run tsr-extract-translations timeline-state-resolver ./src/index.ts",
+		"translations:bundle": "run tsr-bundle-translations timeline-state-resolver ./src/translations.json",
+		"schema:deref": "tsr-schema-deref ./src/integrations ./src/\\$schemas/generated",
+		"schema:types": "tsr-schema-types ./src/\\$schemas/generated ../timeline-state-resolver-types/src/generated --isMainRepository"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14 || 18"
@@ -111,6 +113,7 @@
 		"sprintf-js": "^1.1.3",
 		"superfly-timeline": "^9.0.1",
 		"threadedclass": "^1.2.2",
+		"timeline-state-resolver-api": "9.4.0-release53",
 		"timeline-state-resolver-types": "9.4.0-release53",
 		"tslib": "^2.6.3",
 		"tv-automation-quantel-gateway-client": "^3.1.7",
@@ -133,11 +136,8 @@
 	},
 	"devDependencies": {
 		"@types/simple-oauth2": "^5.0.7",
-		"i18next-conv": "^13.1.1",
-		"i18next-parser": "^6.6.0",
 		"jest-mock-extended": "^3.0.7",
-		"json-schema-ref-parser": "^9.0.9",
 		"json-schema-to-typescript": "^10.1.5",
-		"vinyl-fs": "^3.0.3"
+		"timeline-state-resolver-tools": "9.4.0-release53"
 	}
 }

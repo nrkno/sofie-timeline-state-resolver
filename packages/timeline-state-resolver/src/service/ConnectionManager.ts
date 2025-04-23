@@ -13,6 +13,7 @@ import { ImplementedServiceDeviceTypes } from './devices'
 import { EventEmitter } from 'eventemitter3'
 import { DeviceInstanceEvents } from './DeviceInstance'
 import { deferAsync } from '../lib'
+import { DevicesRegistry } from './devicesRegistry'
 
 interface Operation {
 	operation: 'create' | 'update' | 'delete' | 'setDebug'
@@ -37,12 +38,20 @@ export type MappedDeviceEvents = {
 }
 
 export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
+	private _devicesRegistry: DevicesRegistry
+
 	private _config: Map<string, DeviceOptionsAnyInternal> = new Map()
 	private _connections: Map<string, BaseRemoteDeviceIntegration<DeviceOptionsAnyInternal>> = new Map()
 	private _updating = false
 
 	private _connectionAttempts = new Map<string, { last: number; next: number }>()
 	private _nextAttempt: NodeJS.Timeout | undefined
+
+	constructor(devicesRegistry: DevicesRegistry) {
+		super()
+
+		this._devicesRegistry = devicesRegistry
+	}
 
 	/**
 	 * Set the config options for all connections
@@ -214,40 +223,21 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 			freezeLimit: FREEZE_LIMIT,
 		}
 
-		const container = await createContainer(deviceOptions, id, () => Date.now(), threadedClassOptions) // we rely on threadedclass to timeout if this fails
+		try {
+			const pluginPath = this._devicesRegistry.getPluginPathForDeviceIntergration(deviceOptions.type)
 
-		if (!container) {
-			this.emit('warning', 'Failed to create container for ' + id)
-			return
-		}
+			const container = await createContainer(pluginPath, deviceOptions, id, () => Date.now(), threadedClassOptions) // we rely on threadedclass to timeout if this fails
 
-		// set up event handlers
-		await this._setupDeviceListeners(id, container)
+			if (!container) {
+				this.emit('warning', 'Failed to create container for ' + id)
+				return
+			}
 
-		container.onChildClose = () => {
-			this.emit('error', 'Connection ' + id + ' closed')
-			this._connections.delete(id)
-			this.emit('connectionRemoved', id)
+			// set up event handlers
+			await this._setupDeviceListeners(id, container)
 
-			container
-				.terminate()
-				.catch((e) => this.emit('warning', `Failed to initialise ${id} (${e})`))
-				.finally(() => {
-					this._updateConnections()
-				})
-		}
-
-		this._connections.set(id, container)
-		this.emit('connectionAdded', id, container)
-
-		// trigger connection init
-		this._handleConnectionInitialisation(id, container)
-			.then(() => {
-				this._connectionAttempts.delete(id)
-				this.emit('connectionInitialised', id)
-			})
-			.catch((e) => {
-				this.emit('error', 'Connection ' + id + ' failed to initialise', e)
+			container.onChildClose = () => {
+				this.emit('error', 'Connection ' + id + ' closed')
 				this._connections.delete(id)
 				this.emit('connectionRemoved', id)
 
@@ -257,7 +247,32 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 					.finally(() => {
 						this._updateConnections()
 					})
-			})
+			}
+
+			this._connections.set(id, container)
+			this.emit('connectionAdded', id, container)
+
+			// trigger connection init
+			this._handleConnectionInitialisation(id, container)
+				.then(() => {
+					this._connectionAttempts.delete(id)
+					this.emit('connectionInitialised', id)
+				})
+				.catch((e) => {
+					this.emit('error', 'Connection ' + id + ' failed to initialise', e)
+					this._connections.delete(id)
+					this.emit('connectionRemoved', id)
+
+					container
+						.terminate()
+						.catch((e) => this.emit('warning', `Failed to initialise ${id} (${e})`))
+						.finally(() => {
+							this._updateConnections()
+						})
+				})
+		} catch (e) {
+			this.emit('warning', 'Failed to create connection for ' + id + ': ' + e)
+		}
 	}
 
 	private async deleteConnection(id: string): Promise<void> {
@@ -376,6 +391,7 @@ function configHasChanged(oldConfig: DeviceOptionsBase<any>, config: DeviceOptio
 }
 
 function createContainer(
+	pluginPath: string | null,
 	deviceOptions: DeviceOptionsAnyInternal,
 	deviceId: string,
 	getCurrentTime: () => number,
@@ -441,11 +457,13 @@ function createContainer(
 			ensureIsImplementedAsService(deviceOptions.type)
 
 			// presumably this device is implemented in the new service handler
-			return RemoteDeviceInstance.create(deviceId, deviceOptions, getCurrentTime, threadedClassOptions)
+			return RemoteDeviceInstance.create(pluginPath, deviceId, deviceOptions, getCurrentTime, threadedClassOptions)
 		}
 		default:
 			assertNever(deviceOptions)
-			return null
+
+			// this is a custom device
+			return RemoteDeviceInstance.create(pluginPath, deviceId, deviceOptions, getCurrentTime, threadedClassOptions)
 	}
 }
 

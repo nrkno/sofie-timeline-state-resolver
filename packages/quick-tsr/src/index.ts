@@ -29,6 +29,7 @@ watcher
 		console.error('Error', error)
 	})
 
+let pendingInput: Input | undefined
 const currentInput: Input = {
 	devices: {},
 	mappings: {},
@@ -36,9 +37,11 @@ const currentInput: Input = {
 	timeline: [],
 	datastore: {},
 }
+let applyingNewInput = false
 let tsr = new TSRHandler()
 function reloadInput(changed?: { path: string; stats: fs.Stats }) {
-	const newInput: Input = clone(currentInput)
+	const newInput: Input = pendingInput ?? clone(currentInput)
+	pendingInput = newInput
 
 	_.each(getAllFilesInDirectory('input/'), (filePath) => {
 		const requirePath = '../' + filePath.replace(/\\/g, '/')
@@ -101,67 +104,9 @@ function reloadInput(changed?: { path: string; stats: fs.Stats }) {
 			}
 		}
 	})
+
 	// react to changes:
-	Promise.resolve()
-		.then(async () => {
-			if (!_.isEqual(newInput.settings, currentInput.settings)) {
-				console.log('')
-				console.log('')
-				console.log('************************ Settings changed ******************')
-				currentInput.settings = clone(newInput.settings)
-				currentInput.devices = {}
-				currentInput.mappings = {}
-				currentInput.timeline = []
-
-				await tsr.destroy()
-
-				tsr = new TSRHandler()
-				await tsr.init(newInput.settings)
-			}
-
-			if (!_.isEqual(newInput.devices, currentInput.devices)) {
-				console.log('')
-				console.log('')
-				console.log('************************ Devices changed ******************')
-				currentInput.devices = clone(newInput.devices)
-				currentInput.mappings = {}
-				currentInput.timeline = []
-
-				await tsr.setDevices(newInput.devices)
-
-				setTimeout(() => {
-					tsr.logMediaList().catch(console.error)
-				}, 1000)
-			}
-
-			if (
-				!_.isEqual(newInput.mappings, currentInput.mappings) ||
-				!_.isEqual(newInput.timeline, currentInput.timeline)
-			) {
-				console.log('')
-				console.log('')
-				console.log('************************ Timeline / Mappings changed ******************')
-				currentInput.mappings = clone(newInput.mappings)
-				currentInput.timeline = clone(newInput.timeline)
-
-				// Check that layers are correct.
-				newInput.timeline.forEach((obj) => {
-					if (!newInput.mappings[obj.layer])
-						console.error(`Object ${obj.id} refers to a layer/mapping that does not exist: "${obj.layer}"`)
-				})
-
-				tsr.setTimelineAndMappings(newInput.timeline, newInput.mappings)
-			}
-			if (!_.isEqual(newInput.datastore, currentInput.datastore)) {
-				console.log('')
-				console.log('')
-				console.log('************************ Datastore changed ******************')
-				currentInput.datastore = clone(newInput.datastore)
-
-				tsr.setDatastore(newInput.datastore)
-			}
-		})
-		.catch(console.error)
+	triggerApplyNewInput()
 }
 function getAllFilesInDirectory(dir: string): string[] {
 	const files = fs.readdirSync(dir)
@@ -177,6 +122,75 @@ function getAllFilesInDirectory(dir: string): string[] {
 		}
 	})
 	return filelist
+}
+
+function triggerApplyNewInput() {
+	if (applyingNewInput || !pendingInput) return
+	applyingNewInput = true
+
+	const newInput = pendingInput
+	pendingInput = undefined
+
+	applyNewInput(newInput)
+		.catch(console.error)
+		.finally(() => {
+			applyingNewInput = false
+		})
+}
+async function applyNewInput(newInput: Input): Promise<void> {
+	if (!_.isEqual(newInput.settings, currentInput.settings)) {
+		console.log('')
+		console.log('')
+		console.log('************************ Settings changed ******************')
+		currentInput.settings = clone(newInput.settings)
+		currentInput.devices = {}
+		currentInput.mappings = {}
+		currentInput.timeline = []
+
+		await tsr.destroy()
+
+		tsr = new TSRHandler()
+		await tsr.init(newInput.settings)
+	}
+
+	if (!_.isEqual(newInput.devices, currentInput.devices)) {
+		console.log('')
+		console.log('')
+		console.log('************************ Devices changed ******************')
+		currentInput.devices = clone(newInput.devices)
+		currentInput.mappings = {}
+		currentInput.timeline = []
+
+		await tsr.setDevices(newInput.devices)
+
+		setTimeout(() => {
+			tsr.logMediaList().catch(console.error)
+		}, 1000)
+	}
+
+	if (!_.isEqual(newInput.mappings, currentInput.mappings) || !_.isEqual(newInput.timeline, currentInput.timeline)) {
+		console.log('')
+		console.log('')
+		console.log('************************ Timeline / Mappings changed ******************')
+		currentInput.mappings = clone(newInput.mappings)
+		currentInput.timeline = clone(newInput.timeline)
+
+		// Check that layers are correct.
+		newInput.timeline.forEach((obj) => {
+			if (!newInput.mappings[obj.layer])
+				console.error(`Object ${obj.id} refers to a layer/mapping that does not exist: "${obj.layer}"`)
+		})
+
+		tsr.setTimelineAndMappings(newInput.timeline, newInput.mappings)
+	}
+	if (!_.isEqual(newInput.datastore, currentInput.datastore)) {
+		console.log('')
+		console.log('')
+		console.log('************************ Datastore changed ******************')
+		currentInput.datastore = clone(newInput.datastore)
+
+		tsr.setDatastore(newInput.datastore)
+	}
 }
 
 export type TSRInput = Partial<Input>

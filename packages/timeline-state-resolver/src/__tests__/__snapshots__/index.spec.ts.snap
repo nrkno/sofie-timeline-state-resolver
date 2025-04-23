@@ -18,6 +18,7 @@ exports[`index imports 1`] = `
   "Device",
   "DeviceContainer",
   "DeviceType",
+  "DevicesRegistry",
   "Direction",
   "DoOnTime",
   "Ease",
@@ -100,6 +101,5 @@ exports[`index imports 1`] = `
   "fillStateFromDatastore",
   "interpolateTemplateString",
   "interpolateTemplateStringIfNeeded",
-  "manifest",
 ]
 `;

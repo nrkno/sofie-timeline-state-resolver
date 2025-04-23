@@ -1,4 +1,4 @@
 {
-	"$schema": "../../../$schemas/action-schema.json",
+	"$schema": "../../../../../timeline-state-resolver-api/$schemas/action-schema.json",
 	"actions": []
 }

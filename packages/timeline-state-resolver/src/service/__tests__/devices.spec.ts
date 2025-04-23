@@ -1,11 +1,12 @@
+import type { DeviceEntry } from 'timeline-state-resolver-api'
 import { getDeviceContext } from '../../integrations/__tests__/testlib'
-import { manifest } from '../../manifest'
-import { DeviceEntry, DevicesDict } from '../devices'
+import { builtinDeviceManifest } from '../../manifest'
+import { DevicesDict } from '../devices'
 
 describe('Ensure that all integrations have defined their actions', () => {
 	for (const [key, device] of Object.entries<DeviceEntry>(DevicesDict)) {
 		test(`Device ${key}`, () => {
-			const deviceManifest = manifest.subdevices[key]
+			const deviceManifest = builtinDeviceManifest.subdevices[key]
 			expect(deviceManifest).toBeTruthy()
 
 			const deviceInstance = new device.deviceClass(getDeviceContext())

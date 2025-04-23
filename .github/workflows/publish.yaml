@@ -14,7 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [16.x, 18.x, 20.x]
-        lib-name: [timeline-state-resolver, timeline-state-resolver-types]
+        lib-name:
+          - timeline-state-resolver
+          - timeline-state-resolver-types
+          # - timeline-state-resolver-api
 
     steps:
       - uses: actions/checkout@v4

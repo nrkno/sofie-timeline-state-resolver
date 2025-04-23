@@ -1,4 +1,5 @@
-import { FinishedTrace, startTrace, endTrace } from '../lib'
+import { startTrace, endTrace } from '../lib'
+import type { FinishedTrace } from 'timeline-state-resolver-api'
 import { Mappings, Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
 import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement, StateChangeReport } from './measure'

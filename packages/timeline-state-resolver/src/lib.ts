@@ -3,6 +3,7 @@ import { ITranslatableMessage, ActionExecutionResultCode, ActionExecutionResult 
 import * as _ from 'underscore'
 import { PartialDeep } from 'type-fest'
 import deepmerge = require('deepmerge')
+import type { FinishedTrace, Trace } from 'timeline-state-resolver-api'
 
 export function literal<T>(o: T) {
 	return o
@@ -190,21 +191,6 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 /** Deeply extend an object with some partial objects */
 export function deepMerge<T extends object>(destination: T, source: PartialDeep<T>): T {
 	return deepmerge<T>(destination, source)
-}
-
-export interface Trace {
-	/** id of this trace, should be formatted as namespace:id */
-	measurement: string
-	/** timestamp of when trace was started */
-	start: number
-	/** Tags to differentiate data sources */
-	tags?: Record<string, string>
-}
-export interface FinishedTrace extends Trace {
-	/** timestamp of when trace was ended */
-	ended: number
-	/** duration of the trace */
-	duration: number
 }
 
 export function startTrace(measurement: string, tags?: Record<string, string>): Trace {

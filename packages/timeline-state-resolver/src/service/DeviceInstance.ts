@@ -1,5 +1,6 @@
 import EventEmitter = require('eventemitter3')
-import { actionNotFoundMessage, FinishedTrace } from '../lib'
+import { actionNotFoundMessage } from '../lib'
+import type { FinishedTrace, DeviceEntry, Device } from 'timeline-state-resolver-api'
 import {
 	type DeviceStatus,
 	type DeviceType,
@@ -8,9 +9,9 @@ import {
 	type Timeline,
 	type TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import type { CommandWithContext, Device, DeviceContextAPI, DeviceEvents } from './device'
+import type { CommandWithContext, DeviceContextAPI, DeviceEvents } from './device'
 import { StateHandler } from './stateHandler'
-import { DeviceEntry, DevicesDict } from './devices'
+import { DevicesDict } from './devices'
 import type { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
 import type { StateChangeReport } from './measure'
 
@@ -33,12 +34,37 @@ export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChan
 	connectionChanged: [status: DeviceStatus]
 }
 
+// Future: it would be nice for this to be async, so that we can support proper ESM, but that isnt compatible with calling this in the constructor.
+function loadDeviceIntegration(pluginPath: string | null, deviceType: DeviceType): DeviceEntry | undefined {
+	if (!pluginPath) {
+		// No pluginPath means this is a builtin
+		return DevicesDict[deviceType]
+	}
+
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const plugin = require(pluginPath)
+
+		const pluginDevices = plugin.Devices
+		if (!pluginDevices || typeof pluginDevices !== 'object')
+			throw new Error(`Plugin at path "${pluginPath}" does not export a Devices object`)
+
+		const deviceSpecs = pluginDevices[deviceType]
+		if (deviceSpecs) return deviceSpecs
+	} catch (e) {
+		console.warn(`Error loading device integrations from: ${pluginPath}`, e)
+	}
+
+	return undefined
+}
+
 /**
  * Top level container for setting up and interacting with any device integrations
  */
 export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _device: Device<any, DeviceState, CommandWithContext>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
+	private _deviceSpecs: DeviceEntry
 
 	private _deviceId: string
 	private _deviceType: DeviceType
@@ -53,15 +79,21 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _lastUpdateCurrentTime: number | undefined
 	private _tDiff: number | undefined
 
-	constructor(id: string, time: number, private config: Config, private getRemoteCurrentTime: () => Promise<number>) {
+	constructor(
+		id: string,
+		time: number,
+		pluginPath: string | null,
+		private config: Config,
+		private getRemoteCurrentTime: () => Promise<number>
+	) {
 		super()
 
-		const deviceSpecs: DeviceEntry = DevicesDict[config.type]
-
+		const deviceSpecs = loadDeviceIntegration(pluginPath, config.type)
 		if (!deviceSpecs) {
 			throw new Error('Could not find device of type ' + config.type)
 		}
 
+		this._deviceSpecs = deviceSpecs
 		this._device = new deviceSpecs.deviceClass(this._getDeviceContextAPI())
 		this._deviceId = id
 		this._deviceType = config.type
@@ -147,12 +179,10 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	}
 
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		return this._device.makeReady(okToDestroyStuff)
+		return this._device.makeReady?.(okToDestroyStuff)
 	}
 	async standDown(): Promise<void> {
-		if (this._device.standDown) {
-			return this._device.standDown()
-		}
+		return this._device.standDown?.()
 	}
 
 	/** @deprecated - just here for API compatiblity with the old class */
@@ -181,7 +211,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			startTime: this._startTime,
 
 			supportsExpectedPlayoutItems: false,
-			canConnect: DevicesDict[this.config.type].canConnect,
+			canConnect: this._deviceSpecs.canConnect,
 		}
 	}
 

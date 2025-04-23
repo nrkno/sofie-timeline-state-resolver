@@ -1,5 +1,5 @@
 {
-	"$schema": "../../../$schemas/action-schema.json",
+	"$schema": "../../../../../timeline-state-resolver-api/$schemas/action-schema.json",
 	"actions": [
 		{
 			"id": "resync",
@@ -64,7 +64,7 @@
 			"result": {
 				"type": "object",
 				"properties": {
-					"statusCode":  {
+					"statusCode": {
 						"type": "number"
 					},
 					"headers": {
@@ -73,8 +73,8 @@
 							"oneOf": [
 								{ "type": "string" },
 								{
-								  "type": "array",
-								  "items": { "type": "string" }
+									"type": "array",
+									"items": { "type": "string" }
 								}
 							]
 						}
@@ -83,11 +83,7 @@
 						"type": "string"
 					}
 				},
-				"required": [
-					"statusCode",
-					"headers",
-					"body"
-				],
+				"required": ["statusCode", "headers", "body"],
 				"additionalProperties": false
 			}
 		}

@@ -1,0 +1,99 @@
+{
+	"name": "timeline-state-resolver-api",
+	"version": "9.4.0-release53",
+	"description": "Have timeline, control stuff",
+	"main": "dist/tsr-api.js",
+	"typings": "dist/tsr-api.d.ts",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nrkno/sofie-timeline-state-resolver.git"
+	},
+	"bugs": {
+		"url": "https://github.com/nrkno/sofie-timeline-state-resolver/issues"
+	},
+	"homepage": "https://github.com/nrkno/sofie-timeline-state-resolver#readme",
+	"contributors": [
+		{
+			"name": "Johan Nyman",
+			"email": "johan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Mint de Wit",
+			"email": "mint@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jesper Stærkær",
+			"email": "jesper@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jan Starzak",
+			"email": "jan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
+	],
+	"scripts": {
+		"test": "run lint && run unit",
+		"unit": "run -T jest",
+		"unitci": "run -T jest --coverage",
+		"build": "run -T rimraf dist && run build:main",
+		"build:main": "run -T tsc -p tsconfig.build.json",
+		"cov": "run -T jest --coverage && run cov-open",
+		"cov-open": "run -T open-cli coverage/lcov-report/index.html",
+		"validate:dependencies": "yarn npm  audit --environment production && yarn license-validate",
+		"validate:dev-dependencies": "yarn npm audit --environment development",
+		"lint:raw": "run -T eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint": "run lint:raw .",
+		"lint-fix": "run lint --fix",
+		"license-validate": "run -T  sofie-licensecheck"
+	},
+	"engines": {
+		"node": ">=14.18"
+	},
+	"files": [
+		"/dist",
+		"/$schemas",
+		"/CHANGELOG.md",
+		"/README.md",
+		"/LICENSE"
+	],
+	"keywords": [
+		"mos",
+		"broadcast",
+		"socket",
+		"typescript",
+		"javascript",
+		"open",
+		"source",
+		"automation",
+		"ncs",
+		"nrcs",
+		"rundown",
+		"production"
+	],
+	"dependencies": {
+		"tslib": "^2.6.3"
+	},
+	"peerDependencies": {
+		"timeline-state-resolver-types": "9.4.0-release53"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"yarn run -T prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"yarn lint:raw --fix"
+		]
+	}
+}
