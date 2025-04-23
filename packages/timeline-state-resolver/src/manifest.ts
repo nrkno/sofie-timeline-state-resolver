@@ -58,6 +58,7 @@ import VMixMappings = require('./$schemas/generated/vmix/mappings.json')
 import VMixActions = require('./$schemas/generated/vmix/actions.json')
 import WebSocketClientOptions = require('./$schemas/generated/websocketClient/options.json')
 import WebSocketClientActions = require('./$schemas/generated/websocketClient/actions.json')
+import { TSRDevicesManifestEntry } from 'timeline-state-resolver-api'
 
 import CommonOptions = require('./$schemas/common-options.json')
 import { generateTranslation } from './lib'
@@ -71,13 +72,6 @@ const stringifyActionSchema = (
 const stringifyMappingSchema = (schema: any): Record<string, string> =>
 	Object.fromEntries(Object.entries<any>(schema.mappings).map(([id, sch]) => [id, JSON.stringify(sch)]))
 
-export type TSRDevicesManifestEntry = {
-	displayName: string
-	configSchema: string
-	actions?: TSRActionSchema[]
-	mappingsSchemas: Record<string, string>
-}
-
 export type TSRDevicesManifest = {
 	[deviceType in DeviceType]: TSRDevicesManifestEntry
 }
@@ -87,7 +81,7 @@ export interface TSRManifest {
 	subdevices: TSRDevicesManifest
 }
 
-export const manifest: TSRManifest = {
+export const builtinDeviceManifest: TSRManifest = {
 	commonOptions: JSON.stringify(CommonOptions),
 	subdevices: {
 		[DeviceType.ABSTRACT]: {

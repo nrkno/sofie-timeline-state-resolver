@@ -11271,6 +11271,16 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"timeline-state-resolver-api@9.4.0-release53, timeline-state-resolver-api@workspace:packages/timeline-state-resolver-api":
+  version: 0.0.0-use.local
+  resolution: "timeline-state-resolver-api@workspace:packages/timeline-state-resolver-api"
+  dependencies:
+    tslib: ^2.6.3
+  peerDependencies:
+    timeline-state-resolver-types: 9.4.0-release53
+  languageName: unknown
+  linkType: soft
+
 "timeline-state-resolver-packages@workspace:.":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver-packages@workspace:."
@@ -11292,6 +11302,24 @@ asn1@evs-broadcast/node-asn1:
     ts-node: ^8.10.2
     typedoc: ^0.23.28
     typescript: ~4.9.5
+  languageName: unknown
+  linkType: soft
+
+"timeline-state-resolver-tools@9.4.0-release53, timeline-state-resolver-tools@workspace:packages/timeline-state-resolver-tools":
+  version: 0.0.0-use.local
+  resolution: "timeline-state-resolver-tools@workspace:packages/timeline-state-resolver-tools"
+  dependencies:
+    i18next-conv: ^13.1.1
+    i18next-parser: ^6.6.0
+    json-schema-ref-parser: ^9.0.9
+    json-schema-to-typescript: ^10.1.5
+    meow: ^11.0.0
+    vinyl-fs: ^3.0.3
+  bin:
+    tsr-bundle-translations: bin/bundle-translations.mjs
+    tsr-extract-translations: bin/extract-translations.mjs
+    tsr-schema-deref: bin/schema-deref.mjs
+    tsr-schema-types: bin/schema-types.mjs
   languageName: unknown
   linkType: soft
 
@@ -11321,10 +11349,7 @@ asn1@evs-broadcast/node-asn1:
     got: ^11.8.6
     hpagent: ^1.2.0
     hyperdeck-connection: 2.0.1
-    i18next-conv: ^13.1.1
-    i18next-parser: ^6.6.0
     jest-mock-extended: ^3.0.7
-    json-schema-ref-parser: ^9.0.9
     json-schema-to-typescript: ^10.1.5
     klona: ^2.0.6
     obs-websocket-js: ^5.0.6
@@ -11336,13 +11361,14 @@ asn1@evs-broadcast/node-asn1:
     sprintf-js: ^1.1.3
     superfly-timeline: ^9.0.1
     threadedclass: ^1.2.2
+    timeline-state-resolver-api: 9.4.0-release53
+    timeline-state-resolver-tools: 9.4.0-release53
     timeline-state-resolver-types: 9.4.0-release53
     tslib: ^2.6.3
     tv-automation-quantel-gateway-client: ^3.1.7
     type-fest: ^3.13.1
     underscore: ^1.13.7
     utf-8-validate: ^6.0.4
-    vinyl-fs: ^3.0.3
     ws: ^8.18.0
     xml-js: ^1.6.11
   languageName: unknown

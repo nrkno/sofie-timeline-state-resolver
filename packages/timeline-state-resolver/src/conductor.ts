@@ -50,7 +50,8 @@ import {
 
 import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
-import { endTrace, FinishedTrace, startTrace } from './lib'
+import { endTrace, startTrace } from './lib'
+import type { FinishedTrace } from 'timeline-state-resolver-api'
 
 import { CommandWithContext } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
@@ -61,6 +62,7 @@ import { DeviceOptionsVMixInternal } from './integrations/vmix'
 import { DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { BaseRemoteDeviceIntegration } from './service/remoteDeviceInstance'
 import { ConnectionManager } from './service/ConnectionManager'
+import { DevicesRegistry } from './service/devicesRegistry'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -92,6 +94,8 @@ export interface ConductorOptions {
 	proActiveResolve?: boolean
 	/** If set, multiplies the estimated resolve time (default: 1) */
 	estimateResolveTimeMultiplier?: number
+
+	devicesRegistry?: DevicesRegistry
 }
 interface TimelineCallback {
 	time: number
@@ -175,7 +179,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _options: ConductorOptions
 
-	public readonly connectionManager = new ConnectionManager()
+	public readonly connectionManager: ConnectionManager
 
 	private _getCurrentTime?: () => number
 
@@ -219,6 +223,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	constructor(options: ConductorOptions = {}) {
 		super()
 		this._options = options
+
+		this.connectionManager = new ConnectionManager(options?.devicesRegistry || new DevicesRegistry())
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
 		this._useCacheWhenResolving = !!options.useCacheWhenResolving

@@ -1,6 +1,6 @@
 import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
-import { Device, DeviceContextAPI } from './device'
+import type { DeviceEntry } from 'timeline-state-resolver-api'
 import { AuthenticatedHTTPSendDevice } from '../integrations/httpSend/AuthenticatedHTTPSendDevice'
 import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
@@ -20,13 +20,6 @@ import { TriCasterDevice } from '../integrations/tricaster'
 import { SingularLiveDevice } from '../integrations/singularLive'
 import { MultiOSCMessageDevice } from '../integrations/multiOsc'
 import { WebSocketClientDevice } from '../integrations/websocketClient'
-
-export interface DeviceEntry {
-	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
-	canConnect: boolean
-	deviceName: (deviceId: string, options: any) => string
-	executionMode: (options: any) => 'salvo' | 'sequential'
-}
 
 export type ImplementedServiceDeviceTypes =
 	| DeviceType.ABSTRACT

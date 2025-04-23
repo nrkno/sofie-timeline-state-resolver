@@ -1,5 +1,5 @@
 {
-	"$schema": "../../../$schemas/action-schema.json",
+	"$schema": "../../../../../timeline-state-resolver-api/$schemas/action-schema.json",
 	"actions": [
 		{
 			"id": "clearAllChannels",
@@ -30,15 +30,11 @@
 					"type": "object",
 					"properties": {
 						"clip": {
-							"type": "string",
+							"type": "string"
 						},
 						"type": {
 							"type": "string",
-							"enum": [
-								"MOVIE",
-								"STILL",
-								"AUDIO"
-							]
+							"enum": ["MOVIE", "STILL", "AUDIO"]
 						},
 						"size": {
 							"type": "number"
@@ -53,14 +49,7 @@
 							"type": "number"
 						}
 					},
-					"required": [
-						"clip",
-						"type",
-						"size",
-						"dateTime",
-						"frames",
-						"framerate"
-					],
+					"required": ["clip", "type", "size", "dateTime", "frames", "framerate"],
 					"additionalProperties": false
 				}
 			}

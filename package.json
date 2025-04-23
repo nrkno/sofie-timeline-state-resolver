@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "workspaces": {
     "packages": [
+      "packages/timeline-state-resolver-tools",
       "packages/timeline-state-resolver-types",
+      "packages/timeline-state-resolver-api",
       "packages/timeline-state-resolver",
       "packages/quick-tsr"
     ]

@@ -1,6 +1,7 @@
 import { DeviceType, OSCDeviceType } from 'timeline-state-resolver-types'
 import { ConstructedMockDevices, MockDeviceInstanceWrapper } from '../../__tests__/mockDeviceInstanceWrapper'
 import { ConnectionManager } from '../ConnectionManager'
+import { DevicesRegistry } from '../devicesRegistry'
 
 // Mock explicitly the 'dist' version, as that is what threadedClass is being told to load
 jest.mock('../../../dist/service/DeviceInstance', () => ({
@@ -11,7 +12,7 @@ jest.mock('../DeviceInstance', () => ({
 }))
 
 describe('ConnectionManager', () => {
-	const connManager = new ConnectionManager()
+	const connManager = new ConnectionManager(new DevicesRegistry())
 
 	test('adding/removing a device', async () => {
 		let resolveAdded: undefined | (() => void) = undefined

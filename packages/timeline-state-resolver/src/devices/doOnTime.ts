@@ -1,6 +1,9 @@
 import { EventEmitter } from 'eventemitter3'
 import * as _ from 'underscore'
 import { SlowReportOptions } from 'timeline-state-resolver-types'
+import type { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from 'timeline-state-resolver-api'
+
+export type { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport }
 
 export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 export type DoOrderFunctionNothing = () => void | Promise<any> | any
@@ -24,28 +27,6 @@ export type DoOnTimeEvents = {
 	slowSentCommand: [info: SlowSentCommandInfo]
 	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]
 	commandReport: [commandReport: CommandReport]
-}
-
-export interface SlowSentCommandInfo {
-	added: number
-	prepareTime: number
-	plannedSend: number
-	send: number
-	queueId: string
-	args: string
-	sendDelay: number
-	addedDelay: number
-	internalDelay: number
-}
-export interface SlowFulfilledCommandInfo {
-	added: number
-	prepareTime: number
-	plannedSend: number
-	send: number
-	queueId: string
-	fullfilled: number
-	fulfilledDelay: number
-	args: string
 }
 
 export enum SendMode {
@@ -328,21 +309,4 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 			this.emit('commandReport', output)
 		}
 	}
-}
-
-export interface CommandReport {
-	/** The time the command is planned to execute */
-	plannedSend: number
-	/** The queue the command is put into */
-	queueId: string
-	/** Command is added to list of planned (future) events */
-	added: number
-	/** Command is picked from list of events and put into queue for immediade execution  */
-	prepareTime: number
-	/** Command is starting to exeute */
-	send: number
-	/** Command has finished executing */
-	fullfilled: number
-	/** Arguments of command */
-	args: any
 }

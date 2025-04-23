@@ -37,7 +37,12 @@ export class MockDeviceInstanceWrapper
 			| 'removeAllListeners'
 		>
 {
-	constructor(public readonly deviceId: string, _startTime: string, public readonly config: DeviceOptionsAnyInternal) {
+	constructor(
+		public readonly deviceId: string,
+		_startTime: string,
+		public readonly pluginPath,
+		public readonly config: DeviceOptionsAnyInternal
+	) {
 		super()
 
 		// const deviceSpecs = DevicesDict[config.type]

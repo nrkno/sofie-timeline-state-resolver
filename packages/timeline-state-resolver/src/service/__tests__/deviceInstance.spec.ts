@@ -54,7 +54,7 @@ jest.mock('../../integrations/abstract/index', () => ({
 }))
 
 function getDeviceInstance(getTime = async () => Date.now()): DeviceInstanceWrapper {
-	return new DeviceInstanceWrapper('wrapper0', Date.now(), { type: DeviceType.ABSTRACT }, getTime)
+	return new DeviceInstanceWrapper('wrapper0', Date.now(), null, { type: DeviceType.ABSTRACT }, getTime)
 }
 
 describe('DeviceInstance', () => {

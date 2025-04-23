@@ -115,6 +115,7 @@ export class RemoteDeviceInstance<
 	}
 
 	static async create<TOptions extends DeviceOptionsBase<unknown>>(
+		pluginPath: string | null,
 		deviceId: string,
 		deviceOptions: TOptions,
 		getCurrentTime: () => number,
@@ -125,7 +126,7 @@ export class RemoteDeviceInstance<
 		container._device = await threadedClass<DeviceInstanceWrapper, typeof DeviceInstanceWrapper>(
 			'../../dist/service/DeviceInstance.js',
 			'DeviceInstanceWrapper',
-			[deviceId, getCurrentTime(), deviceOptions as DeviceOptionsAnyInternal, getCurrentTime as any], // any because callbacks can't be casted
+			[deviceId, getCurrentTime(), pluginPath, deviceOptions as DeviceOptionsAnyInternal, getCurrentTime as any], // any because callbacks can't be casted
 			threadConfig
 		)
 

@@ -10,7 +10,8 @@
 		"**/dist",
 		"**/__mocks__",
 		"**/__tests__",
-		"**/examples"
+		"**/examples",
+		"**/packages/timeline-state-resolver-tools"
 	],
 	"entryPointStrategy": "packages"
 }

@@ -14,7 +14,8 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
-import { FinishedTrace, t } from '../lib'
+import { t } from '../lib'
+import type { FinishedTrace } from 'timeline-state-resolver-api'
 import { DeviceEvents, CommandWithContext as ServiceCommandWithContext } from '../service/device'
 
 // =================================================================================================

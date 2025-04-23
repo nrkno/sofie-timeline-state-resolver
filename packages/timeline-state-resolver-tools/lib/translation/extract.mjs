@@ -126,18 +126,16 @@ class MergeExistingTranslationsTransform extends Transform {
 	}
 }
 
-async function extract() {
-	const entryPointName = 'timeline-state-resolver'
-	const path = './src/index.ts'
+export async function extractTranslations(packageName, sourcePath) {
 	const start = Date.now()
-	console.info(`\nExtracting keys from ${entryPointName} (${path})...`)
-	const entryPointRoot = parse(path).dir
+	console.info(`\nExtracting keys from ${packageName} (${sourcePath})...`)
+	const entryPointRoot = parse(sourcePath).dir
 
 	let extractionStats = { locales: [] }
 
 	await pipeline(
 		vfs.src([`${entryPointRoot}/**/*.ts`, `${entryPointRoot}/**/$schemas/*.json`]),
-		new i18nTransform(Object.assign({}, extractOptions, { defaultNamespace: entryPointName })).on(
+		new i18nTransform(Object.assign({}, extractOptions, { defaultNamespace: packageName })).on(
 			'warning:variable',
 			console.log
 		),
@@ -168,5 +166,3 @@ async function extract() {
 		})
 		.catch(console.error)
 }
-
-extract().catch(console.error)

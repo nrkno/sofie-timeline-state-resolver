@@ -2,6 +2,7 @@
 	"files": [],
 	"references": [
 		{ "path": "packages/timeline-state-resolver" },
+		{ "path": "packages/timeline-state-resolver-api" },
 		{ "path": "packages/timeline-state-resolver-types" }
 	]
 }

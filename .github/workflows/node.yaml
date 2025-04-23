@@ -18,7 +18,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lib-name: [timeline-state-resolver, timeline-state-resolver-types, quick-tsr]
+        lib-name:
+          - timeline-state-resolver
+          - timeline-state-resolver-types
+          - timeline-state-resolver-api
+          - quick-tsr
 
     steps:
       - uses: actions/checkout@v4
@@ -78,7 +82,10 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [14.x, 16.x, 18.x, 20.x]
-        lib-name: [timeline-state-resolver, timeline-state-resolver-types]
+        lib-name:
+          - timeline-state-resolver
+          - timeline-state-resolver-types
+          # - timeline-state-resolver-api
 
     steps:
       - uses: actions/checkout@v4
@@ -196,7 +203,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lib-name: [timeline-state-resolver, timeline-state-resolver-types]
+        lib-name:
+          - timeline-state-resolver
+          - timeline-state-resolver-types
+          - timeline-state-resolver-api
 
     steps:
       - uses: actions/checkout@v4
@@ -232,7 +242,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lib-name: [timeline-state-resolver, timeline-state-resolver-types]
+        lib-name:
+          - timeline-state-resolver
+          - timeline-state-resolver-types
+          - timeline-state-resolver-api
 
     steps:
       - uses: actions/checkout@v4

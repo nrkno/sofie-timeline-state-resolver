@@ -5,9 +5,8 @@
 /* eslint-disable */
 import { Transform } from 'stream'
 import vfs from 'vinyl-fs'
-import { writeFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
 import { gettextToI18next } from 'i18next-conv'
-import { readFile } from 'fs/promises'
 
 import { conversionOptions } from './config.mjs'
 
@@ -94,7 +93,7 @@ async function getTranslationsInner(translations) {
 
 export async function getTranslations(sources) {
 	const resolvedSources = new Set()
-	for (const source of Object.values(sources)) {
+	for (const source of sources) {
 		resolvedSources.add(source.root)
 		for (const ref of source.refs || []) {
 			resolvedSources.add(ref)
@@ -112,11 +111,3 @@ export async function getTranslations(sources) {
 
 	return getTranslationsInner(translations)
 }
-
-;(async function () {
-	const bundledTranslations = await getTranslations({
-		'timeline-state-resolver': { root: 'timeline-state-resolver', refs: [] },
-	})
-
-	await writeFile('./dist/translations.json', JSON.stringify(bundledTranslations))
-})()

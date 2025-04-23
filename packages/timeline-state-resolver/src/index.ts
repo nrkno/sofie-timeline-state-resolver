@@ -1,10 +1,12 @@
 export * from './conductor'
 export * from './devices/doOnTime'
+export { DevicesRegistry } from './service/devicesRegistry'
 export * from './expectedPlayoutItems'
-export * from './manifest'
+export type { TSRDevicesManifest, TSRManifest } from './manifest'
 export { CasparCGDevice } from './integrations/casparCG'
 export { HyperdeckDevice } from './integrations/hyperdeck'
 export { QuantelDevice } from './integrations/quantel'
 export { VizMSEDevice } from './integrations/vizMSE'
 
+export { TSRDevicesManifestEntry } from 'timeline-state-resolver-api'
 export * from 'timeline-state-resolver-types'
