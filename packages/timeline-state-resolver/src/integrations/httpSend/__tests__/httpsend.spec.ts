@@ -2,7 +2,6 @@
 import {
 	ActionExecutionResultCode,
 	DeviceType,
-	HttpSendActions,
 	TimelineContentTypeHTTP,
 	TimelineContentHTTPSendAny,
 	Timeline,
@@ -374,7 +373,8 @@ describe('HTTP-Send', () => {
 		test('Send action', async () => {
 			const device = await getInitialisedHttpDevice()
 
-			const result = await device.actions[HttpSendActions.SendCommand](HttpSendActions.SendCommand, {
+			const actionId: keyof typeof device.actions = 'sendCommand'
+			const result = await device.actions[actionId](actionId, {
 				...DEFAULT_TL_CONTENT,
 				type: TimelineContentTypeHTTP.GET,
 				url: 'http://testurl',

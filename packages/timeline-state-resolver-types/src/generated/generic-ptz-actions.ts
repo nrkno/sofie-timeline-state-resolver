@@ -82,9 +82,9 @@ export enum FocusMode {
 
 export interface GetFocusPositionResult {
 	/**
-	 * Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest NEAR, 1.0 = furthest FAR (each protocol might internally support a different range, which the value will be mapped from)
+	 * Focus Position; Range: [0.0, 1.0]; 0.0 = furthest NEAR, 1.0 = furthest FAR (each protocol might internally support a different range, which the value will be mapped from)
 	 */
-	zoomPosition: number
+	focusPosition: number
 }
 
 export type FocusModeResult = FocusMode

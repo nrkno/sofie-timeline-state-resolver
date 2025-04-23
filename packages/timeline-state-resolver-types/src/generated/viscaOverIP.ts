@@ -5,6 +5,8 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 import { ActionExecutionResult } from ".."
+import { SetPanTiltSpeedPayload, GetPanTiltPositionResult, SetZoomSpeedPayload, GetZoomPositionResult, StorePresetPayload, RecallPresetPayload, ResetPresetPayload, SetFocusSpeedPayload, SetFocusModePayload, GetFocusPositionResult, GetFocusModeResult } from './generic-ptz-actions'
+
 
 export interface ViscaOverIPOptions {
 	host: string
@@ -13,37 +15,23 @@ export interface ViscaOverIPOptions {
 
 export type SomeMappingViscaOverIP = Record<string, never>
 
-export enum ViscaOverIPActions {
-	SetPanTiltSpeed = 'setPanTiltSpeed',
-	GetPanTiltPosition = 'getPanTiltPosition',
-	SetZoomSpeed = 'setZoomSpeed',
-	GetZoomPosition = 'getZoomPosition',
-	StorePreset = 'storePreset',
-	RecallPreset = 'recallPreset',
-	ResetPreset = 'resetPreset',
-	SetFocusSpeed = 'setFocusSpeed',
-	SetFocusMode = 'setFocusMode',
-	TriggerOnePushFocus = 'triggerOnePushFocus',
-	GetFocusPosition = 'getFocusPosition',
-	GetFocusMode = 'getFocusMode'
+export interface ViscaOverIPActionMethods {
+	setPanTiltSpeed: (id: string, payload: SetPanTiltSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	getPanTiltPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetPanTiltPositionResult>>,
+	setZoomSpeed: (id: string, payload: SetZoomSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	getZoomPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetZoomPositionResult>>,
+	storePreset: (id: string, payload: StorePresetPayload) => Promise<ActionExecutionResult<void>>,
+	recallPreset: (id: string, payload: RecallPresetPayload) => Promise<ActionExecutionResult<void>>,
+	resetPreset: (id: string, payload: ResetPresetPayload) => Promise<ActionExecutionResult<void>>,
+	setFocusSpeed: (id: string, payload: SetFocusSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	setFocusMode: (id: string, payload: SetFocusModePayload) => Promise<ActionExecutionResult<void>>,
+	triggerOnePushFocus: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	getFocusPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusPositionResult>>,
+	getFocusMode: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusModeResult>>
 }
-export interface ViscaOverIPActionExecutionResults {
-	setPanTiltSpeed: () => void,
-	getPanTiltPosition: () => void,
-	setZoomSpeed: () => void,
-	getZoomPosition: () => void,
-	storePreset: () => void,
-	recallPreset: () => void,
-	resetPreset: () => void,
-	setFocusSpeed: () => void,
-	setFocusMode: () => void,
-	triggerOnePushFocus: () => void,
-	getFocusPosition: () => void,
-	getFocusMode: () => void
-}
-export type ViscaOverIPActionExecutionPayload<A extends keyof ViscaOverIPActionExecutionResults> = Parameters<
-	ViscaOverIPActionExecutionResults[A]
->[0]
 
-export type ViscaOverIPActionExecutionResult<A extends keyof ViscaOverIPActionExecutionResults> =
-	ActionExecutionResult<ReturnType<ViscaOverIPActionExecutionResults[A]>>
+export interface ViscaOverIPDeviceTypes {
+	Options: ViscaOverIPOptions
+	Mappings: SomeMappingViscaOverIP
+	Actions: ViscaOverIPActionMethods
+}

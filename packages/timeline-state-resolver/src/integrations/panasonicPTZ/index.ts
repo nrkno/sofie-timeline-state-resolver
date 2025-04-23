@@ -3,30 +3,25 @@ import {
 	ActionExecutionResultCode,
 	DeviceStatus,
 	Mappings,
-	PanasonicPTZActions,
+	PanasonicPTZActionMethods,
 	PanasonicPTZOptions,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
 	TimelineContentTypePanasonicPtz,
-	RecallPresetPayload,
-	StorePresetPayload,
-	ResetPresetPayload,
-	SetFocusModePayload,
 	FocusMode,
-	SetPanTiltSpeedPayload,
-	SetZoomSpeedPayload,
-	SetFocusSpeedPayload,
+	PanasonicPTZDeviceTypes,
+	GetFocusModeResult,
+	GetFocusPositionResult,
+	GetZoomPositionResult,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 import { PanasonicPtzState, convertStateToPtz, getDefaultState } from './state'
 import { PanasonicPtzCommandWithContext, diffStates } from './diff'
 import { PanasonicFocusMode, PanasonicPtzHttpInterface } from './connection'
-import { t } from '../../lib'
 import {
 	AutoFocusOnOffControl,
 	AutoFocusOnOffQuery,
-	Command,
 	FocusPositionQuery,
 	FocusSpeedControl,
 	OneTouchFocusControl,
@@ -40,13 +35,18 @@ import {
 	ZoomPositionQuery,
 	ZoomSpeedControl,
 } from './commands'
+import { t } from '../../lib'
 
 const FOCUS_MODE_MAP = {
 	[FocusMode.AUTO]: PanasonicFocusMode.AUTO,
 	[FocusMode.MANUAL]: PanasonicFocusMode.MANUAL,
 }
 
-export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtzState, PanasonicPtzCommandWithContext> {
+export class PanasonicPtzDevice extends Device<
+	PanasonicPTZDeviceTypes,
+	PanasonicPtzState,
+	PanasonicPtzCommandWithContext
+> {
 	_device: PanasonicPtzHttpInterface | undefined = undefined
 
 	async init(options: PanasonicPTZOptions): Promise<boolean> {
@@ -138,61 +138,92 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 		}
 	}
 
-	actions: { [id in PanasonicPTZActions]: (id: string, payload?: any) => Promise<ActionExecutionResult> } = {
-		[PanasonicPTZActions.RecallPreset]: async (_id: string, payload: RecallPresetPayload) => {
-			return this.safelyExecuteActionCommand(() => new PresetPlaybackControl(payload.presetNumber))
+	readonly actions: PanasonicPTZActionMethods = {
+		recallPreset: async (_id, payload) => {
+			return this.safelyExecuteActionCommand(async (device) => {
+				await device.executeCommand(new PresetPlaybackControl(payload.presetNumber))
+			})
 		},
-		[PanasonicPTZActions.StorePreset]: async (_id: string, payload: StorePresetPayload) => {
-			return this.safelyExecuteActionCommand(() => new PresetRegisterControl(payload.presetNumber))
+		storePreset: async (_id, payload) => {
+			return this.safelyExecuteActionCommand(async (device) => {
+				await device.executeCommand(new PresetRegisterControl(payload.presetNumber))
+			})
 		},
-		[PanasonicPTZActions.ResetPreset]: async (_id: string, payload: ResetPresetPayload) => {
-			return this.safelyExecuteActionCommand(() => new PresetDeleteControl(payload.presetNumber))
+		resetPreset: async (_id, payload) => {
+			return this.safelyExecuteActionCommand(async (device) => {
+				await device.executeCommand(new PresetDeleteControl(payload.presetNumber))
+			})
 		},
-		[PanasonicPTZActions.SetPanTiltSpeed]: async (_id: string, payload: SetPanTiltSpeedPayload) => {
+		setPanTiltSpeed: async (_id, payload) => {
 			const { panSpeed, tiltSpeed } = this.mapPanTiltSpeedToPanasonic(payload.panSpeed, payload.tiltSpeed)
-			return this.safelyExecuteActionCommand(() => new PanTiltSpeedControl(panSpeed, tiltSpeed))
+			return this.safelyExecuteActionCommand(async (device) => {
+				await device.executeCommand(new PanTiltSpeedControl(panSpeed, tiltSpeed))
+			})
 		},
-		[PanasonicPTZActions.GetPanTiltPosition]: async (_id: string) => {
-			return this.safelyExecuteActionCommand(() => new PanTiltPositionQuery())
+		getPanTiltPosition: async (_id) => {
+			return this.safelyExecuteActionCommand(async (device) => device.executeCommand(new PanTiltPositionQuery()))
 		},
-		[PanasonicPTZActions.SetZoomSpeed]: async (_id: string, payload: SetZoomSpeedPayload) => {
+		setZoomSpeed: async (_id, payload) => {
 			const speed = this.mapZoomSpeedToPanasonic(payload.zoomSpeed)
-			return this.safelyExecuteActionCommand(() => new ZoomSpeedControl(speed))
+			return this.safelyExecuteActionCommand(async (device) => {
+				await device.executeCommand(new ZoomSpeedControl(speed))
+			})
 		},
-		[PanasonicPTZActions.GetZoomPosition]: async (_id: string) => {
-			return this.safelyExecuteActionCommand(() => new ZoomPositionQuery())
+		getZoomPosition: async (_id) => {
+			return this.safelyExecuteActionCommand(async (device) =>
+				device.executeCommand(new ZoomPositionQuery()).then((res): GetZoomPositionResult => ({ zoomPosition: res }))
+			)
 		},
-		[PanasonicPTZActions.SetFocusSpeed]: async (_id: string, payload: SetFocusSpeedPayload) => {
+		setFocusSpeed: async (_id, payload) => {
 			const speed = this.mapFocusSpeedToPanasonic(payload.focusSpeed)
-			return this.safelyExecuteActionCommand(() => new FocusSpeedControl(speed))
+			return this.safelyExecuteActionCommand(async (device) => {
+				await device.executeCommand(new FocusSpeedControl(speed))
+			})
 		},
-		[PanasonicPTZActions.SetFocusMode]: async (_id: string, payload: SetFocusModePayload) => {
+		setFocusMode: async (_id, payload) => {
 			const mode = FOCUS_MODE_MAP[payload.mode]
-			return this.safelyExecuteActionCommand(() => new AutoFocusOnOffControl(mode))
+			return this.safelyExecuteActionCommand(async (device) => {
+				await device.executeCommand(new AutoFocusOnOffControl(mode))
+			})
 		},
-		[PanasonicPTZActions.TriggerOnePushFocus]: async (_id: string) => {
-			return this.safelyExecuteActionCommand(() => new OneTouchFocusControl())
+		triggerOnePushFocus: async (_id) => {
+			return this.safelyExecuteActionCommand(async (device) => device.executeCommand(new OneTouchFocusControl()))
 		},
-		[PanasonicPTZActions.GetFocusPosition]: async (_id: string) => {
-			return this.safelyExecuteActionCommand(() => new FocusPositionQuery())
+		getFocusPosition: async (_id) => {
+			return this.safelyExecuteActionCommand(async (device) =>
+				device.executeCommand(new FocusPositionQuery()).then((res): GetFocusPositionResult => ({ focusPosition: res }))
+			)
 		},
-		[PanasonicPTZActions.GetFocusMode]: async (_id: string) => {
-			return this.safelyExecuteActionCommand(() => new AutoFocusOnOffQuery())
+		getFocusMode: async (_id) => {
+			return this.safelyExecuteActionCommand(async (device) =>
+				device
+					.executeCommand(new AutoFocusOnOffQuery())
+					.then(
+						(res): GetFocusModeResult => ({ mode: res === PanasonicFocusMode.AUTO ? FocusMode.AUTO : FocusMode.MANUAL })
+					)
+			)
 		},
 	}
 
-	private async safelyExecuteActionCommand(createCommandFun: () => Command): Promise<ActionExecutionResult> {
+	private async safelyExecuteActionCommand<TRes>(
+		commandFunc: (device: PanasonicPtzHttpInterface) => Promise<TRes>
+	): Promise<ActionExecutionResult<TRes>> {
+		if (!this._device) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Device not connected'),
+			}
+		}
 		try {
-			const command = createCommandFun()
-			await this._device?.executeCommand(command)
+			const data = await commandFunc(this._device)
+			return {
+				result: ActionExecutionResultCode.Ok,
+				resultData: data,
+			}
 		} catch {
 			return {
 				result: ActionExecutionResultCode.Error,
 			}
-		}
-
-		return {
-			result: ActionExecutionResultCode.Ok,
 		}
 	}
 
@@ -211,18 +242,5 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 
 	private mapFocusSpeedToPanasonic(speed: number) {
 		return Math.round(speed * 49 + 50)
-	}
-
-	async executeAction(actionId: PanasonicPTZActions, payload?: Record<string, any>): Promise<ActionExecutionResult> {
-		const actionFun = this.actions[actionId]
-
-		if (actionFun) {
-			return actionFun(actionId, payload)
-		}
-
-		return {
-			result: ActionExecutionResultCode.Error,
-			response: t('Device does not implement an action handler for this action ID'),
-		}
 	}
 }

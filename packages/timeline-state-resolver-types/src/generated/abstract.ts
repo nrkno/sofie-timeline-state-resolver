@@ -10,15 +10,12 @@ export interface AbstractOptions {}
 
 export type SomeMappingAbstract = Record<string, never>
 
-export enum AbstractActions {
-	TestAction = 'testAction'
+export interface AbstractActionMethods {
+	testAction: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
-export interface AbstractActionExecutionResults {
-	testAction: () => void
-}
-export type AbstractActionExecutionPayload<A extends keyof AbstractActionExecutionResults> = Parameters<
-	AbstractActionExecutionResults[A]
->[0]
 
-export type AbstractActionExecutionResult<A extends keyof AbstractActionExecutionResults> =
-	ActionExecutionResult<ReturnType<AbstractActionExecutionResults[A]>>
+export interface AbstractDeviceTypes {
+	Options: AbstractOptions
+	Mappings: SomeMappingAbstract
+	Actions: AbstractActionMethods
+}

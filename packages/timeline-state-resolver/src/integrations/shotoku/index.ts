@@ -1,5 +1,4 @@
 import {
-	ActionExecutionResult,
 	DeviceStatus,
 	DeviceType,
 	StatusCode,
@@ -10,6 +9,7 @@ import {
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType,
 	ShotokuOptions,
+	ShotokuDeviceTypes,
 } from 'timeline-state-resolver-types'
 import { CommandWithContext, Device } from '../../service/device'
 
@@ -29,7 +29,7 @@ export interface ShotokuCommandWithContext extends CommandWithContext {
 	command: ShotokuCommand // todo
 }
 
-export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
+export class ShotokuDevice extends Device<ShotokuDeviceTypes, ShotokuDeviceState, ShotokuCommandWithContext> {
 	private readonly _shotoku = new ShotokuAPI()
 
 	async init(options: ShotokuOptions): Promise<boolean> {
@@ -173,5 +173,5 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 		}
 	}
 
-	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+	readonly actions = null
 }

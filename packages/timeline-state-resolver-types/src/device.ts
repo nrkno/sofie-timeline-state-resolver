@@ -2,28 +2,28 @@ import {
 	DeviceType,
 	AtemOptions,
 	CasparCGOptions,
-	HTTPSendOptions,
+	HttpSendOptions,
 	HyperdeckOptions,
-	OBSOptions,
-	OSCOptions,
+	ObsOptions,
+	OscOptions,
 	PharosOptions,
 	QuantelOptions,
 	SingularLiveOptions,
 	SisyfosOptions,
 	SofieChefOptions,
-	TCPSendOptions,
+	TcpSendOptions,
 	AbstractOptions,
 	LawoOptions,
 	PanasonicPTZOptions,
-	HTTPWatcherOptions,
+	HttpWatcherOptions,
 	VizMSEOptions,
-	VMixOptions,
+	VmixOptions,
 	ShotokuOptions,
 	TelemetricsOptions,
 	TriCasterOptions,
-	MultiOSCOptions,
+	MultiOscOptions,
 	ViscaOverIPOptions,
-	WebSocketClientOptions,
+	WebsocketClientOptions,
 } from '.'
 import { DeviceCommonOptions } from './generated/common-options'
 
@@ -93,13 +93,13 @@ export interface DeviceOptionsAtem extends DeviceOptionsBase<AtemOptions> {
 export interface DeviceOptionsLawo extends DeviceOptionsBase<LawoOptions> {
 	type: DeviceType.LAWO
 }
-export interface DeviceOptionsHTTPSend extends DeviceOptionsBase<HTTPSendOptions> {
+export interface DeviceOptionsHTTPSend extends DeviceOptionsBase<HttpSendOptions> {
 	type: DeviceType.HTTPSEND
 }
 export interface DeviceOptionsPanasonicPTZ extends DeviceOptionsBase<PanasonicPTZOptions> {
 	type: DeviceType.PANASONIC_PTZ
 }
-export interface DeviceOptionsTCPSend extends DeviceOptionsBase<TCPSendOptions> {
+export interface DeviceOptionsTCPSend extends DeviceOptionsBase<TcpSendOptions> {
 	type: DeviceType.TCPSEND
 }
 export interface DeviceOptionsHyperdeck extends DeviceOptionsBase<HyperdeckOptions> {
@@ -108,13 +108,13 @@ export interface DeviceOptionsHyperdeck extends DeviceOptionsBase<HyperdeckOptio
 export interface DeviceOptionsPharos extends DeviceOptionsBase<PharosOptions> {
 	type: DeviceType.PHAROS
 }
-export interface DeviceOptionsOBS extends DeviceOptionsBase<OBSOptions> {
+export interface DeviceOptionsOBS extends DeviceOptionsBase<ObsOptions> {
 	type: DeviceType.OBS
 }
-export interface DeviceOptionsOSC extends DeviceOptionsBase<OSCOptions> {
+export interface DeviceOptionsOSC extends DeviceOptionsBase<OscOptions> {
 	type: DeviceType.OSC
 }
-export interface DeviceOptionsHTTPWatcher extends DeviceOptionsBase<HTTPWatcherOptions> {
+export interface DeviceOptionsHTTPWatcher extends DeviceOptionsBase<HttpWatcherOptions> {
 	type: DeviceType.HTTPWATCHER
 }
 export interface DeviceOptionsSisyfos extends DeviceOptionsBase<SisyfosOptions> {
@@ -135,7 +135,7 @@ export interface DeviceOptionsSingularLive extends DeviceOptionsBase<SingularLiv
 export interface DeviceOptionsShotoku extends DeviceOptionsBase<ShotokuOptions> {
 	type: DeviceType.SHOTOKU
 }
-export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
+export interface DeviceOptionsVMix extends DeviceOptionsBase<VmixOptions> {
 	type: DeviceType.VMIX
 }
 export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
@@ -144,13 +144,13 @@ export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsO
 export interface DeviceOptionsTriCaster extends DeviceOptionsBase<TriCasterOptions> {
 	type: DeviceType.TRICASTER
 }
-export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions> {
+export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOscOptions> {
 	type: DeviceType.MULTI_OSC
 }
 export interface DeviceOptionsViscaOverIP extends DeviceOptionsBase<ViscaOverIPOptions> {
 	type: DeviceType.VISCA_OVER_IP
 }
 
-export interface DeviceOptionsWebSocketClient extends DeviceOptionsBase<WebSocketClientOptions> {
+export interface DeviceOptionsWebSocketClient extends DeviceOptionsBase<WebsocketClientOptions> {
 	type: DeviceType.WEBSOCKET_CLIENT
 }

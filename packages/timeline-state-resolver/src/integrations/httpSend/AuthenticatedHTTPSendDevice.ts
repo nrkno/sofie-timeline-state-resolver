@@ -1,4 +1,4 @@
-import { ActionExecutionResult, HTTPSendOptions, SendCommandResult } from 'timeline-state-resolver-types'
+import { ActionExecutionResult, HttpSendOptions, SendCommandResult } from 'timeline-state-resolver-types'
 import { HTTPSendDevice, HttpSendDeviceCommand } from '.'
 import { AccessToken, ClientCredentials } from 'simple-oauth2'
 
@@ -28,7 +28,7 @@ export class AuthenticatedHTTPSendDevice extends HTTPSendDevice {
 	private authOptions: AuthOptions
 	private tokenRefreshTimeout: NodeJS.Timeout | undefined
 
-	async init(options: HTTPSendOptions): Promise<boolean> {
+	async init(options: HttpSendOptions): Promise<boolean> {
 		if (options.bearerToken) {
 			this.authOptions = {
 				method: AuthMethod.BEARER_TOKEN,

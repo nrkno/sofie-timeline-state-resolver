@@ -5,7 +5,7 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
-export interface HTTPWatcherOptions {
+export interface HttpWatcherOptions {
 	uri: string
 	httpMethod?: HttpMethod
 	expectedHttpResponse?: number
@@ -24,3 +24,9 @@ export enum HttpMethod {
 }
 
 export type SomeMappingHttpWatcher = Record<string, never>
+
+export interface HttpWatcherDeviceTypes {
+	Options: HttpWatcherOptions
+	Mappings: SomeMappingHttpWatcher
+	Actions: null
+}

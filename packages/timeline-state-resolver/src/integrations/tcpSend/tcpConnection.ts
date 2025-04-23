@@ -1,5 +1,5 @@
 import { EventEmitter } from 'eventemitter3'
-import { TCPSendOptions } from 'timeline-state-resolver-types'
+import { TcpSendOptions } from 'timeline-state-resolver-types'
 import { Socket } from 'net'
 
 const TIMEOUT = 3000 // ms
@@ -15,7 +15,7 @@ export class TcpConnection extends EventEmitter<TcpConnectionEvents> {
 	 * Is set when the connection is active.
 	 * is set to undefined if disconnect() has been called (then do not try to reconnect)
 	 */
-	private activeOptions: TCPSendOptions | undefined = undefined
+	private activeOptions: TcpSendOptions | undefined = undefined
 	private _tcpClient: Socket | null = null
 
 	private _connected = false
@@ -24,7 +24,7 @@ export class TcpConnection extends EventEmitter<TcpConnectionEvents> {
 	get connected(): boolean {
 		return this._connected
 	}
-	activate(options: TCPSendOptions): void {
+	activate(options: TcpSendOptions): void {
 		this.activeOptions = options
 
 		this.ensureConnection().catch((err) => {

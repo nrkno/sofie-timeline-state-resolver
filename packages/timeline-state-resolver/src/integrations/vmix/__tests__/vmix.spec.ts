@@ -19,7 +19,6 @@ import {
 	MappingVmixOverlay,
 	MappingVmixScript,
 	MappingVmixInput,
-	VmixActions,
 	ActionExecutionResultCode,
 	MappingVmixProgram,
 } from 'timeline-state-resolver-types'
@@ -3043,7 +3042,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		const passResult = await device.executeAction(VmixActions.LastPreset)
+		const passResult = await device.executeAction('lastPreset')
 
 		expect(onFunction).toHaveBeenCalledTimes(1)
 
@@ -3124,14 +3123,14 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		const noPayloadResult = await device.executeAction(VmixActions.OpenPreset, null)
+		const noPayloadResult = await device.executeAction('openPreset', null)
 
 		expect(noPayloadResult).toMatchObject({
 			result: ActionExecutionResultCode.Error,
 			response: { key: 'Action payload is invalid', args: undefined },
 		})
 
-		const noFileResult = await device.executeAction(VmixActions.OpenPreset, {
+		const noFileResult = await device.executeAction('openPreset', {
 			filename: undefined,
 		})
 
@@ -3140,7 +3139,7 @@ describe('vMix', () => {
 			response: { key: 'No preset filename specified', args: undefined },
 		})
 
-		const passResult = await device.executeAction(VmixActions.OpenPreset, {
+		const passResult = await device.executeAction('openPreset', {
 			filename: 'C:\\Presets\\myPreset.vmix',
 		})
 
@@ -3227,14 +3226,14 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		const noPayloadResult = await device.executeAction(VmixActions.SavePreset, null)
+		const noPayloadResult = await device.executeAction('savePreset', null)
 
 		expect(noPayloadResult).toMatchObject({
 			result: ActionExecutionResultCode.Error,
 			response: { key: 'Action payload is invalid', args: undefined },
 		})
 
-		const noFileResult = await device.executeAction(VmixActions.SavePreset, {
+		const noFileResult = await device.executeAction('savePreset', {
 			filename: undefined,
 		})
 
@@ -3243,7 +3242,7 @@ describe('vMix', () => {
 			response: { key: 'No preset filename specified', args: undefined },
 		})
 
-		const passResult = await device.executeAction(VmixActions.SavePreset, {
+		const passResult = await device.executeAction('savePreset', {
 			filename: 'C:\\Presets\\myPreset.vmix',
 		})
 

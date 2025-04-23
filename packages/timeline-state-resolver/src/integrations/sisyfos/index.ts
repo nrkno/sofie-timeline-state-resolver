@@ -15,19 +15,16 @@ import {
 	Timeline,
 	ResolvedTimelineObjectInstanceExtended,
 	Mapping,
-	SisyfosActions,
+	SisyfosActionMethods,
 	ActionExecutionResultCode,
-	SisyfosActionExecutionPayload,
-	SisyfosActionExecutionResult,
-	SetSisyfosChannelStatePayload,
-	LoadMixerPresetPayload,
+	SisyfosDeviceTypes,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { SisyfosApi, SisyfosCommand, SisyfosState, SisyfosChannel, SisyfosCommandType } from './connection'
 import Debug from 'debug'
-import { startTrace, endTrace, actionNotFoundMessage, t } from '../../lib'
+import { startTrace, endTrace, t } from '../../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
@@ -41,7 +38,11 @@ interface Command extends CommandWithContext {
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOptionsSisyfosInternal> {
+export class SisyfosMessageDevice extends DeviceWithState<
+	SisyfosState,
+	SisyfosDeviceTypes,
+	DeviceOptionsSisyfosInternal
+> {
 	private _doOnTime: DoOnTime
 	private _sisyfos: SisyfosApi
 
@@ -206,42 +207,36 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return Promise.resolve()
 	}
 
-	async executeAction<A extends SisyfosActions>(
-		actionId0: A,
-		payload0: SisyfosActionExecutionPayload<A>
-	): Promise<SisyfosActionExecutionResult<A>> {
-		const actionId = actionId0
-		switch (actionId) {
-			case SisyfosActions.Reinit:
-				return this._makeReadyInner()
-					.then(() => ({
-						result: ActionExecutionResultCode.Ok,
-					}))
-					.catch(() => ({
-						result: ActionExecutionResultCode.Error,
-					}))
-			case SisyfosActions.SetSisyfosChannelState: {
-				const payload = payload0 as SetSisyfosChannelStatePayload
-				if (typeof payload?.channel !== 'number') {
-					return {
-						result: ActionExecutionResultCode.Error,
-					}
-				}
-				this._sisyfos.setSisyfosChannel(payload.channel + 1, { ...this.getDeviceState().channels[payload.channel] })
-				return {
+	readonly actions: SisyfosActionMethods = {
+		reinit: async () => {
+			return this._makeReadyInner()
+				.then(() => ({
 					result: ActionExecutionResultCode.Ok,
+				}))
+				.catch(() => ({
+					result: ActionExecutionResultCode.Error,
+				}))
+		},
+		setSisyfosChannelState: async (_id, payload) => {
+			if (typeof payload?.channel !== 'number') {
+				return {
+					result: ActionExecutionResultCode.Error,
 				}
 			}
-			case SisyfosActions.LoadMixerPreset: {
-				const payload = payload0 as LoadMixerPresetPayload
-				if (!payload?.name) {
-					return { result: ActionExecutionResultCode.Error, response: t('Missing name') }
-				}
-				return this._handleLoadMixerPreset(payload.name)
+			this._sisyfos.setSisyfosChannel(payload.channel + 1, { ...this.getDeviceState().channels[payload.channel] })
+			return {
+				result: ActionExecutionResultCode.Ok,
 			}
-			default:
-				return actionNotFoundMessage(actionId)
-		}
+		},
+		loadMixerPreset: async (_id, payload) => {
+			if (!payload?.name) {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Missing name'),
+				}
+			}
+			return this._handleLoadMixerPreset(payload.name)
+		},
 	}
 
 	get canConnect(): boolean {

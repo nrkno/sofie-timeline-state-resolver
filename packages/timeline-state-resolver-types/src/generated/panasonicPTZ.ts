@@ -5,6 +5,8 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 import { ActionExecutionResult } from ".."
+import { SetPanTiltSpeedPayload, GetPanTiltPositionResult, SetZoomSpeedPayload, GetZoomPositionResult, StorePresetPayload, RecallPresetPayload, ResetPresetPayload, SetFocusSpeedPayload, SetFocusModePayload, GetFocusPositionResult, GetFocusModeResult } from './generic-ptz-actions'
+
 
 export interface PanasonicPTZOptions {
 	host: string
@@ -37,37 +39,23 @@ export enum MappingPanasonicPTZType {
 
 export type SomeMappingPanasonicPTZ = MappingPanasonicPTZPresetMem | MappingPanasonicPTZPresetSpeed | MappingPanasonicPTZZoomSpeed | MappingPanasonicPTZZoom
 
-export enum PanasonicPTZActions {
-	SetPanTiltSpeed = 'setPanTiltSpeed',
-	GetPanTiltPosition = 'getPanTiltPosition',
-	SetZoomSpeed = 'setZoomSpeed',
-	GetZoomPosition = 'getZoomPosition',
-	StorePreset = 'storePreset',
-	RecallPreset = 'recallPreset',
-	ResetPreset = 'resetPreset',
-	SetFocusSpeed = 'setFocusSpeed',
-	SetFocusMode = 'setFocusMode',
-	TriggerOnePushFocus = 'triggerOnePushFocus',
-	GetFocusPosition = 'getFocusPosition',
-	GetFocusMode = 'getFocusMode'
+export interface PanasonicPTZActionMethods {
+	setPanTiltSpeed: (id: string, payload: SetPanTiltSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	getPanTiltPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetPanTiltPositionResult>>,
+	setZoomSpeed: (id: string, payload: SetZoomSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	getZoomPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetZoomPositionResult>>,
+	storePreset: (id: string, payload: StorePresetPayload) => Promise<ActionExecutionResult<void>>,
+	recallPreset: (id: string, payload: RecallPresetPayload) => Promise<ActionExecutionResult<void>>,
+	resetPreset: (id: string, payload: ResetPresetPayload) => Promise<ActionExecutionResult<void>>,
+	setFocusSpeed: (id: string, payload: SetFocusSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	setFocusMode: (id: string, payload: SetFocusModePayload) => Promise<ActionExecutionResult<void>>,
+	triggerOnePushFocus: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	getFocusPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusPositionResult>>,
+	getFocusMode: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusModeResult>>
 }
-export interface PanasonicPTZActionExecutionResults {
-	setPanTiltSpeed: () => void,
-	getPanTiltPosition: () => void,
-	setZoomSpeed: () => void,
-	getZoomPosition: () => void,
-	storePreset: () => void,
-	recallPreset: () => void,
-	resetPreset: () => void,
-	setFocusSpeed: () => void,
-	setFocusMode: () => void,
-	triggerOnePushFocus: () => void,
-	getFocusPosition: () => void,
-	getFocusMode: () => void
-}
-export type PanasonicPTZActionExecutionPayload<A extends keyof PanasonicPTZActionExecutionResults> = Parameters<
-	PanasonicPTZActionExecutionResults[A]
->[0]
 
-export type PanasonicPTZActionExecutionResult<A extends keyof PanasonicPTZActionExecutionResults> =
-	ActionExecutionResult<ReturnType<PanasonicPTZActionExecutionResults[A]>>
+export interface PanasonicPTZDeviceTypes {
+	Options: PanasonicPTZOptions
+	Mappings: SomeMappingPanasonicPTZ
+	Actions: PanasonicPTZActionMethods
+}

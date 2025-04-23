@@ -1,7 +1,8 @@
 import {
 	DeviceStatus,
 	Mappings,
-	OBSOptions,
+	ObsOptions,
+	ObsDeviceTypes,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
@@ -22,11 +23,11 @@ export interface OBSCommandWithContextTyped<Type extends keyof OBSRequestTypes> 
 	timelineObjId: string
 }
 
-export class OBSDevice extends Device<OBSOptions, OBSDeviceState, OBSCommandWithContext> {
-	private _options: OBSOptions | undefined = undefined
+export class OBSDevice extends Device<ObsDeviceTypes, OBSDeviceState, OBSCommandWithContext> {
+	private _options: ObsOptions | undefined = undefined
 	private _obs: OBSConnection | undefined = undefined
 
-	async init(options: OBSOptions): Promise<boolean> {
+	async init(options: ObsOptions): Promise<boolean> {
 		this._options = options
 		this._obs = new OBSConnection()
 		this._obs.on(OBSConnectionEvents.Connected, () => {
@@ -69,7 +70,7 @@ export class OBSDevice extends Device<OBSOptions, OBSDeviceState, OBSCommandWith
 		}
 	}
 
-	actions = {}
+	readonly actions = null
 
 	convertTimelineStateToDeviceState(
 		state: Timeline.TimelineState<TSRTimelineContent>,

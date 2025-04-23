@@ -3,10 +3,10 @@ import {
 	AbstractOptions,
 	Timeline,
 	TSRTimelineContent,
-	ActionExecutionResult,
 	DeviceOptionsAbstract,
-	AbstractActions,
+	AbstractActionMethods,
 	ActionExecutionResultCode,
+	AbstractDeviceTypes,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
@@ -24,11 +24,9 @@ export type AbstractDeviceState = Timeline.TimelineState<TSRTimelineContent>
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext> {
-	readonly actions: {
-		[id in AbstractActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {
-		[AbstractActions.TestAction]: async () => {
+export class AbstractDevice extends Device<AbstractDeviceTypes, AbstractDeviceState, AbstractCommandWithContext> {
+	readonly actions: AbstractActionMethods = {
+		testAction: async () => {
 			// noop
 			return { result: ActionExecutionResultCode.Ok }
 		},

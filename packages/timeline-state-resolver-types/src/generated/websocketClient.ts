@@ -6,7 +6,7 @@
  */
 import { ActionExecutionResult } from ".."
 
-export interface WebSocketClientOptions {
+export interface WebsocketClientOptions {
 	webSocket: {
 		/**
 		 * URI to connect to, e.g. 'ws://localhost:8080'
@@ -44,19 +44,14 @@ export interface SendWebSocketMessagePayload {
 	queueId?: string
 }
 
-export enum WebsocketClientActions {
-	Reconnect = 'reconnect',
-	ResetState = 'resetState',
-	SendWebSocketMessage = 'sendWebSocketMessage'
+export interface WebsocketClientActionMethods {
+	reconnect: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	resetState: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	sendWebSocketMessage: (id: string, payload: SendWebSocketMessagePayload) => Promise<ActionExecutionResult<void>>
 }
-export interface WebsocketClientActionExecutionResults {
-	reconnect: () => void,
-	resetState: () => void,
-	sendWebSocketMessage: (payload: SendWebSocketMessagePayload) => void
-}
-export type WebsocketClientActionExecutionPayload<A extends keyof WebsocketClientActionExecutionResults> = Parameters<
-	WebsocketClientActionExecutionResults[A]
->[0]
 
-export type WebsocketClientActionExecutionResult<A extends keyof WebsocketClientActionExecutionResults> =
-	ActionExecutionResult<ReturnType<WebsocketClientActionExecutionResults[A]>>
+export interface WebsocketClientDeviceTypes {
+	Options: WebsocketClientOptions
+	Mappings: SomeMappingWebsocketClient
+	Actions: WebsocketClientActionMethods
+}

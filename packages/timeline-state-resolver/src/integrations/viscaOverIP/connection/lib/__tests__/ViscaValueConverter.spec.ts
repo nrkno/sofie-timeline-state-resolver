@@ -67,17 +67,17 @@ describe('ViscaValueConverter', () => {
 
 	describe('mapFocusPositionFromVisca', () => {
 		it('should map focus position from Visca scale to normalized', () => {
-			expect(converter.mapFocusPositionFromVisca(0x8000)).toBeCloseTo(0.5)
-			expect(converter.mapFocusPositionFromVisca(0xffff)).toBeCloseTo(1)
-			expect(converter.mapFocusPositionFromVisca(0x0000)).toBeCloseTo(0)
+			expect(converter.mapFocusPositionFromVisca(0x8000).focusPosition).toBeCloseTo(0.5)
+			expect(converter.mapFocusPositionFromVisca(0xffff).focusPosition).toBeCloseTo(1)
+			expect(converter.mapFocusPositionFromVisca(0x0000).focusPosition).toBeCloseTo(0)
 		})
 	})
 
 	describe('mapZoomPositionFromVisca', () => {
 		it('should map zoom position from Visca scale to normalized', () => {
-			expect(converter.mapZoomPositionFromVisca(0x3000)).toBeCloseTo(0.5)
-			expect(converter.mapZoomPositionFromVisca(0x6000)).toBeCloseTo(1)
-			expect(converter.mapZoomPositionFromVisca(0x0000)).toBeCloseTo(0)
+			expect(converter.mapZoomPositionFromVisca(0x3000).zoomPosition).toBeCloseTo(0.5)
+			expect(converter.mapZoomPositionFromVisca(0x6000).zoomPosition).toBeCloseTo(1)
+			expect(converter.mapZoomPositionFromVisca(0x0000).zoomPosition).toBeCloseTo(0)
 		})
 	})
 
@@ -101,8 +101,8 @@ describe('ViscaValueConverter', () => {
 
 	describe('mapFocusModeFromVisca', () => {
 		it('should map Visca focus mode to focus mode', () => {
-			expect(converter.mapFocusModeFromVisca(ConnectionEnums.FocusMode.Auto)).toBe(FocusMode.AUTO)
-			expect(converter.mapFocusModeFromVisca(ConnectionEnums.FocusMode.Manual)).toBe(FocusMode.MANUAL)
+			expect(converter.mapFocusModeFromVisca(ConnectionEnums.FocusMode.Auto).mode).toBe(FocusMode.AUTO)
+			expect(converter.mapFocusModeFromVisca(ConnectionEnums.FocusMode.Manual).mode).toBe(FocusMode.MANUAL)
 		})
 	})
 })

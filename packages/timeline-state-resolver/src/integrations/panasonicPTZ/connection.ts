@@ -171,7 +171,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return this.executeCommand(new PowerModeQuery())
 	}
 
-	async executeCommand<T extends Command>(command: T): Promise<ReturnType<T['deserializeResponse']>> {
+	async executeCommand<T extends Command<any>>(command: T): Promise<ReturnType<T['deserializeResponse']>> {
 		let response: string
 		try {
 			response = await this._device.sendCommand(command.serialize())

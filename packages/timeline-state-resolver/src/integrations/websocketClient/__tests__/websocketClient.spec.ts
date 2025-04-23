@@ -3,7 +3,7 @@ import { WebSocketClientDevice, WebSocketCommand } from '../index'
 import {
 	Timeline,
 	DeviceType,
-	WebSocketClientOptions,
+	WebsocketClientOptions,
 	TimelineContentTypeWebSocketClient,
 	StatusCode,
 	TSRTimelineContent,
@@ -43,7 +43,7 @@ describe('WebSocketClientDevice', () => {
 		}
 
 		// Create mock options
-		const options: WebSocketClientOptions = {
+		const options: WebsocketClientOptions = {
 			webSocket: {
 				uri: 'ws://localhost:8080',
 				reconnectInterval: 5000,

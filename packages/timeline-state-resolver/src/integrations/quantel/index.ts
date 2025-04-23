@@ -1,10 +1,10 @@
 import {
-	ActionExecutionResult,
 	ActionExecutionResultCode,
 	DeviceStatus,
 	Mappings,
 	OSCMessageCommandContent,
-	QuantelActions,
+	QuantelActionMethods,
+	QuantelDeviceTypes,
 	QuantelOptions,
 	SomeMappingQuantel,
 	StatusCode,
@@ -33,7 +33,7 @@ export interface QuantelCommandWithContext extends CommandWithContext {
 	context: string
 }
 
-export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
+export class QuantelDevice extends Device<QuantelDeviceTypes, QuantelState, QuantelCommandWithContext> {
 	/** Setup in init */
 	private _quantel!: QuantelGateway
 	/** Setup in init */
@@ -192,16 +192,14 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 		}
 	}
 
-	readonly actions: {
-		[id in QuantelActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {
-		[QuantelActions.ClearStates]: async () => {
+	readonly actions: QuantelActionMethods = {
+		clearStates: async () => {
 			this.context.resetResolver()
 			return {
 				result: ActionExecutionResultCode.Ok,
 			}
 		},
-		[QuantelActions.RestartGateway]: async () => {
+		restartGateway: async () => {
 			if (this._quantel) {
 				try {
 					await this._quantel.kill()

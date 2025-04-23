@@ -168,7 +168,7 @@ export interface Datastore {
 	}
 }
 
-export interface ActionExecutionResult<ResultData = undefined> {
+export interface ActionExecutionResult<ResultData = void> {
 	result: ActionExecutionResultCode
 	/** Response message, intended to be displayed to a user */
 	response?: ITranslatableMessage

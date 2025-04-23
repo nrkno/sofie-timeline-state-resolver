@@ -16,13 +16,12 @@ import {
 	TSRTimelineContent,
 	VizMSEOptions,
 	VIZMSETransitionType,
-	VizMSEActions,
+	VizMSEActionMethods,
 	SomeMappingVizMSE,
 	TimelineContentVIZMSEElementPilot,
 	TimelineContentVIZMSEElementInternal,
-	VizMSEActionExecutionPayload,
-	VizMSEActionExecutionResult,
 	VizResetPayload,
+	VizMSEDeviceTypes,
 } from 'timeline-state-resolver-types'
 
 import { createMSE, MSE } from '@tv2media/v-connection'
@@ -30,7 +29,7 @@ import { createMSE, MSE } from '@tv2media/v-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { actionNotFoundMessage, endTrace, startTrace, t, literal } from '../../lib'
+import { endTrace, startTrace, t, literal } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
 import {
@@ -74,7 +73,7 @@ export type CommandReceiver = (time: number, cmd: VizMSECommand, context: string
  * This class is used to interface with a vizRT Media Sequence Editor, through the v-connection library.
  * It features playing both "internal" graphics element and vizPilot elements.
  */
-export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizMSEInternal> {
+export class VizMSEDevice extends DeviceWithState<VizMSEState, VizMSEDeviceTypes, DeviceOptionsVizMSEInternal> {
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
 
@@ -284,27 +283,25 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this.emit('resetResolver')
 	}
 
-	async executeAction<A extends VizMSEActions>(
-		actionId: A,
-		payload: VizMSEActionExecutionPayload<A>
-	): Promise<VizMSEActionExecutionResult<A>> {
-		switch (actionId) {
-			case VizMSEActions.PurgeRundown:
-				await this.purgeRundown(true)
-				return { result: ActionExecutionResultCode.Ok }
-			case VizMSEActions.Activate:
-				return this.activate(payload) as Promise<VizMSEActionExecutionResult<A>>
-			case VizMSEActions.StandDown:
-				return this.executeStandDown() as Promise<VizMSEActionExecutionResult<A>>
-			case VizMSEActions.ClearAllEngines:
-				await this.clearEngines()
-				return { result: ActionExecutionResultCode.Ok }
-			case VizMSEActions.VizReset:
-				await this.resetViz(payload ?? {})
-				return { result: ActionExecutionResultCode.Ok }
-			default:
-				return actionNotFoundMessage(actionId)
-		}
+	readonly actions: VizMSEActionMethods = {
+		purgeRundown: async () => {
+			await this.purgeRundown(true)
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		activate: async (_id, payload) => {
+			return this.activate(payload)
+		},
+		standDown: async () => {
+			return this.executeStandDown()
+		},
+		clearAllEngines: async () => {
+			await this.clearEngines()
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		vizReset: async (_id, payload) => {
+			await this.resetViz(payload)
+			return { result: ActionExecutionResultCode.Ok }
+		},
 	}
 
 	get deviceType() {

@@ -5,7 +5,7 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
-export interface MultiOSCOptions {
+export interface MultiOscOptions {
 	connections: {
 		connectionId: string
 		host: string
@@ -30,3 +30,9 @@ export enum MappingMultiOscType {
 }
 
 export type SomeMappingMultiOsc = MappingMultiOscLayer
+
+export interface MultiOscDeviceTypes {
+	Options: MultiOscOptions
+	Mappings: SomeMappingMultiOsc
+	Actions: null
+}

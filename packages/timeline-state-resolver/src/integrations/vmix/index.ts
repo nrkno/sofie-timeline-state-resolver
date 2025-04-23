@@ -6,7 +6,7 @@ import { VMixCommandSender, VMixConnection } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
-	VMixOptions,
+	VmixOptions,
 	Mappings,
 	Timeline,
 	TSRTimelineContent,
@@ -14,9 +14,8 @@ import {
 	ActionExecutionResultCode,
 	OpenPresetPayload,
 	SavePresetPayload,
-	VmixActions,
-	VmixActionExecutionPayload,
-	VmixActionExecutionResult,
+	VmixActionMethods,
+	VmixDeviceTypes,
 } from 'timeline-state-resolver-types'
 import { VMixState, VMixStateDiffer, VMixStateExtended } from './vMixStateDiffer'
 import { CommandContext, VMixStateCommandWithContext } from './vMixCommands'
@@ -25,7 +24,7 @@ import { VMixXmlStateParser } from './vMixXmlStateParser'
 import { VMixPollingTimer } from './vMixPollingTimer'
 import { VMixStateSynchronizer } from './vMixStateSynchronizer'
 import { Response } from './vMixResponseStreamReader'
-import { actionNotFoundMessage, t } from '../../lib'
+import { t } from '../../lib'
 
 /**
  * Default time, in milliseconds, for when we should poll vMix to query its actual state.
@@ -59,7 +58,7 @@ export type EnforceableVMixInputStateKeys = 'duration' | 'loop' | 'transform' | 
 /**
  * This is a VMixDevice, it sends commands when it feels like it
  */
-export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptionsVMixInternal> {
+export class VMixDevice extends DeviceWithState<VMixStateExtended, VmixDeviceTypes, DeviceOptionsVMixInternal> {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
@@ -107,7 +106,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._stateSynchronizer = new VMixStateSynchronizer()
 	}
 
-	async init(options: VMixOptions): Promise<boolean> {
+	async init(options: VmixOptions): Promise<boolean> {
 		this._vMixConnection = new VMixConnection(options.host, options.port, false)
 		this._vMixCommandSender = new VMixCommandSender(this._vMixConnection)
 		this._vMixConnection.on('connected', () => {
@@ -285,24 +284,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	async executeAction<A extends VmixActions>(
-		actionId: A,
-		payload: VmixActionExecutionPayload<A>
-	): Promise<VmixActionExecutionResult<A>> {
-		switch (actionId) {
-			case VmixActions.LastPreset:
-				return this._lastPreset() as Promise<VmixActionExecutionResult<A>>
-			case VmixActions.OpenPreset:
-				return this._openPreset(payload as OpenPresetPayload) as Promise<VmixActionExecutionResult<A>>
-			case VmixActions.SavePreset:
-				return this._savePreset(payload as SavePresetPayload) as Promise<VmixActionExecutionResult<A>>
-			case VmixActions.StartExternal:
-				return this._startExternalOutput() as Promise<VmixActionExecutionResult<A>>
-			case VmixActions.StopExternal:
-				return this._stopExternalOutput() as Promise<VmixActionExecutionResult<A>>
-			default:
-				return actionNotFoundMessage(actionId)
-		}
+	readonly actions: VmixActionMethods = {
+		lastPreset: async () => this._lastPreset(),
+		openPreset: async (_id, payload) => this._openPreset(payload),
+		savePreset: async (_id, payload) => this._savePreset(payload),
+		startExternal: async () => this._startExternalOutput(),
+		stopExternal: async () => this._stopExternalOutput(),
 	}
 
 	_checkPresetAction(payload?: any, payloadRequired?: boolean): ActionExecutionResult | undefined {

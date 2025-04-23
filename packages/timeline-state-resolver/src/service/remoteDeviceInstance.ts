@@ -13,7 +13,7 @@ export abstract class BaseRemoteDeviceIntegration<
 > extends EventEmitter<DeviceContainerEvents> {
 	public abstract onChildClose: (() => void) | undefined
 
-	protected abstract _device: ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<TOptions>>
+	protected abstract _device: ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<any, TOptions>>
 	protected _details: DeviceDetails = {
 		deviceId: 'N/A',
 		deviceType: DeviceType.ABSTRACT,
@@ -61,7 +61,7 @@ export abstract class BaseRemoteDeviceIntegration<
 		await this._device.setDebugState(debug)
 	}
 
-	public get device(): ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<TOptions>> {
+	public get device(): ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<any, TOptions>> {
 		return this._device
 	}
 	public get deviceId(): string {

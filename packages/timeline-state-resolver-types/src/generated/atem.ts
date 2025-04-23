@@ -87,15 +87,12 @@ export enum MappingAtemType {
 
 export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer | MappingAtemSuperSourceBox | MappingAtemAuxilliary | MappingAtemMediaPlayer | MappingAtemSuperSourceProperties | MappingAtemAudioChannel | MappingAtemMacroPlayer | MappingAtemAudioRouting | MappingAtemColorGenerator
 
-export enum AtemActions {
-	Resync = 'resync'
+export interface AtemActionMethods {
+	resync: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
-export interface AtemActionExecutionResults {
-	resync: () => void
-}
-export type AtemActionExecutionPayload<A extends keyof AtemActionExecutionResults> = Parameters<
-	AtemActionExecutionResults[A]
->[0]
 
-export type AtemActionExecutionResult<A extends keyof AtemActionExecutionResults> =
-	ActionExecutionResult<ReturnType<AtemActionExecutionResults[A]>>
+export interface AtemDeviceTypes {
+	Options: AtemOptions
+	Mappings: SomeMappingAtem
+	Actions: AtemActionMethods
+}

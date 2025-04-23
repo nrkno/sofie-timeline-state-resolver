@@ -5,7 +5,7 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
-export interface OBSOptions {
+export interface ObsOptions {
 	host: string
 	port: number
 	password?: string
@@ -75,3 +75,9 @@ export enum MappingObsType {
 }
 
 export type SomeMappingObs = MappingObsCurrentScene | MappingObsCurrentTransition | MappingObsRecording | MappingObsStreaming | MappingObsSceneItem | MappingObsInputAudio | MappingObsInputSettings | MappingObsInputMedia
+
+export interface ObsDeviceTypes {
+	Options: ObsOptions
+	Mappings: SomeMappingObs
+	Actions: null
+}

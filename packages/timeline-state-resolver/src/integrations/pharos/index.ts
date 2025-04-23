@@ -3,9 +3,9 @@ import {
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
-	ActionExecutionResult,
 	DeviceStatus,
 	StatusCode,
+	PharosDeviceTypes,
 } from 'timeline-state-resolver-types'
 import { Pharos } from './connection'
 import { Device, CommandWithContext, DeviceContextAPI } from '../../service/device'
@@ -24,10 +24,8 @@ interface CommandContent {
  * This is a wrapper for a Pharos-devices,
  * https://www.pharoscontrols.com/downloads/documentation/application-notes/
  */
-export class PharosDevice extends Device<PharosOptions, PharosState, PharosCommandWithContext> {
-	readonly actions: {
-		[id: string]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {}
+export class PharosDevice extends Device<PharosDeviceTypes, PharosState, PharosCommandWithContext> {
+	readonly actions = null
 
 	private _pharos: Pharos
 

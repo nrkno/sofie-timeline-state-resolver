@@ -4,9 +4,10 @@ import {
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
-	HyperdeckActions,
+	HyperdeckActionMethods,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
+	HyperdeckDeviceTypes,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -23,12 +24,10 @@ import { Device } from '../../service/device'
 /**
  * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
  */
-export class HyperdeckDevice extends Device<HyperdeckOptions, HyperdeckDeviceState, HyperdeckCommandWithContext> {
-	readonly actions: {
-		[id in HyperdeckActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {
-		[HyperdeckActions.FormatDisks]: this.formatDisks.bind(this),
-		[HyperdeckActions.Resync]: this.resyncState.bind(this),
+export class HyperdeckDevice extends Device<HyperdeckDeviceTypes, HyperdeckDeviceState, HyperdeckCommandWithContext> {
+	readonly actions: HyperdeckActionMethods = {
+		formatDisks: this.formatDisks.bind(this),
+		resync: this.resyncState.bind(this),
 	}
 
 	private readonly _hyperdeck = new Hyperdeck({ pingPeriod: 1000 })

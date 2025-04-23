@@ -11,11 +11,11 @@ export { DeviceContainerEvents }
  * names and id's) to prevent a costly round trip over IPC.
  */
 export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends BaseRemoteDeviceIntegration<TOptions> {
-	protected readonly _device: ThreadedClass<Device<TOptions>>
+	protected readonly _device: ThreadedClass<Device<any, TOptions>>
 	public onChildClose: (() => void) | undefined
 
 	private constructor(
-		device: ThreadedClass<Device<TOptions>>,
+		device: ThreadedClass<Device<any, TOptions>>,
 		deviceOptions: TOptions,
 		threadConfig: ThreadedClassConfig | undefined
 	) {
@@ -25,7 +25,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ba
 
 	static async create<
 		TOptions extends DeviceOptionsBase<unknown>,
-		TCtor extends new (...args: any[]) => Device<TOptions>
+		TCtor extends new (...args: any[]) => Device<any, TOptions>
 	>(
 		orgModule: string,
 		orgClassExport: string,
@@ -40,7 +40,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ba
 			getCurrentTime = { inner: getCurrentTime } as any
 		}
 
-		const device = await threadedClass<Device<TOptions>, TCtor>(
+		const device = await threadedClass<Device<any, TOptions>, TCtor>(
 			orgModule,
 			orgClassExport,
 			[deviceId, deviceOptions, getCurrentTime] as any, // TODO types

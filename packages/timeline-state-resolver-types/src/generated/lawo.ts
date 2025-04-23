@@ -76,3 +76,9 @@ export enum MappingLawoType {
 }
 
 export type SomeMappingLawo = MappingLawoSource | MappingLawoSources | MappingLawoFullpath | MappingLawoTriggerValue
+
+export interface LawoDeviceTypes {
+	Options: LawoOptions
+	Mappings: SomeMappingLawo
+	Actions: null
+}
