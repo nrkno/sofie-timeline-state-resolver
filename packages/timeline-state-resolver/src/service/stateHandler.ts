@@ -145,7 +145,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		}
 
 		if (
-			this._executingStateChange && // make sure we're not trying to loop onto ourselves
+			!this._executingStateChange &&
 			nextState === this.stateQueue[0] &&
 			nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime()
 		) {
