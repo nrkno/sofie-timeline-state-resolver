@@ -144,7 +144,11 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			nextState.commands = []
 		}
 
-		if (nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime() && this.currentState) {
+		if (
+			nextState === this.stateQueue[0] &&
+			nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime() &&
+			this.currentState
+		) {
 			await this.executeNextStateChange()
 		}
 	}
