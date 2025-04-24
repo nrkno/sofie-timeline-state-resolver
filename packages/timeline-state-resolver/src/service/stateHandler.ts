@@ -111,8 +111,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.currentState = {
 			commands: [],
 			deviceState: state,
-			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
-			mappings: this.currentState?.mappings || {},
+			state: this.currentState?.state ?? { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
+			mappings: this.currentState?.mappings ?? {},
 		}
 		await this.calculateNextStateChange()
 	}
