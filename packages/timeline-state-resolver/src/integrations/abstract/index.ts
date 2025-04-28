@@ -7,6 +7,7 @@ import {
 	AbstractActionMethods,
 	ActionExecutionResultCode,
 	AbstractDeviceTypes,
+	AbstractActions,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
@@ -26,7 +27,7 @@ export type AbstractDeviceState = Timeline.TimelineState<TSRTimelineContent>
 */
 export class AbstractDevice extends Device<AbstractDeviceTypes, AbstractDeviceState, AbstractCommandWithContext> {
 	readonly actions: AbstractActionMethods = {
-		testAction: async () => {
+		[AbstractActions.TestAction]: async () => {
 			// noop
 			return { result: ActionExecutionResultCode.Ok }
 		},

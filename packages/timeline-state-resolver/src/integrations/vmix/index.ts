@@ -16,6 +16,7 @@ import {
 	SavePresetPayload,
 	VmixActionMethods,
 	VmixDeviceTypes,
+	VmixActions,
 } from 'timeline-state-resolver-types'
 import { VMixState, VMixStateDiffer, VMixStateExtended } from './vMixStateDiffer'
 import { CommandContext, VMixStateCommandWithContext } from './vMixCommands'
@@ -285,11 +286,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, VmixDeviceTyp
 	}
 
 	readonly actions: VmixActionMethods = {
-		lastPreset: async () => this._lastPreset(),
-		openPreset: async (_id, payload) => this._openPreset(payload),
-		savePreset: async (_id, payload) => this._savePreset(payload),
-		startExternal: async () => this._startExternalOutput(),
-		stopExternal: async () => this._stopExternalOutput(),
+		[VmixActions.LastPreset]: async () => this._lastPreset(),
+		[VmixActions.OpenPreset]: async (_id, payload) => this._openPreset(payload),
+		[VmixActions.SavePreset]: async (_id, payload) => this._savePreset(payload),
+		[VmixActions.StartExternal]: async () => this._startExternalOutput(),
+		[VmixActions.StopExternal]: async () => this._stopExternalOutput(),
 	}
 
 	_checkPresetAction(payload?: any, payloadRequired?: boolean): ActionExecutionResult | undefined {

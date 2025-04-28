@@ -14,6 +14,7 @@ import {
 	GetFocusModeResult,
 	GetFocusPositionResult,
 	GetZoomPositionResult,
+	PanasonicPTZActions,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 import { PanasonicPtzState, convertStateToPtz, getDefaultState } from './state'
@@ -139,62 +140,62 @@ export class PanasonicPtzDevice extends Device<
 	}
 
 	readonly actions: PanasonicPTZActionMethods = {
-		recallPreset: async (_id, payload) => {
+		[PanasonicPTZActions.RecallPreset]: async (_id, payload) => {
 			return this.safelyExecuteActionCommand(async (device) => {
 				await device.executeCommand(new PresetPlaybackControl(payload.presetNumber))
 			})
 		},
-		storePreset: async (_id, payload) => {
+		[PanasonicPTZActions.StorePreset]: async (_id, payload) => {
 			return this.safelyExecuteActionCommand(async (device) => {
 				await device.executeCommand(new PresetRegisterControl(payload.presetNumber))
 			})
 		},
-		resetPreset: async (_id, payload) => {
+		[PanasonicPTZActions.ResetPreset]: async (_id, payload) => {
 			return this.safelyExecuteActionCommand(async (device) => {
 				await device.executeCommand(new PresetDeleteControl(payload.presetNumber))
 			})
 		},
-		setPanTiltSpeed: async (_id, payload) => {
+		[PanasonicPTZActions.SetPanTiltSpeed]: async (_id, payload) => {
 			const { panSpeed, tiltSpeed } = this.mapPanTiltSpeedToPanasonic(payload.panSpeed, payload.tiltSpeed)
 			return this.safelyExecuteActionCommand(async (device) => {
 				await device.executeCommand(new PanTiltSpeedControl(panSpeed, tiltSpeed))
 			})
 		},
-		getPanTiltPosition: async (_id) => {
+		[PanasonicPTZActions.GetPanTiltPosition]: async (_id) => {
 			return this.safelyExecuteActionCommand(async (device) => device.executeCommand(new PanTiltPositionQuery()))
 		},
-		setZoomSpeed: async (_id, payload) => {
+		[PanasonicPTZActions.SetZoomSpeed]: async (_id, payload) => {
 			const speed = this.mapZoomSpeedToPanasonic(payload.zoomSpeed)
 			return this.safelyExecuteActionCommand(async (device) => {
 				await device.executeCommand(new ZoomSpeedControl(speed))
 			})
 		},
-		getZoomPosition: async (_id) => {
+		[PanasonicPTZActions.GetZoomPosition]: async (_id) => {
 			return this.safelyExecuteActionCommand(async (device) =>
 				device.executeCommand(new ZoomPositionQuery()).then((res): GetZoomPositionResult => ({ zoomPosition: res }))
 			)
 		},
-		setFocusSpeed: async (_id, payload) => {
+		[PanasonicPTZActions.SetFocusSpeed]: async (_id, payload) => {
 			const speed = this.mapFocusSpeedToPanasonic(payload.focusSpeed)
 			return this.safelyExecuteActionCommand(async (device) => {
 				await device.executeCommand(new FocusSpeedControl(speed))
 			})
 		},
-		setFocusMode: async (_id, payload) => {
+		[PanasonicPTZActions.SetFocusMode]: async (_id, payload) => {
 			const mode = FOCUS_MODE_MAP[payload.mode]
 			return this.safelyExecuteActionCommand(async (device) => {
 				await device.executeCommand(new AutoFocusOnOffControl(mode))
 			})
 		},
-		triggerOnePushFocus: async (_id) => {
+		[PanasonicPTZActions.TriggerOnePushFocus]: async (_id) => {
 			return this.safelyExecuteActionCommand(async (device) => device.executeCommand(new OneTouchFocusControl()))
 		},
-		getFocusPosition: async (_id) => {
+		[PanasonicPTZActions.GetFocusPosition]: async (_id) => {
 			return this.safelyExecuteActionCommand(async (device) =>
 				device.executeCommand(new FocusPositionQuery()).then((res): GetFocusPositionResult => ({ focusPosition: res }))
 			)
 		},
-		getFocusMode: async (_id) => {
+		[PanasonicPTZActions.GetFocusMode]: async (_id) => {
 			return this.safelyExecuteActionCommand(async (device) =>
 				device
 					.executeCommand(new AutoFocusOnOffQuery())

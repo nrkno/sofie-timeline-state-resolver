@@ -15,6 +15,7 @@ import {
 	interpolateTemplateStringIfNeeded,
 	HttpSendDeviceTypes,
 	HttpSendActionMethods,
+	HttpSendActions,
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
@@ -59,8 +60,8 @@ export class HTTPSendDevice extends Device<HttpSendDeviceTypes, HttpSendDeviceSt
 		}
 	}
 	readonly actions: HttpSendActionMethods = {
-		resync: async (_id) => this.executeResyncAction(),
-		sendCommand: async (_id, payload) => this.executeSendCommandAction(payload),
+		[HttpSendActions.Resync]: async (_id) => this.executeResyncAction(),
+		[HttpSendActions.SendCommand]: async (_id, payload) => this.executeSendCommandAction(payload),
 	}
 
 	private async executeResyncAction(): Promise<ActionExecutionResult<undefined>> {

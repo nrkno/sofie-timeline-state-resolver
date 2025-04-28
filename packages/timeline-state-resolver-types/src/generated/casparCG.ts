@@ -54,10 +54,15 @@ export type ListMediaResult = {
 	framerate: number
 }[]
 
+export enum CasparCGActions {
+	ClearAllChannels = 'clearAllChannels',
+	RestartServer = 'restartServer',
+	ListMedia = 'listMedia'
+}
 export interface CasparCGActionMethods {
-	clearAllChannels: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	restartServer: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	listMedia: (id: string, payload: ListMediaPayload) => Promise<ActionExecutionResult<ListMediaResult>>
+	[CasparCGActions.ClearAllChannels]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[CasparCGActions.RestartServer]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[CasparCGActions.ListMedia]: (id: string, payload: ListMediaPayload) => Promise<ActionExecutionResult<ListMediaResult>>
 }
 
 export interface CasparCGDeviceTypes {

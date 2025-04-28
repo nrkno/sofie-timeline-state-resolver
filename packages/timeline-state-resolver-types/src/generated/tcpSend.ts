@@ -45,10 +45,15 @@ export interface SendTcpCommandPayload {
 	[k: string]: unknown
 }
 
+export enum TcpSendActions {
+	Reconnect = 'reconnect',
+	ResetState = 'resetState',
+	SendTcpCommand = 'sendTcpCommand'
+}
 export interface TcpSendActionMethods {
-	reconnect: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	resetState: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	sendTcpCommand: (id: string, payload: SendTcpCommandPayload) => Promise<ActionExecutionResult<void>>
+	[TcpSendActions.Reconnect]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[TcpSendActions.ResetState]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[TcpSendActions.SendTcpCommand]: (id: string, payload: SendTcpCommandPayload) => Promise<ActionExecutionResult<void>>
 }
 
 export interface TcpSendDeviceTypes {

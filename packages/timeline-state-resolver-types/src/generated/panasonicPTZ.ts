@@ -39,19 +39,33 @@ export enum MappingPanasonicPTZType {
 
 export type SomeMappingPanasonicPTZ = MappingPanasonicPTZPresetMem | MappingPanasonicPTZPresetSpeed | MappingPanasonicPTZZoomSpeed | MappingPanasonicPTZZoom
 
+export enum PanasonicPTZActions {
+	SetPanTiltSpeed = 'setPanTiltSpeed',
+	GetPanTiltPosition = 'getPanTiltPosition',
+	SetZoomSpeed = 'setZoomSpeed',
+	GetZoomPosition = 'getZoomPosition',
+	StorePreset = 'storePreset',
+	RecallPreset = 'recallPreset',
+	ResetPreset = 'resetPreset',
+	SetFocusSpeed = 'setFocusSpeed',
+	SetFocusMode = 'setFocusMode',
+	TriggerOnePushFocus = 'triggerOnePushFocus',
+	GetFocusPosition = 'getFocusPosition',
+	GetFocusMode = 'getFocusMode'
+}
 export interface PanasonicPTZActionMethods {
-	setPanTiltSpeed: (id: string, payload: SetPanTiltSpeedPayload) => Promise<ActionExecutionResult<void>>,
-	getPanTiltPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetPanTiltPositionResult>>,
-	setZoomSpeed: (id: string, payload: SetZoomSpeedPayload) => Promise<ActionExecutionResult<void>>,
-	getZoomPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetZoomPositionResult>>,
-	storePreset: (id: string, payload: StorePresetPayload) => Promise<ActionExecutionResult<void>>,
-	recallPreset: (id: string, payload: RecallPresetPayload) => Promise<ActionExecutionResult<void>>,
-	resetPreset: (id: string, payload: ResetPresetPayload) => Promise<ActionExecutionResult<void>>,
-	setFocusSpeed: (id: string, payload: SetFocusSpeedPayload) => Promise<ActionExecutionResult<void>>,
-	setFocusMode: (id: string, payload: SetFocusModePayload) => Promise<ActionExecutionResult<void>>,
-	triggerOnePushFocus: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	getFocusPosition: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusPositionResult>>,
-	getFocusMode: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusModeResult>>
+	[PanasonicPTZActions.SetPanTiltSpeed]: (id: string, payload: SetPanTiltSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.GetPanTiltPosition]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetPanTiltPositionResult>>,
+	[PanasonicPTZActions.SetZoomSpeed]: (id: string, payload: SetZoomSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.GetZoomPosition]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetZoomPositionResult>>,
+	[PanasonicPTZActions.StorePreset]: (id: string, payload: StorePresetPayload) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.RecallPreset]: (id: string, payload: RecallPresetPayload) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.ResetPreset]: (id: string, payload: ResetPresetPayload) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.SetFocusSpeed]: (id: string, payload: SetFocusSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.SetFocusMode]: (id: string, payload: SetFocusModePayload) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.TriggerOnePushFocus]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[PanasonicPTZActions.GetFocusPosition]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusPositionResult>>,
+	[PanasonicPTZActions.GetFocusMode]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusModeResult>>
 }
 
 export interface PanasonicPTZDeviceTypes {

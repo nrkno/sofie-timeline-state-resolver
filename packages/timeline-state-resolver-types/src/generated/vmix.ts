@@ -131,12 +131,19 @@ export interface SavePresetPayload {
 	filename: string
 }
 
+export enum VmixActions {
+	LastPreset = 'lastPreset',
+	OpenPreset = 'openPreset',
+	SavePreset = 'savePreset',
+	StartExternal = 'startExternal',
+	StopExternal = 'stopExternal'
+}
 export interface VmixActionMethods {
-	lastPreset: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	openPreset: (id: string, payload: OpenPresetPayload) => Promise<ActionExecutionResult<void>>,
-	savePreset: (id: string, payload: SavePresetPayload) => Promise<ActionExecutionResult<void>>,
-	startExternal: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	stopExternal: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[VmixActions.LastPreset]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.OpenPreset]: (id: string, payload: OpenPresetPayload) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.SavePreset]: (id: string, payload: SavePresetPayload) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.StartExternal]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.StopExternal]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface VmixDeviceTypes {

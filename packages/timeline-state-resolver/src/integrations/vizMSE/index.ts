@@ -22,6 +22,7 @@ import {
 	TimelineContentVIZMSEElementInternal,
 	VizResetPayload,
 	VizMSEDeviceTypes,
+	VizMSEActions,
 } from 'timeline-state-resolver-types'
 
 import { createMSE, MSE } from '@tv2media/v-connection'
@@ -284,21 +285,21 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, VizMSEDeviceTypes
 	}
 
 	readonly actions: VizMSEActionMethods = {
-		purgeRundown: async () => {
+		[VizMSEActions.PurgeRundown]: async () => {
 			await this.purgeRundown(true)
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		activate: async (_id, payload) => {
+		[VizMSEActions.Activate]: async (_id, payload) => {
 			return this.activate(payload)
 		},
-		standDown: async () => {
+		[VizMSEActions.StandDown]: async () => {
 			return this.executeStandDown()
 		},
-		clearAllEngines: async () => {
+		[VizMSEActions.ClearAllEngines]: async () => {
 			await this.clearEngines()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		vizReset: async (_id, payload) => {
+		[VizMSEActions.VizReset]: async (_id, payload) => {
 			await this.resetViz(payload)
 			return { result: ActionExecutionResultCode.Ok }
 		},

@@ -69,9 +69,13 @@ export interface SendCommandResult {
 	body: string
 }
 
+export enum HttpSendActions {
+	Resync = 'resync',
+	SendCommand = 'sendCommand'
+}
 export interface HttpSendActionMethods {
-	resync: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	sendCommand: (id: string, payload: HTTPSendCommandContent) => Promise<ActionExecutionResult<SendCommandResult>>
+	[HttpSendActions.Resync]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[HttpSendActions.SendCommand]: (id: string, payload: HTTPSendCommandContent) => Promise<ActionExecutionResult<SendCommandResult>>
 }
 
 export interface HttpSendDeviceTypes {

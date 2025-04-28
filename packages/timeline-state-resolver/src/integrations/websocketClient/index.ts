@@ -9,6 +9,7 @@ import {
 	TSRTimelineContent,
 	WebsocketClientOptions,
 	WebsocketClientDeviceTypes,
+	WebsocketClientActions,
 } from 'timeline-state-resolver-types'
 import { WebSocketConnection } from './connection'
 import { WebsocketClientActionMethods } from 'timeline-state-resolver-types'
@@ -38,14 +39,11 @@ export class WebSocketClientDevice extends Device<
 	}
 
 	readonly actions: WebsocketClientActionMethods = {
-		reconnect: async (_id) => {
+		[WebsocketClientActions.Reconnect]: async (_id) => {
 			await this.connection?.connect()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		resetState: async (_id) => {
-			return { result: ActionExecutionResultCode.Ok }
-		},
-		sendWebSocketMessage: async (_id, payload) => {
+		[WebsocketClientActions.SendWebSocketMessage]: async (_id, payload) => {
 			if (!payload?.message) {
 				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing message in payload' } }
 			}

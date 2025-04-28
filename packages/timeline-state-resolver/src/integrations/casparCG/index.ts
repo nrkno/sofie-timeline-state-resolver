@@ -32,6 +32,7 @@ import {
 	ListMediaResult,
 	interpolateTemplateStringIfNeeded,
 	CasparCGDeviceTypes,
+	CasparCGActions,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -675,13 +676,13 @@ export class CasparCGDevice extends DeviceWithState<State, CasparCGDeviceTypes, 
 	}
 
 	readonly actions: CasparCGActionMethods = {
-		clearAllChannels: async () => {
+		[CasparCGActions.ClearAllChannels]: async () => {
 			return this.clearAllChannels()
 		},
-		restartServer: async () => {
+		[CasparCGActions.RestartServer]: async () => {
 			return this.restartCasparCG()
 		},
-		listMedia: async (_id, query: ClsParameters) => {
+		[CasparCGActions.ListMedia]: async (_id, query: ClsParameters) => {
 			return this.listMedia(query)
 		},
 	}

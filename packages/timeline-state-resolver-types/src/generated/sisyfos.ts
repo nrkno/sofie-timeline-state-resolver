@@ -48,10 +48,15 @@ export interface LoadMixerPresetPayload {
 	name: string
 }
 
+export enum SisyfosActions {
+	Reinit = 'reinit',
+	SetSisyfosChannelState = 'setSisyfosChannelState',
+	LoadMixerPreset = 'loadMixerPreset'
+}
 export interface SisyfosActionMethods {
-	reinit: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	setSisyfosChannelState: (id: string, payload: SetSisyfosChannelStatePayload) => Promise<ActionExecutionResult<void>>,
-	loadMixerPreset: (id: string, payload: LoadMixerPresetPayload) => Promise<ActionExecutionResult<void>>
+	[SisyfosActions.Reinit]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[SisyfosActions.SetSisyfosChannelState]: (id: string, payload: SetSisyfosChannelStatePayload) => Promise<ActionExecutionResult<void>>,
+	[SisyfosActions.LoadMixerPreset]: (id: string, payload: LoadMixerPresetPayload) => Promise<ActionExecutionResult<void>>
 }
 
 export interface SisyfosDeviceTypes {

@@ -8,6 +8,7 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	HyperdeckDeviceTypes,
+	HyperdeckActions,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -26,8 +27,8 @@ import { Device } from '../../service/device'
  */
 export class HyperdeckDevice extends Device<HyperdeckDeviceTypes, HyperdeckDeviceState, HyperdeckCommandWithContext> {
 	readonly actions: HyperdeckActionMethods = {
-		formatDisks: this.formatDisks.bind(this),
-		resync: this.resyncState.bind(this),
+		[HyperdeckActions.FormatDisks]: this.formatDisks.bind(this),
+		[HyperdeckActions.Resync]: this.resyncState.bind(this),
 	}
 
 	private readonly _hyperdeck = new Hyperdeck({ pingPeriod: 1000 })

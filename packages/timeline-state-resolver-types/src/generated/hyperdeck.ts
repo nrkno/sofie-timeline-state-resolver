@@ -26,9 +26,13 @@ export enum MappingHyperdeckType {
 
 export type SomeMappingHyperdeck = MappingHyperdeckTransport
 
+export enum HyperdeckActions {
+	FormatDisks = 'formatDisks',
+	Resync = 'resync'
+}
 export interface HyperdeckActionMethods {
-	formatDisks: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	resync: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[HyperdeckActions.FormatDisks]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[HyperdeckActions.Resync]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface HyperdeckDeviceTypes {

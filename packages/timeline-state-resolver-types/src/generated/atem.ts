@@ -87,8 +87,11 @@ export enum MappingAtemType {
 
 export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer | MappingAtemSuperSourceBox | MappingAtemAuxilliary | MappingAtemMediaPlayer | MappingAtemSuperSourceProperties | MappingAtemAudioChannel | MappingAtemMacroPlayer | MappingAtemAudioRouting | MappingAtemColorGenerator
 
+export enum AtemActions {
+	Resync = 'resync'
+}
 export interface AtemActionMethods {
-	resync: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[AtemActions.Resync]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface AtemDeviceTypes {

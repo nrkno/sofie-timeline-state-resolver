@@ -6,6 +6,7 @@ import {
 	TimelineContentHTTPSendAny,
 	Timeline,
 	TSRTimelineContent,
+	HttpSendActions,
 } from 'timeline-state-resolver-types'
 
 const MOCKED_SOCKET_GET = jest.fn()
@@ -373,7 +374,7 @@ describe('HTTP-Send', () => {
 		test('Send action', async () => {
 			const device = await getInitialisedHttpDevice()
 
-			const actionId: keyof typeof device.actions = 'sendCommand'
+			const actionId = HttpSendActions.SendCommand
 			const result = await device.actions[actionId](actionId, {
 				...DEFAULT_TL_CONTENT,
 				type: TimelineContentTypeHTTP.GET,

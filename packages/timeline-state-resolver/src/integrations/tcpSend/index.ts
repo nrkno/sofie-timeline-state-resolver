@@ -10,6 +10,7 @@ import {
 	TcpSendOptions,
 	TcpSendActionMethods,
 	TcpSendDeviceTypes,
+	TcpSendActions,
 } from 'timeline-state-resolver-types'
 import { t } from '../../lib'
 import _ = require('underscore')
@@ -62,15 +63,15 @@ export class TcpSendDevice extends Device<TcpSendDeviceTypes, TcpSendDeviceState
 	}
 
 	readonly actions: TcpSendActionMethods = {
-		reconnect: async () => {
+		[TcpSendActions.Reconnect]: async () => {
 			await this.tcpConnection.reconnect()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		resetState: async () => {
+		[TcpSendActions.ResetState]: async () => {
 			await this.actionResetState()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		sendTcpCommand: async (_id, payload) => {
+		[TcpSendActions.SendTcpCommand]: async (_id, payload) => {
 			return this.actionSendTcpCommand(payload)
 		},
 	}

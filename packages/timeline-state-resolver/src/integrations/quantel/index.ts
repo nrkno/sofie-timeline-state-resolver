@@ -4,6 +4,7 @@ import {
 	Mappings,
 	OSCMessageCommandContent,
 	QuantelActionMethods,
+	QuantelActions,
 	QuantelDeviceTypes,
 	QuantelOptions,
 	SomeMappingQuantel,
@@ -193,13 +194,13 @@ export class QuantelDevice extends Device<QuantelDeviceTypes, QuantelState, Quan
 	}
 
 	readonly actions: QuantelActionMethods = {
-		clearStates: async () => {
+		[QuantelActions.ClearStates]: async () => {
 			this.context.resetResolver()
 			return {
 				result: ActionExecutionResultCode.Ok,
 			}
 		},
-		restartGateway: async () => {
+		[QuantelActions.RestartGateway]: async () => {
 			if (this._quantel) {
 				try {
 					await this._quantel.kill()

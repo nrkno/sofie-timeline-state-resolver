@@ -301,13 +301,21 @@ for (const dir of dirs) {
 	}
 
 	if (actionDefinitions.length > 0) {
+		// An enum for all action ids:
+		output += `
+export enum ${dirId}Actions {
+${actionDefinitions
+	.map((actionDefinition) => `\t${capitalise(actionDefinition.id)} = '${actionDefinition.id}'`)
+	.join(',\n')}
+}`
+
 		// An interface for all the action methods:
 		output += `
 export interface ${dirId}ActionMethods {
 ${actionDefinitions
 	.map(
 		(actionDefinition) =>
-			`\t${actionDefinition.id}: (id: string, payload: ${
+			`\t[${dirId}Actions.${capitalise(actionDefinition.id)}]: (id: string, payload: ${
 				actionDefinition.payloadId ? actionDefinition.payloadId : 'Record<string, never>'
 			}) => Promise<ActionExecutionResult<${actionDefinition.resultId || 'void'}>>`
 	)

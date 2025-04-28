@@ -18,6 +18,7 @@ import {
 	SisyfosActionMethods,
 	ActionExecutionResultCode,
 	SisyfosDeviceTypes,
+	SisyfosActions,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -208,7 +209,7 @@ export class SisyfosMessageDevice extends DeviceWithState<
 	}
 
 	readonly actions: SisyfosActionMethods = {
-		reinit: async () => {
+		[SisyfosActions.Reinit]: async () => {
 			return this._makeReadyInner()
 				.then(() => ({
 					result: ActionExecutionResultCode.Ok,
@@ -217,7 +218,7 @@ export class SisyfosMessageDevice extends DeviceWithState<
 					result: ActionExecutionResultCode.Error,
 				}))
 		},
-		setSisyfosChannelState: async (_id, payload) => {
+		[SisyfosActions.SetSisyfosChannelState]: async (_id, payload) => {
 			if (typeof payload?.channel !== 'number') {
 				return {
 					result: ActionExecutionResultCode.Error,
@@ -228,7 +229,7 @@ export class SisyfosMessageDevice extends DeviceWithState<
 				result: ActionExecutionResultCode.Ok,
 			}
 		},
-		loadMixerPreset: async (_id, payload) => {
+		[SisyfosActions.LoadMixerPreset]: async (_id, payload) => {
 			if (!payload?.name) {
 				return {
 					result: ActionExecutionResultCode.Error,

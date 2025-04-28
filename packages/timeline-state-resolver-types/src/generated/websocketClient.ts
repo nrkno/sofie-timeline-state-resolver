@@ -44,10 +44,13 @@ export interface SendWebSocketMessagePayload {
 	queueId?: string
 }
 
+export enum WebsocketClientActions {
+	Reconnect = 'reconnect',
+	SendWebSocketMessage = 'sendWebSocketMessage'
+}
 export interface WebsocketClientActionMethods {
-	reconnect: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	resetState: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	sendWebSocketMessage: (id: string, payload: SendWebSocketMessagePayload) => Promise<ActionExecutionResult<void>>
+	[WebsocketClientActions.Reconnect]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[WebsocketClientActions.SendWebSocketMessage]: (id: string, payload: SendWebSocketMessagePayload) => Promise<ActionExecutionResult<void>>
 }
 
 export interface WebsocketClientDeviceTypes {

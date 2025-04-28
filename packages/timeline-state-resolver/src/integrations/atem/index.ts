@@ -10,6 +10,7 @@ import {
 	SomeMappingAtem,
 	AtemDeviceTypes,
 	AtemActionMethods,
+	AtemActions,
 } from 'timeline-state-resolver-types'
 import { AtemState, State as DeviceState } from 'atem-state'
 import {
@@ -35,7 +36,7 @@ type AtemDeviceState = DeviceState
  */
 export class AtemDevice extends Device<AtemDeviceTypes, AtemDeviceState, AtemCommandWithContext> {
 	readonly actions: AtemActionMethods = {
-		resync: this.resyncState.bind(this),
+		[AtemActions.Resync]: this.resyncState.bind(this),
 	}
 
 	private readonly _atem = new BasicAtem()

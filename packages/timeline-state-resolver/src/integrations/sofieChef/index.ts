@@ -9,6 +9,7 @@ import {
 	StatusCode,
 	DeviceStatus,
 	SofieChefDeviceTypes,
+	SofieChefActions,
 } from 'timeline-state-resolver-types'
 import * as WebSocket from 'ws'
 import {
@@ -48,13 +49,13 @@ const RECONNECT_WAIT_TIME = 5000
  */
 export class SofieChefDevice extends Device<SofieChefDeviceTypes, SofieChefState, SofieChefCommandWithContext> {
 	readonly actions: SofieChefActionMethods = {
-		restartAllWindows: async () =>
+		[SofieChefActions.RestartAllWindows]: async () =>
 			this.restartAllWindows()
 				.then(() => ({
 					result: ActionExecutionResultCode.Ok,
 				}))
 				.catch(() => ({ result: ActionExecutionResultCode.Error })),
-		restartWindow: async (_id, payload) => {
+		[SofieChefActions.RestartWindow]: async (_id, payload) => {
 			if (!payload?.windowId) {
 				return { result: ActionExecutionResultCode.Error, response: t('Missing window id') }
 			}
