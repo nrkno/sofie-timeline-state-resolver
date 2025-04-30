@@ -122,7 +122,7 @@ describe('Atem', () => {
 
 		const device = await createDevice()
 
-		const deviceState = device.convertTimelineStateToDeviceState(mockState, {})
+		const { deviceState } = device.convertTimelineStateToDeviceState(mockState, {})
 
 		const commands = device.diffStates(undefined, deviceState, {})
 
@@ -154,7 +154,7 @@ describe('Atem', () => {
 			},
 			nextEvents: [],
 		}
-		const deviceState1 = device.convertTimelineStateToDeviceState(mockState1, myLayerMapping)
+		const { deviceState: deviceState1 } = device.convertTimelineStateToDeviceState(mockState1, myLayerMapping)
 		expect(deviceState1.video.mixEffects[0]).toMatchObject({
 			input: 2,
 			transition: AtemTransitionStyle.CUT,
@@ -191,7 +191,7 @@ describe('Atem', () => {
 			},
 			nextEvents: [],
 		}
-		const deviceState2 = device.convertTimelineStateToDeviceState(mockState2, myLayerMapping)
+		const { deviceState: deviceState2 } = device.convertTimelineStateToDeviceState(mockState2, myLayerMapping)
 		expect(deviceState2.video.mixEffects[0]).toMatchObject({
 			input: 3,
 			transition: AtemTransitionStyle.CUT,
@@ -233,7 +233,7 @@ describe('Atem', () => {
 			nextEvents: [],
 		}
 
-		const deviceState = device.convertTimelineStateToDeviceState(mockState, myLayerMapping)
+		const { deviceState } = device.convertTimelineStateToDeviceState(mockState, myLayerMapping)
 		expect(deviceState.video.mixEffects[0]).toMatchObject({
 			input: 4,
 			transition: AtemTransitionStyle.CUT,
@@ -275,7 +275,7 @@ describe('Atem', () => {
 			nextEvents: [],
 		}
 
-		const deviceState1 = device.convertTimelineStateToDeviceState(mockState1, myLayerMapping)
+		const { deviceState: deviceState1 } = device.convertTimelineStateToDeviceState(mockState1, myLayerMapping)
 		expect(deviceState1.video.mixEffects[0]).toMatchObject({
 			input: 2,
 			transition: AtemTransitionStyle.CUT,
@@ -312,7 +312,7 @@ describe('Atem', () => {
 			},
 			nextEvents: [],
 		}
-		const deviceState2 = device.convertTimelineStateToDeviceState(mockState2, myLayerMapping)
+		const { deviceState: deviceState2 } = device.convertTimelineStateToDeviceState(mockState2, myLayerMapping)
 		expect(deviceState2.video.mixEffects[0]).toMatchObject({
 			input: 3,
 			transition: AtemTransitionStyle.DIP,

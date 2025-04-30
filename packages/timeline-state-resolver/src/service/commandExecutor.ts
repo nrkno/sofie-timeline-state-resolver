@@ -9,7 +9,7 @@ export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
 	constructor(
 		private logger: StateHandlerContext['logger'],
 		private mode: 'salvo' | 'sequential',
-		private sendCommand: BaseDeviceAPI<DeviceState, Command>['sendCommand']
+		private sendCommand: BaseDeviceAPI<DeviceState, void, Command>['sendCommand']
 	) {}
 
 	async executeCommands(commands: Command[], measurement?: Measurement): Promise<void> {

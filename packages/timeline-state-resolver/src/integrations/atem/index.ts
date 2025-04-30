@@ -21,18 +21,24 @@ import {
 import { CommandWithContext, Device } from '../../service/device'
 import { AtemStateBuilder } from './stateBuilder'
 import { createDiffOptions } from './diffState'
+import {
+	AnyAddressState,
+	applyAddressStateToAtemState,
+	AtemDeviceState,
+	atemStateToAddressStates,
+	diffAddressStates,
+	updateFromAtemState,
+} from './state'
 
 export interface AtemCommandWithContext extends CommandWithContext {
 	command: AtemCommands.ISerializableCommand[]
 	context: string
 }
 
-type AtemDeviceState = DeviceState
-
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommandWithContext> {
+export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommandWithContext, AnyAddressState> {
 	readonly actions: {
 		[id in AtemActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
 	} = {
@@ -59,7 +65,13 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 			this._connectionChanged()
 		})
 		this._atem.on('error', (e) => this.context.logger.error('Atem', new Error(e)))
-		this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
+		this._atem.on('stateChanged', (state) => {
+			// the external device is communicating something changed, the tracker should be updated (and may fire a "blocked" event if the change is caused by someone else)
+			updateFromAtemState((addr, addrState) => this.context.setAddressState(addr, addrState), state) // note - improvement can be to update depending on the actual paths that changed
+
+			// old stuff for connection statuses/events:
+			this._onAtemStateChanged(state)
+		})
 
 		this._atem.on('connected', () => {
 			this._connected = true
@@ -112,8 +124,11 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 	convertTimelineStateToDeviceState(
 		timelineState: Timeline.TimelineState<TSRTimelineContent>,
 		mappings: Mappings
-	): AtemDeviceState {
-		return AtemStateBuilder.fromTimeline(timelineState.layers, mappings)
+	): { deviceState: AtemDeviceState; addressStates: Record<string, AnyAddressState> } {
+		const deviceState = AtemStateBuilder.fromTimeline(timelineState.layers, mappings) as AtemDeviceState
+		const addressStates = atemStateToAddressStates(deviceState)
+
+		return { deviceState, addressStates }
 	}
 
 	/**
@@ -193,6 +208,17 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 			this.context.commandError(error, cwc)
 		}
 	}
+
+	applyAddressState(state: DeviceState, _address: string, addressState: AnyAddressState): void {
+		applyAddressStateToAtemState(state, addressState)
+	}
+	diffAddressStates(state1: AnyAddressState, state2: AnyAddressState): boolean {
+		return diffAddressStates(state1, state2)
+	}
+	addressStateReassertsControl(oldState: AnyAddressState | undefined, newState: AnyAddressState): boolean {
+		return oldState?.controlValue !== newState.controlValue
+	}
+
 	private _onAtemStateChanged(newState: Readonly<NativeAtemState>) {
 		const psus = newState.info.power || []
 

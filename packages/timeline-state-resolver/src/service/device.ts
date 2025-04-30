@@ -38,10 +38,10 @@ export type CommandWithContext = {
 /**
  * API for use by the DeviceInstance to be able to use a device
  */
-export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
-	implements BaseDeviceAPI<DeviceState, Command>
+export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext, AddressState = void>
+	implements BaseDeviceAPI<DeviceState, AddressState, Command>
 {
-	constructor(protected context: DeviceContextAPI<DeviceState>) {
+	constructor(protected context: DeviceContextAPI<DeviceState, AddressState>) {
 		// Nothing
 	}
 	/**
@@ -74,7 +74,7 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 	abstract convertTimelineStateToDeviceState(
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
-	): DeviceState
+	): DeviceState | { deviceState: DeviceState; addressStates: Record<string, AddressState> }
 	abstract diffStates(
 		oldState: DeviceState | undefined,
 		newState: DeviceState,
@@ -82,13 +82,17 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 		time: number
 	): Array<Command>
 	abstract sendCommand(command: Command): Promise<void>
+
+	applyAddressState?(state: DeviceState, address: string, addressState: AddressState): void
+	diffAddressStates?(state1: AddressState, state2: AddressState): boolean
+	addressStateReassertsControl?(oldState: AddressState | undefined, newState: AddressState): boolean
 	// -------------------------------------------------------------------
 }
 
 /**
  * Minimal API for the StateHandler to be able to use a device
  */
-export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> {
+export interface BaseDeviceAPI<DeviceState, AddressState, Command extends CommandWithContext> {
 	/**
 	 * This method takes in a Timeline State that describes a point
 	 * in time on the timeline and converts it into a "device state" that
@@ -106,7 +110,25 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	convertTimelineStateToDeviceState(
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
-	): DeviceState
+	): DeviceState | { deviceState: DeviceState; addressStates: Record<string, AddressState> }
+
+	/**
+	 * The implementation of this method should apply the state from an address to a device
+	 * state in place
+	 * @param state the state object from convertTimelineToDeviceState
+	 * @param address The address of the state to be applied
+	 * @param addressState The state to be applied
+	 */
+	applyAddressState?(state: DeviceState, address: string, addressState: AddressState): void
+	/**
+	 * The implementation should return true if the contents of the address state differ,
+	 * but not if only the control value differs
+	 */
+	diffAddressStates?(state1: AddressState, state2: AddressState): boolean
+	/**
+	 * Returns true if the
+	 */
+	addressStateReassertsControl?(oldState: AddressState | undefined, newState: AddressState): boolean
 	/**
 	 * This method takes 2 states and returns a set of device-commands that will
 	 * transition the device from oldState to newState.
@@ -157,7 +179,7 @@ export interface DeviceEvents {
 }
 
 /** Various methods that the Devices can call */
-export interface DeviceContextAPI<DeviceState> {
+export interface DeviceContextAPI<DeviceState, AddressState = void> {
 	logger: {
 		/** Emit a "error" message */
 		error: (context: string, err: Error) => void
@@ -197,4 +219,9 @@ export interface DeviceContextAPI<DeviceState> {
 
 	/** Reset the tracked device state to "state" and notify the conductor to reset the resolver */
 	resetToState: (state: DeviceState) => Promise<void>
+
+	/** Calculate a new diff for the next state change */
+	recalcDiff: () => void
+
+	setAddressState: (address: string, state: AddressState) => void
 }

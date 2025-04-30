@@ -52,9 +52,51 @@ jest.mock('../../integrations/abstract/index', () => ({
 		on = AbstractDeviceMock.on
 	},
 }))
+const AtemDeviceMock = {
+	init: jest.fn(),
+	terminate: jest.fn(),
+	action: jest.fn(),
+	convertTimelineStateToDeviceState: jest.fn(),
+	getStatus: jest.fn(),
+	diffStates: jest.fn(),
+	sendCommand: jest.fn(),
+	on: jest.fn(),
+	applyAddressState: jest.fn(),
+	diffAddressState: jest.fn(),
+	addressStateReassertsControl: jest.fn(),
+}
+jest.mock('../../integrations/atem/index', () => ({
+	AtemDevice: class AtemDevice {
+		actions = {
+			action: AtemDeviceMock.action,
+		}
+		init = AtemDeviceMock.init
+		terminate = AtemDeviceMock.terminate
+		convertTimelineStateToDeviceState = AtemDeviceMock.convertTimelineStateToDeviceState
+		getStatus = () => {
+			AtemDeviceMock.getStatus()
+			return { statusCode: StatusCode.GOOD, messages: [] }
+		}
+		diffStates = AtemDeviceMock.diffStates
+		sendCommand = AtemDeviceMock.sendCommand
+		on = AtemDeviceMock.on
+		applyAddressState = AtemDeviceMock.applyAddressState
+		diffAddressState = AtemDeviceMock.diffAddressState
+		addressStateReassertsControl = AtemDeviceMock.addressStateReassertsControl
+	},
+}))
+// jest.mock('../StateTracker', () => ({ StateTracker: jest.fn().mockImplementation(() => ({})) }))
 
 function getDeviceInstance(getTime = async () => Date.now()): DeviceInstanceWrapper {
 	return new DeviceInstanceWrapper('wrapper0', Date.now(), { type: DeviceType.ABSTRACT }, getTime)
+}
+function getDeviceInstanceWithTracker(getTime = async () => Date.now(), disable = false): DeviceInstanceWrapper {
+	return new DeviceInstanceWrapper(
+		'wrapper0',
+		Date.now(),
+		{ type: DeviceType.ATEM, disableSharedHardwareControl: disable },
+		getTime
+	)
 }
 
 describe('DeviceInstance', () => {
@@ -70,6 +112,8 @@ describe('DeviceInstance', () => {
 		expect(dev._stateHandler).toBeTruthy()
 		// @ts-expect-error
 		expect(dev._device).toBeTruthy()
+		// @ts-expect-error
+		expect(dev._stateTracker).toBeUndefined()
 	})
 
 	test('initDevice', async () => {
@@ -181,6 +225,17 @@ describe('DeviceInstance', () => {
 		const t2 = dev.getCurrentTime()
 		expect(t2).toBeGreaterThanOrEqual(Date.now() - 12)
 		expect(t2).toBeLessThanOrEqual(Date.now() - 10)
+	})
+
+	test('init device with shared hardware control', async () => {
+		const dev = getDeviceInstanceWithTracker()
+		// @ts-expect-error
+		expect(dev._stateTracker).toBeTruthy()
+	})
+	test('init device with explicitly disabled shared hardware control', async () => {
+		const dev = getDeviceInstanceWithTracker(undefined, true)
+		// @ts-expect-error
+		expect(dev._stateTracker).toBeUndefined()
 	})
 
 	// todo - test event handlers

@@ -132,4 +132,8 @@ export interface ResolvedTimelineObjectInstanceKeyframe<TContent extends Content
 export interface ResolvedTimelineObjectInstance<TContent extends Content = Content>
 	extends ResolvedTimelineObject<TContent> {
 	instance: TimelineObjectInstance
+	/** All datastore values applied and the timestamp of when they were applied */
+	datastoreRefs?: Record<string, number>
+	/** Timestamp of the last datastore value applied to this object */
+	lastModified?: number
 }

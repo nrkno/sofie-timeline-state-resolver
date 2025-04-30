@@ -1,4 +1,4 @@
-import { AtemStateUtil, Enums, MacroState, VideoState } from 'atem-connection'
+import { AtemState, AtemStateUtil, Enums, MacroState, VideoState } from 'atem-connection'
 import {
 	Mapping,
 	SomeMappingAtem,
@@ -35,9 +35,11 @@ import { Defaults, State as DeviceState, Defaults as StateDefault } from 'atem-s
 import { assertNever, cloneDeep, deepMerge, literal } from '../../lib'
 import { PartialDeep } from 'type-fest'
 
+export type InternalAtemConnectionState = AtemState & { controlValues?: Record<string, string> }
+
 export class AtemStateBuilder {
 	// Start out with default state:
-	readonly #deviceState = AtemStateUtil.Create()
+	readonly #deviceState: InternalAtemConnectionState = AtemStateUtil.Create()
 
 	public static fromTimeline(timelineState: Timeline.StateInTime<TSRTimelineContent>, mappings: Mappings): DeviceState {
 		const builder = new AtemStateBuilder()
@@ -58,21 +60,25 @@ export class AtemStateBuilder {
 					case MappingAtemType.MixEffect:
 						if (content.type === TimelineContentTypeAtem.ME) {
 							builder._applyMixEffect(mapping.options, content)
+							builder._setControlValue(builder._getMixEffectAddressesFromTlObject(mapping.options, content), tlObject)
 						}
 						break
 					case MappingAtemType.DownStreamKeyer:
 						if (content.type === TimelineContentTypeAtem.DSK) {
 							builder._applyDownStreamKeyer(mapping.options, content)
+							builder._setControlValue(['video.dsk.' + mapping.options.index], tlObject)
 						}
 						break
 					case MappingAtemType.SuperSourceBox:
 						if (content.type === TimelineContentTypeAtem.SSRC) {
 							builder._applySuperSourceBox(mapping.options, content)
+							builder._setControlValue(['video.superSource.' + mapping.options.index], tlObject)
 						}
 						break
 					case MappingAtemType.SuperSourceProperties:
 						if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
 							builder._applySuperSourceProperties(mapping.options, content)
+							builder._setControlValue(['video.superSource.' + mapping.options.index], tlObject)
 						}
 						break
 					case MappingAtemType.Auxilliary:
@@ -104,6 +110,8 @@ export class AtemStateBuilder {
 						if (content.type === TimelineContentTypeAtem.COLORGENERATOR) {
 							builder._applyColorGenerator(mapping.options, content)
 						}
+						break
+					case MappingAtemType.ControlValue:
 						break
 					default:
 						assertNever(mapping.options)
@@ -309,5 +317,46 @@ export class AtemStateBuilder {
 			...this.#deviceState.colorGenerators[mapping.index],
 			...content.colorGenerator,
 		}
+	}
+
+	private _setControlValue(addresses: string[], tlObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>) {
+		if (!this.#deviceState.controlValues) this.#deviceState.controlValues = {}
+
+		for (const a of addresses) {
+			const oldValue = this.#deviceState[a]
+			this.#deviceState.controlValues[a] =
+				Math.max(
+					tlObject.instance.start,
+					tlObject.instance.originalStart ?? 0,
+					tlObject.lastModified ?? 0,
+					oldValue ?? 0
+				) + ''
+		}
+	}
+
+	private _getMixEffectAddressesFromTlObject(mapping: MappingAtemMixEffect, content: TimelineContentAtemME): string[] {
+		const addresses: string[] = []
+
+		if ('input' in content.me || 'programInput' in content.me) {
+			addresses.push('video.mixEffects.' + mapping.index + '.pgm')
+		}
+
+		if ('previewInput' in content.me || 'transition' in content.me) {
+			addresses.push('video.mixEffects.' + mapping.index + '.base')
+		}
+
+		if ('transitionSettings' in content.me) {
+			addresses.push('video.mixEffects.' + mapping.index + '.transitionSettings')
+		}
+
+		if (content.me.upstreamKeyers) {
+			addresses.push(
+				...content.me.upstreamKeyers
+					.filter((usk) => !!usk)
+					.map((usk) => 'video.mixEffects.' + mapping.index + '.usk.' + usk.upstreamKeyerId)
+			)
+		}
+
+		return addresses
 	}
 }

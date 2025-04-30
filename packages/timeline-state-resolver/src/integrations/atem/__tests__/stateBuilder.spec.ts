@@ -30,7 +30,7 @@ import {
 	TimelineContentTypeAtem,
 } from 'timeline-state-resolver-types'
 import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
-import { AtemStateBuilder } from '../stateBuilder'
+import { AtemStateBuilder, InternalAtemConnectionState } from '../stateBuilder'
 import { SuperSourceArtOption } from 'atem-connection/dist/enums'
 import { cloneDeep } from '../../../lib'
 import { Defaults } from 'atem-state'
@@ -69,11 +69,13 @@ describe('AtemStateBuilder', () => {
 				}),
 			}
 
-			const expectedState = AtemConnection.AtemStateUtil.Create()
+			const expectedState = AtemConnection.AtemStateUtil.Create() as InternalAtemConnectionState
 			Object.assign(AtemConnection.AtemStateUtil.getMixEffect(expectedState, 0), {
 				input: 2,
 				transition: AtemTransitionStyle.CUT,
 			})
+
+			expectedState.controlValues = { 'video.mixEffects.0.base': '0', 'video.mixEffects.0.pgm': '0' }
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
@@ -99,13 +101,15 @@ describe('AtemStateBuilder', () => {
 				}),
 			}
 
-			const expectedState = AtemConnection.AtemStateUtil.Create()
+			const expectedState = AtemConnection.AtemStateUtil.Create() as InternalAtemConnectionState
 			const expectedMixEffect = AtemConnection.AtemStateUtil.getMixEffect(expectedState, 0)
 			Object.assign(expectedMixEffect, {
 				input: 2,
 				transition: AtemTransitionStyle.WIPE,
 			})
 			expectedMixEffect.transitionProperties.nextStyle = AtemConnection.Enums.TransitionStyle.WIPE
+
+			expectedState.controlValues = { 'video.mixEffects.0.base': '0', 'video.mixEffects.0.pgm': '0' }
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
@@ -141,7 +145,7 @@ describe('AtemStateBuilder', () => {
 				}),
 			}
 
-			const expectedState = AtemConnection.AtemStateUtil.Create()
+			const expectedState = AtemConnection.AtemStateUtil.Create() as InternalAtemConnectionState
 			const expectedMixEffect = AtemConnection.AtemStateUtil.getMixEffect(expectedState, 0)
 			AtemConnection.AtemStateUtil.getUpstreamKeyer(expectedMixEffect, 0).lumaSettings = {
 				preMultiplied: false,
@@ -149,6 +153,8 @@ describe('AtemStateBuilder', () => {
 				gain: 2,
 				invert: true,
 			}
+
+			expectedState['controlValues'] = { 'video.mixEffects.0.usk.0': '0' }
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
@@ -184,7 +190,7 @@ describe('AtemStateBuilder', () => {
 				}),
 			}
 
-			const expectedState = AtemConnection.AtemStateUtil.Create()
+			const expectedState = AtemConnection.AtemStateUtil.Create() as InternalAtemConnectionState
 			const expectedMixEffect = AtemConnection.AtemStateUtil.getMixEffect(expectedState, 0)
 			AtemConnection.AtemStateUtil.getUpstreamKeyer(expectedMixEffect, 2).lumaSettings = {
 				preMultiplied: false,
@@ -193,6 +199,8 @@ describe('AtemStateBuilder', () => {
 				invert: true,
 			}
 			expect(expectedMixEffect.upstreamKeyers).toHaveLength(3)
+
+			expectedState.controlValues = { 'video.mixEffects.0.usk.2': '0' }
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
@@ -246,7 +254,7 @@ describe('AtemStateBuilder', () => {
 				}),
 			}
 
-			const expectedState = AtemConnection.AtemStateUtil.Create()
+			const expectedState = AtemConnection.AtemStateUtil.Create() as InternalAtemConnectionState
 			const expectedDSK = AtemConnection.AtemStateUtil.getDownstreamKeyer(expectedState, 0)
 			expectedDSK.onAir = true
 			expectedDSK.properties = {
@@ -265,6 +273,8 @@ describe('AtemStateBuilder', () => {
 				},
 			}
 			expect(expectedState.video.downstreamKeyers).toHaveLength(1)
+
+			expectedState.controlValues = { 'video.dsk.0': '0' }
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
@@ -316,7 +326,7 @@ describe('AtemStateBuilder', () => {
 				}),
 			}
 
-			const expectedState = AtemConnection.AtemStateUtil.Create()
+			const expectedState = AtemConnection.AtemStateUtil.Create() as InternalAtemConnectionState
 			const expectedSuperSource = AtemConnection.AtemStateUtil.getSuperSource(expectedState, 0)
 			expectedSuperSource.boxes[0] = {
 				enabled: true,
@@ -331,6 +341,8 @@ describe('AtemStateBuilder', () => {
 				cropRight: 10,
 			}
 			expect(expectedState.video.superSources).toHaveLength(1)
+
+			expectedState.controlValues = { 'video.superSource.0': '0' }
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
@@ -376,7 +388,8 @@ describe('AtemStateBuilder', () => {
 				}),
 			}
 
-			const expectedState = AtemConnection.AtemStateUtil.Create()
+			const expectedState = AtemConnection.AtemStateUtil.Create() as InternalAtemConnectionState
+
 			const expectedSuperSource = AtemConnection.AtemStateUtil.getSuperSource(expectedState, 0)
 			expectedSuperSource.properties = {
 				artFillSource: 1,
@@ -389,6 +402,10 @@ describe('AtemStateBuilder', () => {
 			}
 			expectedSuperSource.border = cloneDeep(Defaults.Video.SuperSourceBorder)
 			expect(expectedState.video.superSources).toHaveLength(1)
+
+			expectedState.controlValues = {
+				'video.superSource.0': '0',
+			}
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
