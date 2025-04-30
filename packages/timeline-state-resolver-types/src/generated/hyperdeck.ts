@@ -30,13 +30,13 @@ export enum HyperdeckActions {
 	FormatDisks = 'formatDisks',
 	Resync = 'resync'
 }
-export interface HyperdeckActionExecutionResults {
-	formatDisks: () => void,
-	resync: () => void
+export interface HyperdeckActionMethods {
+	[HyperdeckActions.FormatDisks]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[HyperdeckActions.Resync]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
-export type HyperdeckActionExecutionPayload<A extends keyof HyperdeckActionExecutionResults> = Parameters<
-	HyperdeckActionExecutionResults[A]
->[0]
 
-export type HyperdeckActionExecutionResult<A extends keyof HyperdeckActionExecutionResults> =
-	ActionExecutionResult<ReturnType<HyperdeckActionExecutionResults[A]>>
+export interface HyperdeckDeviceTypes {
+	Options: HyperdeckOptions
+	Mappings: SomeMappingHyperdeck
+	Actions: HyperdeckActionMethods
+}

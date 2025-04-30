@@ -11,3 +11,9 @@ export interface ShotokuOptions {
 }
 
 export type SomeMappingShotoku = Record<string, never>
+
+export interface ShotokuDeviceTypes {
+	Options: ShotokuOptions
+	Mappings: SomeMappingShotoku
+	Actions: null
+}

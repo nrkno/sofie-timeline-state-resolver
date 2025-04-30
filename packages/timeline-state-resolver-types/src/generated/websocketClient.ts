@@ -6,7 +6,7 @@
  */
 import { ActionExecutionResult } from ".."
 
-export interface WebSocketClientOptions {
+export interface WebsocketClientOptions {
 	webSocket: {
 		/**
 		 * URI to connect to, e.g. 'ws://localhost:8080'
@@ -46,17 +46,15 @@ export interface SendWebSocketMessagePayload {
 
 export enum WebsocketClientActions {
 	Reconnect = 'reconnect',
-	ResetState = 'resetState',
 	SendWebSocketMessage = 'sendWebSocketMessage'
 }
-export interface WebsocketClientActionExecutionResults {
-	reconnect: () => void,
-	resetState: () => void,
-	sendWebSocketMessage: (payload: SendWebSocketMessagePayload) => void
+export interface WebsocketClientActionMethods {
+	[WebsocketClientActions.Reconnect]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[WebsocketClientActions.SendWebSocketMessage]: (payload: SendWebSocketMessagePayload) => Promise<ActionExecutionResult<void>>
 }
-export type WebsocketClientActionExecutionPayload<A extends keyof WebsocketClientActionExecutionResults> = Parameters<
-	WebsocketClientActionExecutionResults[A]
->[0]
 
-export type WebsocketClientActionExecutionResult<A extends keyof WebsocketClientActionExecutionResults> =
-	ActionExecutionResult<ReturnType<WebsocketClientActionExecutionResults[A]>>
+export interface WebsocketClientDeviceTypes {
+	Options: WebsocketClientOptions
+	Mappings: SomeMappingWebsocketClient
+	Actions: WebsocketClientActionMethods
+}

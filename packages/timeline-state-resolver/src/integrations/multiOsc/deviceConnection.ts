@@ -1,8 +1,8 @@
 import * as osc from 'osc'
 import { EventEmitter } from 'events'
-import { MultiOSCDeviceType, MultiOSCOptions } from 'timeline-state-resolver-types'
+import { MultiOSCDeviceType, MultiOscOptions } from 'timeline-state-resolver-types'
 
-export type OSCConnectionOptions = MultiOSCOptions['connections'][any] & {
+export type OSCConnectionOptions = MultiOscOptions['connections'][any] & {
 	oscSender?: OSCSender
 }
 

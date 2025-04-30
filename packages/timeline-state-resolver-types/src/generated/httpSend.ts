@@ -6,7 +6,7 @@
  */
 import { ActionExecutionResult } from ".."
 
-export interface HTTPSendOptions {
+export interface HttpSendOptions {
 	/**
 	 * Minimum time in ms before a command is resent, set to <= 0 or undefined to disable
 	 */
@@ -73,13 +73,13 @@ export enum HttpSendActions {
 	Resync = 'resync',
 	SendCommand = 'sendCommand'
 }
-export interface HttpSendActionExecutionResults {
-	resync: () => void,
-	sendCommand: (payload: HTTPSendCommandContent) => SendCommandResult
+export interface HttpSendActionMethods {
+	[HttpSendActions.Resync]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[HttpSendActions.SendCommand]: (payload: HTTPSendCommandContent) => Promise<ActionExecutionResult<SendCommandResult>>
 }
-export type HttpSendActionExecutionPayload<A extends keyof HttpSendActionExecutionResults> = Parameters<
-	HttpSendActionExecutionResults[A]
->[0]
 
-export type HttpSendActionExecutionResult<A extends keyof HttpSendActionExecutionResults> =
-	ActionExecutionResult<ReturnType<HttpSendActionExecutionResults[A]>>
+export interface HttpSendDeviceTypes {
+	Options: HttpSendOptions
+	Mappings: SomeMappingHttpSend
+	Actions: HttpSendActionMethods
+}

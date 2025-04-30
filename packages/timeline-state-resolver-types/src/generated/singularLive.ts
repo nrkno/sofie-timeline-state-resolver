@@ -19,3 +19,9 @@ export enum MappingSingularLiveType {
 }
 
 export type SomeMappingSingularLive = MappingSingularLiveComposition
+
+export interface SingularLiveDeviceTypes {
+	Options: SingularLiveOptions
+	Mappings: SomeMappingSingularLive
+	Actions: null
+}

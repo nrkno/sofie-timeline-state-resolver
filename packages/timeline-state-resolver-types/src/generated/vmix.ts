@@ -6,7 +6,7 @@
  */
 import { ActionExecutionResult } from ".."
 
-export interface VMixOptions {
+export interface VmixOptions {
 	host: string
 	port: number
 	/**
@@ -138,16 +138,16 @@ export enum VmixActions {
 	StartExternal = 'startExternal',
 	StopExternal = 'stopExternal'
 }
-export interface VmixActionExecutionResults {
-	lastPreset: () => void,
-	openPreset: (payload: OpenPresetPayload) => void,
-	savePreset: (payload: SavePresetPayload) => void,
-	startExternal: () => void,
-	stopExternal: () => void
+export interface VmixActionMethods {
+	[VmixActions.LastPreset]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.OpenPreset]: (payload: OpenPresetPayload) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.SavePreset]: (payload: SavePresetPayload) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.StartExternal]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.StopExternal]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
-export type VmixActionExecutionPayload<A extends keyof VmixActionExecutionResults> = Parameters<
-	VmixActionExecutionResults[A]
->[0]
 
-export type VmixActionExecutionResult<A extends keyof VmixActionExecutionResults> =
-	ActionExecutionResult<ReturnType<VmixActionExecutionResults[A]>>
+export interface VmixDeviceTypes {
+	Options: VmixOptions
+	Mappings: SomeMappingVmix
+	Actions: VmixActionMethods
+}

@@ -1,5 +1,5 @@
 {
-	"$schema": "../../../$schemas/action-schema.json",
+	"$schema": "../../../timeline-state-resolver/src/$schemas/action-schema.json",
 	"actions": [
 		{
 			"id": "setPanTiltSpeed",
@@ -8,27 +8,26 @@
 			"payload": {
 				"type": "object",
 				"properties": {
-                    "panSpeed": {
-                        "type": "number",
-                        "ui:title": "Pan Speed",
-                        "min": -1,
-                        "max": 1,
-                        "default": 0,
-                        "description": "Pan Speed; Range: [-1.0, 1.0]; -1.0 = fastest LEFT, 0.0 = STOP, 1.0 = fastest RIGHT (each protocol might internally support a different range, which the value will be mapped into)"
-                    },
-                    "tiltSpeed": {
-                        "type": "number",
-                        "ui:title": "Tilt Speed",
-                        "min": -1,
-                        "max": 1,
-                        "default": 0,
-                        "description": "Tilt Speed; Range: [-1.0, 1.0]; -1.0 = fastest DOWN, 0.0 = STOP, 1.0 = fastest UP (each protocol might internally support a different range, which the value will be mapped into)"
-                    }
+					"panSpeed": {
+						"type": "number",
+						"ui:title": "Pan Speed",
+						"min": -1,
+						"max": 1,
+						"default": 0,
+						"description": "Pan Speed; Range: [-1.0, 1.0]; -1.0 = fastest LEFT, 0.0 = STOP, 1.0 = fastest RIGHT (each protocol might internally support a different range, which the value will be mapped into)"
+					},
+					"tiltSpeed": {
+						"type": "number",
+						"ui:title": "Tilt Speed",
+						"min": -1,
+						"max": 1,
+						"default": 0,
+						"description": "Tilt Speed; Range: [-1.0, 1.0]; -1.0 = fastest DOWN, 0.0 = STOP, 1.0 = fastest UP (each protocol might internally support a different range, which the value will be mapped into)"
+					}
 				},
 				"required": ["panSpeed", "tiltSpeed"],
 				"additionalProperties": false
-			},
-			"generic": true
+			}
 		},
 		{
 			"id": "getPanTiltPosition",
@@ -37,25 +36,24 @@
 				"type": "object",
 				"properties": {
 					"panPosition": {
-                        "type": "number",
-                        "ui:title": "Pan Position",
-                        "min": -1,
-                        "max": 1,
-                        "description": "Pan Position; Range: [-1.0, 1.0]; -1.0 = furthest LEFT, 0.0 = CENTER, 1.0 = furthest RIGHT (each protocol might internally support a different range, which the value will be mapped from)"
-                    },
-                    "tiltPosition": {
-                        "type": "number",
-                        "ui:title": "Tilt Position",
-                        "min": -1,
-                        "max": 1,
-                        "description": "Tilt Position; Range: [-1.0, 1.0]; -1.0 = furthest DOWN, 0.0 = CENTER, 1.0 = furthest UP (each protocol might internally support a different range, which the value will be mapped from)"
-                    }
+						"type": "number",
+						"ui:title": "Pan Position",
+						"min": -1,
+						"max": 1,
+						"description": "Pan Position; Range: [-1.0, 1.0]; -1.0 = furthest LEFT, 0.0 = CENTER, 1.0 = furthest RIGHT (each protocol might internally support a different range, which the value will be mapped from)"
+					},
+					"tiltPosition": {
+						"type": "number",
+						"ui:title": "Tilt Position",
+						"min": -1,
+						"max": 1,
+						"description": "Tilt Position; Range: [-1.0, 1.0]; -1.0 = furthest DOWN, 0.0 = CENTER, 1.0 = furthest UP (each protocol might internally support a different range, which the value will be mapped from)"
+					}
 				},
 				"required": ["panPosition", "tiltPosition"],
 				"additionalProperties": false
 			},
-			"destructive": false,
-			"generic": true
+			"destructive": false
 		},
 		{
 			"id": "setZoomSpeed",
@@ -64,19 +62,18 @@
 			"payload": {
 				"type": "object",
 				"properties": {
-                    "zoomSpeed": {
-                        "type": "number",
-                        "ui:title": "Zoom Speed",
-                        "min": -1,
-                        "max": 1,
-                        "default": 0,
-                        "description": "Zoom Speed; Range: [-1.0, 1.0]; -1.0 = fastest WIDE, 0.0 = STOP, 1.0 = fastest TELE (each protocol might internally support a different range, which the value will be mapped into)"
-                    }
+					"zoomSpeed": {
+						"type": "number",
+						"ui:title": "Zoom Speed",
+						"min": -1,
+						"max": 1,
+						"default": 0,
+						"description": "Zoom Speed; Range: [-1.0, 1.0]; -1.0 = fastest WIDE, 0.0 = STOP, 1.0 = fastest TELE (each protocol might internally support a different range, which the value will be mapped into)"
+					}
 				},
 				"required": ["zoomSpeed"],
 				"additionalProperties": false
-			},
-			"generic": true
+			}
 		},
 		{
 			"id": "getZoomPosition",
@@ -84,21 +81,20 @@
 			"result": {
 				"type": "object",
 				"properties": {
-                    "zoomPosition": {
-                        "type": "number",
-                        "ui:title": "Zoom Position",
-                        "min": 0,
-                        "max": 1,
-                        "description": "Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest WIDE, 1.0 = furthest TELE (each protocol might internally support a different range, which the value will be mapped from)"
-                    }
+					"zoomPosition": {
+						"type": "number",
+						"ui:title": "Zoom Position",
+						"min": 0,
+						"max": 1,
+						"description": "Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest WIDE, 1.0 = furthest TELE (each protocol might internally support a different range, which the value will be mapped from)"
+					}
 				},
 				"required": ["zoomPosition"],
 				"additionalProperties": false
 			},
-			"destructive": false,
-			"generic": true
+			"destructive": false
 		},
-        {
+		{
 			"id": "storePreset",
 			"name": "Store in-camera Preset",
 			"destructive": false,
@@ -109,15 +105,14 @@
 						"type": "integer",
 						"ui:title": "Preset Number",
 						"ui:summaryTitle": "Preset Number",
-                        "description": "Preset number, within the range supported by the camera"
+						"description": "Preset number, within the range supported by the camera"
 					}
 				},
 				"required": ["presetNumber"],
 				"additionalProperties": false
-			},
-			"generic": true
-        },
-        {
+			}
+		},
+		{
 			"id": "recallPreset",
 			"name": "Recall in-camera Preset",
 			"destructive": false,
@@ -128,15 +123,14 @@
 						"type": "integer",
 						"ui:title": "Preset Number",
 						"ui:summaryTitle": "Preset Number",
-                        "description": "Preset number, within the range supported by the camera"
+						"description": "Preset number, within the range supported by the camera"
 					}
 				},
 				"required": ["presetNumber"],
 				"additionalProperties": false
-			},
-			"generic": true
-        },
-        {
+			}
+		},
+		{
 			"id": "resetPreset",
 			"name": "Reset in-camera Preset",
 			"destructive": false,
@@ -147,14 +141,13 @@
 						"type": "integer",
 						"ui:title": "Preset Number",
 						"ui:summaryTitle": "Preset Number",
-                        "description": "Preset number, within the range supported by the camera"
+						"description": "Preset number, within the range supported by the camera"
 					}
 				},
 				"required": ["presetNumber"],
 				"additionalProperties": false
-			},
-			"generic": true
-        },
+			}
+		},
 		{
 			"id": "setFocusSpeed",
 			"name": "Set Focus adjustment speed (virtual focus ring velocity)",
@@ -162,19 +155,18 @@
 			"payload": {
 				"type": "object",
 				"properties": {
-                    "focusSpeed": {
-                        "type": "number",
-                        "ui:title": "Focus Speed",
-                        "min": -1,
-                        "max": 1,
-                        "default": 0,
-                        "description": "Focus Speed; Range: [-1.0, 1.0]; -1.0 = fastest NEAR, 0.0 = STOP, 1.0 = fastest FAR (each protocol might internally support a different range, which the value will be mapped into)"
-                    }
+					"focusSpeed": {
+						"type": "number",
+						"ui:title": "Focus Speed",
+						"min": -1,
+						"max": 1,
+						"default": 0,
+						"description": "Focus Speed; Range: [-1.0, 1.0]; -1.0 = fastest NEAR, 0.0 = STOP, 1.0 = fastest FAR (each protocol might internally support a different range, which the value will be mapped into)"
+					}
 				},
 				"required": ["focusSpeed"],
 				"additionalProperties": false
-			},
-			"generic": true
+			}
 		},
 		{
 			"id": "setFocusMode",
@@ -195,14 +187,12 @@
 				},
 				"required": ["mode"],
 				"additionalProperties": false
-			},
-			"generic": true
+			}
 		},
 		{
 			"id": "triggerOnePushFocus",
 			"name": "Trigger One Push AF",
-			"destructive": false,
-			"generic": true
+			"destructive": false
 		},
 		{
 			"id": "getFocusPosition",
@@ -210,19 +200,18 @@
 			"result": {
 				"type": "object",
 				"properties": {
-                    "zoomPosition": {
-                        "type": "number",
-                        "ui:title": "Focus Position",
-                        "min": 0,
-                        "max": 1,
-                        "description": "Zoom Position; Range: [0.0, 1.0]; 0.0 = furthest NEAR, 1.0 = furthest FAR (each protocol might internally support a different range, which the value will be mapped from)"
-                    }
+					"focusPosition": {
+						"type": "number",
+						"ui:title": "Focus Position",
+						"min": 0,
+						"max": 1,
+						"description": "Focus Position; Range: [0.0, 1.0]; 0.0 = furthest NEAR, 1.0 = furthest FAR (each protocol might internally support a different range, which the value will be mapped from)"
+					}
 				},
-				"required": ["zoomPosition"],
+				"required": ["focusPosition"],
 				"additionalProperties": false
 			},
-			"destructive": false,
-			"generic": true
+			"destructive": false
 		},
 		{
 			"id": "getFocusMode",
@@ -244,8 +233,7 @@
 				"required": ["mode"],
 				"additionalProperties": false
 			},
-			"destructive": false,
-			"generic": true
+			"destructive": false
 		}
 	]
 }

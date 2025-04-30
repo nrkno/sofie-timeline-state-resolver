@@ -6,7 +6,7 @@
  */
 import { ActionExecutionResult } from ".."
 
-export interface TCPSendOptions {
+export interface TcpSendOptions {
 	host: string
 	port: number
 	bufferEncoding?:
@@ -50,14 +50,14 @@ export enum TcpSendActions {
 	ResetState = 'resetState',
 	SendTcpCommand = 'sendTcpCommand'
 }
-export interface TcpSendActionExecutionResults {
-	reconnect: () => void,
-	resetState: () => void,
-	sendTcpCommand: (payload: SendTcpCommandPayload) => void
+export interface TcpSendActionMethods {
+	[TcpSendActions.Reconnect]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[TcpSendActions.ResetState]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[TcpSendActions.SendTcpCommand]: (payload: SendTcpCommandPayload) => Promise<ActionExecutionResult<void>>
 }
-export type TcpSendActionExecutionPayload<A extends keyof TcpSendActionExecutionResults> = Parameters<
-	TcpSendActionExecutionResults[A]
->[0]
 
-export type TcpSendActionExecutionResult<A extends keyof TcpSendActionExecutionResults> =
-	ActionExecutionResult<ReturnType<TcpSendActionExecutionResults[A]>>
+export interface TcpSendDeviceTypes {
+	Options: TcpSendOptions
+	Mappings: SomeMappingTcpSend
+	Actions: TcpSendActionMethods
+}

@@ -11,3 +11,9 @@ export interface PharosOptions {
 }
 
 export type SomeMappingPharos = Record<string, never>
+
+export interface PharosDeviceTypes {
+	Options: PharosOptions
+	Mappings: SomeMappingPharos
+	Actions: null
+}

@@ -53,14 +53,14 @@ export enum SisyfosActions {
 	SetSisyfosChannelState = 'setSisyfosChannelState',
 	LoadMixerPreset = 'loadMixerPreset'
 }
-export interface SisyfosActionExecutionResults {
-	reinit: () => void,
-	setSisyfosChannelState: (payload: SetSisyfosChannelStatePayload) => void,
-	loadMixerPreset: (payload: LoadMixerPresetPayload) => void
+export interface SisyfosActionMethods {
+	[SisyfosActions.Reinit]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[SisyfosActions.SetSisyfosChannelState]: (payload: SetSisyfosChannelStatePayload) => Promise<ActionExecutionResult<void>>,
+	[SisyfosActions.LoadMixerPreset]: (payload: LoadMixerPresetPayload) => Promise<ActionExecutionResult<void>>
 }
-export type SisyfosActionExecutionPayload<A extends keyof SisyfosActionExecutionResults> = Parameters<
-	SisyfosActionExecutionResults[A]
->[0]
 
-export type SisyfosActionExecutionResult<A extends keyof SisyfosActionExecutionResults> =
-	ActionExecutionResult<ReturnType<SisyfosActionExecutionResults[A]>>
+export interface SisyfosDeviceTypes {
+	Options: SisyfosOptions
+	Mappings: SomeMappingSisyfos
+	Actions: SisyfosActionMethods
+}

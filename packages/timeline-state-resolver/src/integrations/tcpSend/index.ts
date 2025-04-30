@@ -7,7 +7,9 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	TcpSendCommandContent,
-	TCPSendOptions,
+	TcpSendOptions,
+	TcpSendActionMethods,
+	TcpSendDeviceTypes,
 	TcpSendActions,
 } from 'timeline-state-resolver-types'
 import { t } from '../../lib'
@@ -23,13 +25,13 @@ export interface TcpSendDeviceCommand extends CommandWithContext {
 		layer: string
 	}
 }
-export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, TcpSendDeviceCommand> {
+export class TcpSendDevice extends Device<TcpSendDeviceTypes, TcpSendDeviceState, TcpSendDeviceCommand> {
 	private activeLayers = new Map<string, string>()
 	private _terminated = false
 
 	private tcpConnection = new TcpConnection()
 
-	async init(options: TCPSendOptions): Promise<boolean> {
+	async init(options: TcpSendOptions): Promise<boolean> {
 		this.tcpConnection.once('connectionChanged', (connected) => {
 			if (connected) {
 				this.context
@@ -60,9 +62,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 		}
 	}
 
-	readonly actions: {
-		[id in TcpSendActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {
+	readonly actions: TcpSendActionMethods = {
 		[TcpSendActions.Reconnect]: async () => {
 			await this.tcpConnection.reconnect()
 			return { result: ActionExecutionResultCode.Ok }
@@ -71,8 +71,8 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 			await this.actionResetState()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[TcpSendActions.SendTcpCommand]: async (_id: string, payload?: Record<string, any>) => {
-			return this.actionSendTcpCommand(payload as TcpSendCommandContent | undefined)
+		[TcpSendActions.SendTcpCommand]: async (payload) => {
+			return this.actionSendTcpCommand(payload)
 		},
 	}
 

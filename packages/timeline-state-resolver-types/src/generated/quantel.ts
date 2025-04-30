@@ -68,13 +68,13 @@ export enum QuantelActions {
 	RestartGateway = 'restartGateway',
 	ClearStates = 'clearStates'
 }
-export interface QuantelActionExecutionResults {
-	restartGateway: () => void,
-	clearStates: () => void
+export interface QuantelActionMethods {
+	[QuantelActions.RestartGateway]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[QuantelActions.ClearStates]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
-export type QuantelActionExecutionPayload<A extends keyof QuantelActionExecutionResults> = Parameters<
-	QuantelActionExecutionResults[A]
->[0]
 
-export type QuantelActionExecutionResult<A extends keyof QuantelActionExecutionResults> =
-	ActionExecutionResult<ReturnType<QuantelActionExecutionResults[A]>>
+export interface QuantelDeviceTypes {
+	Options: QuantelOptions
+	Mappings: SomeMappingQuantel
+	Actions: QuantelActionMethods
+}

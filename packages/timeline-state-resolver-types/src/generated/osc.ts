@@ -5,7 +5,7 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
-export interface OSCOptions {
+export interface OscOptions {
 	host: string
 	port: number
 	type: OSCDeviceType
@@ -17,3 +17,9 @@ export enum OSCDeviceType {
 }
 
 export type SomeMappingOsc = Record<string, never>
+
+export interface OscDeviceTypes {
+	Options: OscOptions
+	Mappings: SomeMappingOsc
+	Actions: null
+}

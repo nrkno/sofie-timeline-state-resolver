@@ -90,12 +90,12 @@ export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer 
 export enum AtemActions {
 	Resync = 'resync'
 }
-export interface AtemActionExecutionResults {
-	resync: () => void
+export interface AtemActionMethods {
+	[AtemActions.Resync]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
-export type AtemActionExecutionPayload<A extends keyof AtemActionExecutionResults> = Parameters<
-	AtemActionExecutionResults[A]
->[0]
 
-export type AtemActionExecutionResult<A extends keyof AtemActionExecutionResults> =
-	ActionExecutionResult<ReturnType<AtemActionExecutionResults[A]>>
+export interface AtemDeviceTypes {
+	Options: AtemOptions
+	Mappings: SomeMappingAtem
+	Actions: AtemActionMethods
+}

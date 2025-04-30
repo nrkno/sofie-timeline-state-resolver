@@ -136,14 +136,14 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		return this._device.terminate()
 	}
 
-	async executeAction(id: string, payload?: Record<string, any>) {
-		const action = this._device.actions[id]
+	async executeAction(id: string, payload: Record<string, any>) {
+		const action = this._device.actions?.[id]
 
 		if (!action) {
 			return actionNotFoundMessage(id as never)
 		}
 
-		return action(id, payload)
+		return action(payload)
 	}
 
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {

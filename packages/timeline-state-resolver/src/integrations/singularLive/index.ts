@@ -11,7 +11,7 @@ import {
 	Mapping,
 	DeviceStatus,
 	StatusCode,
-	ActionExecutionResult,
+	SingularLiveDeviceTypes,
 } from 'timeline-state-resolver-types'
 import got from 'got'
 import { literal } from '../../lib'
@@ -52,10 +52,8 @@ const SINGULAR_LIVE_API = 'https://app.singular.live/apiv2/controlapps/'
 /**
  * This is a Singular.Live device, it talks to a Singular.Live App Instance using an Access Token
  */
-export class SingularLiveDevice extends Device<SingularLiveOptions, SingularLiveState, SingularLiveCommandContext> {
-	readonly actions: {
-		[id: string]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {}
+export class SingularLiveDevice extends Device<SingularLiveDeviceTypes, SingularLiveState, SingularLiveCommandContext> {
+	readonly actions = null
 
 	private _accessToken: string | undefined
 

@@ -3,15 +3,16 @@ import {
 	ActionExecutionResultCode,
 	DeviceStatus,
 	DeviceType,
-	SendWebSocketMessagePayload,
 	StatusCode,
 	Timeline,
 	TimelineContentTypeWebSocketClient,
 	TSRTimelineContent,
-	WebSocketClientOptions,
+	WebsocketClientOptions,
+	WebsocketClientDeviceTypes,
+	WebsocketClientActions,
 } from 'timeline-state-resolver-types'
 import { WebSocketConnection } from './connection'
-import { WebsocketClientActions } from 'timeline-state-resolver-types'
+import { WebsocketClientActionMethods } from 'timeline-state-resolver-types'
 
 /** this is not an extends but an implementation of the CommandWithContext */
 export interface WebSocketCommand extends CommandWithContext {
@@ -24,44 +25,38 @@ export interface WebSocketCommand extends CommandWithContext {
 export type WebSocketClientDeviceState = Timeline.TimelineState<TSRTimelineContent>
 
 export class WebSocketClientDevice extends Device<
-	WebSocketClientOptions,
+	WebsocketClientDeviceTypes,
 	WebSocketClientDeviceState,
 	WebSocketCommand
 > {
 	// Use ! as the connection will be initialized in init:
 	private connection: WebSocketConnection | undefined
 
-	public async init(options: WebSocketClientOptions): Promise<boolean> {
+	public async init(options: WebsocketClientOptions): Promise<boolean> {
 		this.connection = new WebSocketConnection(options)
 		await this.connection.connect()
 		return true
 	}
 
-	readonly actions = {
-		[WebsocketClientActions.Reconnect]: async (_id: string) => {
+	readonly actions: WebsocketClientActionMethods = {
+		[WebsocketClientActions.Reconnect]: async () => {
 			await this.connection?.connect()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[WebsocketClientActions.ResetState]: async (_id: string) => {
-			return { result: ActionExecutionResultCode.Ok }
-		},
-		[WebsocketClientActions.SendWebSocketMessage]: async (
-			_id: string,
-			payload?: Record<string, SendWebSocketMessagePayload>
-		) => {
+		[WebsocketClientActions.SendWebSocketMessage]: async (payload) => {
 			if (!payload?.message) {
 				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing message in payload' } }
 			}
-			for (const [cmd] of Object.entries<SendWebSocketMessagePayload>(payload)) {
-				await this.sendCommand({
-					command: {
-						type: TimelineContentTypeWebSocketClient.WEBSOCKET_MESSAGE,
-						message: cmd,
-					},
-					context: 'SendWebSocketMessage',
-					timelineObjId: _id,
-				})
-			}
+
+			await this.sendCommand({
+				command: {
+					type: TimelineContentTypeWebSocketClient.WEBSOCKET_MESSAGE,
+					message: payload.message,
+				},
+				context: 'SendWebSocketMessage',
+				timelineObjId: 'tsr-action',
+			})
+
 			return { result: ActionExecutionResultCode.Ok }
 		},
 	}

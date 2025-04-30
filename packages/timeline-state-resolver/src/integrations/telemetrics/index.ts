@@ -1,8 +1,8 @@
 import {
-	ActionExecutionResult,
 	DeviceStatus,
 	Mappings,
 	StatusCode,
+	TelemetricsDeviceTypes,
 	TelemetricsOptions,
 	Timeline,
 	TimelineContentTelemetrics,
@@ -27,10 +27,8 @@ interface TelemetricsCommandWithContext extends CommandWithContext {
  * Connects to a Telemetrics Device on port 5000 using a TCP socket.
  * This class uses a fire and forget approach.
  */
-export class TelemetricsDevice extends Device<TelemetricsOptions, TelemetricsState, TelemetricsCommandWithContext> {
-	readonly actions: {
-		[id: string]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {}
+export class TelemetricsDevice extends Device<TelemetricsDeviceTypes, TelemetricsState, TelemetricsCommandWithContext> {
+	readonly actions = null
 
 	private socket: Socket | undefined
 	private statusCode: StatusCode = StatusCode.UNKNOWN

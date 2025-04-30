@@ -51,6 +51,8 @@ try {
 	hadError = true
 }
 
+const genericActionTypes = []
+
 // convert generic PTZ actions
 try {
 	const actionsDescr = JSON.parse(await fs.readFile('./src/$schemas/generic-ptz-actions.json'))
@@ -61,36 +63,39 @@ try {
 		const actionDefinition = {
 			id: action.id,
 			payloadId: undefined,
-			resultId: undefined
+			resultId: undefined,
 		}
 		actionDefinitions.push(actionDefinition)
 		// Payload:
 		if (action.payload) {
 			actionDefinition.payloadId = action.payload.id || capitalise(action.id + 'Payload')
-			actionTypes.push(await compile(action.payload, actionDefinition.payloadId, {
-				additionalProperties: false,
-				style: PrettierConf,
-				bannerComment: '',
-				enableConstEnums: false,
-			}))
+			genericActionTypes.push(actionDefinition.payloadId)
+			actionTypes.push(
+				await compile(action.payload, actionDefinition.payloadId, {
+					additionalProperties: false,
+					style: PrettierConf,
+					bannerComment: '',
+					enableConstEnums: false,
+				})
+			)
 		}
 		// Return Data:
 		if (action.result) {
 			actionDefinition.resultId = action.result.id || capitalise(action.id + 'Result')
-			actionTypes.push(await compile(action.result, actionDefinition.resultId, {
-				additionalProperties: false,
-				style: PrettierConf,
-				bannerComment: '',
-				enableConstEnums: false,
-			}))
+			genericActionTypes.push(actionDefinition.resultId)
+			actionTypes.push(
+				await compile(action.result, actionDefinition.resultId, {
+					additionalProperties: false,
+					style: PrettierConf,
+					bannerComment: '',
+					enableConstEnums: false,
+				})
+			)
 		}
 		output += '\n' + actionTypes.join('\n')
 	}
 
-	await fs.writeFile(
-		'../timeline-state-resolver-types/src/generated/generic-ptz-actions.ts',
-		BANNER + '\n' + output
-	)
+	await fs.writeFile('../timeline-state-resolver-types/src/generated/generic-ptz-actions.ts', BANNER + '\n' + output)
 } catch (e) {
 	console.error('Error while generating common-options.json, continuing...')
 	console.error(e)
@@ -118,7 +123,9 @@ try {
 
 const basePath = path.resolve('./src/integrations')
 const basePathOfDereferencedShemas = path.resolve(`./src/${DEREFERENCED_SCHEMA_DIRECTORY}`)
-const dirs = (await fs.readdir(basePath, { withFileTypes: true })).filter((c) => c.isDirectory() && !c.name.includes('__tests__')).map((d) => d.name)
+const dirs = (await fs.readdir(basePath, { withFileTypes: true }))
+	.filter((c) => c.isDirectory() && !c.name.includes('__tests__'))
+	.map((d) => d.name)
 
 // Create output folder for dereferenced schemas
 try {
@@ -161,7 +168,9 @@ for (const dir of dirs) {
 	try {
 		const filePath = path.join(generatedSchemaDirectory, 'options.json')
 		if (await fsExists(filePath)) {
-			const options = await compileFromFile(filePath, {
+			const optionsDescr = JSON.parse(await fs.readFile(filePath))
+			delete optionsDescr.title // remove the title, so the generation uses the forced one
+			const options = await compile(optionsDescr, dirId + 'Options', {
 				additionalProperties: false,
 				style: PrettierConf,
 				bannerComment: '',
@@ -228,6 +237,7 @@ for (const dir of dirs) {
 
 	// compile actions from file
 	const actionDefinitions = []
+	const importGenericTypes = new Set()
 
 	try {
 		const filePath = path.join(generatedSchemaDirectory, 'actions.json')
@@ -237,32 +247,42 @@ for (const dir of dirs) {
 				const actionDefinition = {
 					id: action.id,
 					payloadId: undefined,
-					resultId: undefined
+					resultId: undefined,
 				}
 				actionDefinitions.push(actionDefinition)
-				if (action.generic) continue
-
 
 				const actionTypes = []
 				// Payload:
 				if (action.payload) {
 					actionDefinition.payloadId = action.payload.id || capitalise(action.id + 'Payload')
-					actionTypes.push(await compile(action.payload, actionDefinition.payloadId, {
-						additionalProperties: false,
-						style: PrettierConf,
-						bannerComment: '',
-						enableConstEnums: false,
-					}))
+					if (genericActionTypes.includes(actionDefinition.payloadId)) {
+						importGenericTypes.add(actionDefinition.payloadId)
+					} else {
+						actionTypes.push(
+							await compile(action.payload, actionDefinition.payloadId, {
+								additionalProperties: false,
+								style: PrettierConf,
+								bannerComment: '',
+								enableConstEnums: false,
+							})
+						)
+					}
 				}
 				// Return Data:
 				if (action.result) {
 					actionDefinition.resultId = action.result.id || capitalise(action.id + 'Result')
-					actionTypes.push(await compile(action.result, actionDefinition.resultId, {
-						additionalProperties: false,
-						style: PrettierConf,
-						bannerComment: '',
-						enableConstEnums: false,
-					}))
+					if (genericActionTypes.includes(actionDefinition.resultId)) {
+						importGenericTypes.add(actionDefinition.resultId)
+					} else {
+						actionTypes.push(
+							await compile(action.result, actionDefinition.resultId, {
+								additionalProperties: false,
+								style: PrettierConf,
+								bannerComment: '',
+								enableConstEnums: false,
+							})
+						)
+					}
 				}
 
 				if (actionTypes.length) {
@@ -276,38 +296,43 @@ for (const dir of dirs) {
 		hadError = true
 	}
 
+	if (importGenericTypes.size > 0) {
+		output = `import { ${Array.from(importGenericTypes).join(', ')} } from './generic-ptz-actions'\n\n` + output
+	}
+
 	if (actionDefinitions.length > 0) {
 		// An enum for all action ids:
-
 		output += `
 export enum ${dirId}Actions {
-${actionDefinitions.map(
-			(actionDefinition) => `\t${capitalise(actionDefinition.id)} = '${actionDefinition.id}'`
-		).join(',\n')}
+${actionDefinitions
+	.map((actionDefinition) => `\t${capitalise(actionDefinition.id)} = '${actionDefinition.id}'`)
+	.join(',\n')}
 }`
+
 		// An interface for all the action methods:
 		output += `
-export interface ${dirId}ActionExecutionResults {
-${actionDefinitions.map(
-			(actionDefinition) => `\t${actionDefinition.id}: (${actionDefinition.payloadId ? `payload: ${actionDefinition.payloadId}` : ''}) => ${actionDefinition.resultId || 'void'}`
-		).join(',\n')}
-}`
+export interface ${dirId}ActionMethods {
+${actionDefinitions
+	.map(
+		(actionDefinition) =>
+			`\t[${dirId}Actions.${capitalise(actionDefinition.id)}]: (payload: ${
+				actionDefinition.payloadId ? actionDefinition.payloadId : 'Record<string, never>'
+			}) => Promise<ActionExecutionResult<${actionDefinition.resultId || 'void'}>>`
+	)
+	.join(',\n')}
+}
+`
 		// Prepend import:
 		output = 'import { ActionExecutionResult } from ".."\n' + output
-
-
-		// A helper type used to access the action methods payload:
-		output += `
-export type ${dirId}ActionExecutionPayload<A extends keyof ${dirId}ActionExecutionResults> = Parameters<
-	${dirId}ActionExecutionResults[A]
->[0]
-`
-		// A helper type used to access the action methods return Data:
-		output += `
-export type ${dirId}ActionExecutionResult<A extends keyof ${dirId}ActionExecutionResults> =
-	ActionExecutionResult<ReturnType<${dirId}ActionExecutionResults[A]>>
-`
 	}
+
+	output += `
+export interface ${dirId}DeviceTypes {
+	Options: ${dirId}Options
+	Mappings: SomeMapping${dirId}
+	Actions: ${actionDefinitions.length > 0 ? `${dirId}ActionMethods` : 'null'}
+}
+`
 
 	// Output to tsr types package
 	const outputFilePath = path.join('../timeline-state-resolver-types/src/generated', dir + '.ts')

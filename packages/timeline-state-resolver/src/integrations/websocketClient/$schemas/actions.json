@@ -1,40 +1,32 @@
 {
-  "$schema": "../../../$schemas/action-schema.json",
-  "actions": [
-    {
-      "id": "reconnect",
-      "name": "Reconnect device",
-      "destructive": true,
-      "timeout": 5000
-    },
-    {
-      "id": "resetState",
-      "name": "Reset state",
-      "destructive": true,
-      "timeout": 5000
-    },
-    {
-      "id": "sendWebSocketMessage",
-      "name": "Send WebSocket message",
-      "destructive": false,
-      "timeout": 5000,
-      "payload": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Message to send over WebSocket"
-          },
-          "queueId": {
-            "type": "string",
-            "description": "Optional queue ID for ordered message handling"
-          }
-        },
-        "required": [
-          "message"
-        ],
-        "additionalProperties": false
-      }
-    }
-  ]
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "reconnect",
+			"name": "Reconnect device",
+			"destructive": true,
+			"timeout": 5000
+		},
+		{
+			"id": "sendWebSocketMessage",
+			"name": "Send WebSocket message",
+			"destructive": false,
+			"timeout": 5000,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string",
+						"description": "Message to send over WebSocket"
+					},
+					"queueId": {
+						"type": "string",
+						"description": "Optional queue ID for ordered message handling"
+					}
+				},
+				"required": ["message"],
+				"additionalProperties": false
+			}
+		}
+	]
 }

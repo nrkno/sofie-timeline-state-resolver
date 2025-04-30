@@ -1,12 +1,12 @@
 import * as WebSocket from 'ws'
-import { DeviceStatus, StatusCode, WebSocketClientOptions } from 'timeline-state-resolver-types'
+import { DeviceStatus, StatusCode, WebsocketClientOptions } from 'timeline-state-resolver-types'
 
 export class WebSocketConnection {
 	private ws?: WebSocket
 	private isWsConnected = false
-	private readonly options: WebSocketClientOptions
+	private readonly options: WebsocketClientOptions
 
-	constructor(options: WebSocketClientOptions) {
+	constructor(options: WebsocketClientOptions) {
 		this.options = options
 	}
 

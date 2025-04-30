@@ -1,6 +1,6 @@
 import {
-	ActionExecutionResult,
 	DeviceStatus,
+	LawoDeviceTypes,
 	LawoOptions,
 	Mappings,
 	SomeMappingLawo,
@@ -16,7 +16,7 @@ import { LawoCommandWithContext, diffLawoStates, LawoCommandType } from './diff'
 import { LawoConnection } from './connection'
 const debug = Debug('timeline-state-resolver:lawo')
 
-export class LawoDevice extends Device<LawoOptions, LawoState, LawoCommandWithContext> {
+export class LawoDevice extends Device<LawoDeviceTypes, LawoState, LawoCommandWithContext> {
 	private _lawo: LawoConnection | undefined
 
 	async init(options: LawoOptions): Promise<boolean> {
@@ -93,7 +93,5 @@ export class LawoDevice extends Device<LawoOptions, LawoState, LawoCommandWithCo
 		}
 	}
 
-	readonly actions: {
-		[id: string]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {}
+	readonly actions = null
 }

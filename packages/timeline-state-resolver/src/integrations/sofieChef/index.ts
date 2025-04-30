@@ -5,10 +5,11 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	ActionExecutionResultCode,
-	SofieChefActions,
-	ActionExecutionResult,
+	SofieChefActionMethods,
 	StatusCode,
 	DeviceStatus,
+	SofieChefDeviceTypes,
+	SofieChefActions,
 } from 'timeline-state-resolver-types'
 import * as WebSocket from 'ws'
 import {
@@ -46,17 +47,15 @@ const RECONNECT_WAIT_TIME = 5000
  * This is a wrapper for a SofieChef-devices,
  * https://github.com/nrkno/sofie-chef
  */
-export class SofieChefDevice extends Device<SofieChefOptions, SofieChefState, SofieChefCommandWithContext> {
-	readonly actions: {
-		[id in SofieChefActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {
+export class SofieChefDevice extends Device<SofieChefDeviceTypes, SofieChefState, SofieChefCommandWithContext> {
+	readonly actions: SofieChefActionMethods = {
 		[SofieChefActions.RestartAllWindows]: async () =>
 			this.restartAllWindows()
 				.then(() => ({
 					result: ActionExecutionResultCode.Ok,
 				}))
 				.catch(() => ({ result: ActionExecutionResultCode.Error })),
-		[SofieChefActions.RestartWindow]: async (_id, payload) => {
+		[SofieChefActions.RestartWindow]: async (payload) => {
 			if (!payload?.windowId) {
 				return { result: ActionExecutionResultCode.Error, response: t('Missing window id') }
 			}

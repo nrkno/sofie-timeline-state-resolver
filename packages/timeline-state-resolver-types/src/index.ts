@@ -1,6 +1,5 @@
 import * as Timeline from './superfly-timeline'
 import { TSRTimelineObjProps } from './mapping'
-import { ITranslatableMessage } from './translations'
 import { Content } from './superfly-timeline'
 
 import { TimelineContentTelemetricsAny } from './integrations/telemetrics'
@@ -49,18 +48,17 @@ export * from './integrations/multiOsc'
 export * from './integrations/viscaOverIP'
 export * from './integrations/websocketClient'
 
+export * from './actions'
 export * from './datastore'
 export * from './device'
-export * from './mapping'
-export * from './templateString'
-
-export { Timeline }
-export * from './mapping'
 export * from './expectedPlayoutItems'
+export * from './mapping'
 export * from './mediaObject'
+export * from './templateString'
 export * from './translations'
 
 export * from './generated'
+export { Timeline }
 
 /**
  * An identifier of a particular device class
@@ -166,18 +164,4 @@ export interface Datastore {
 		/** A unix-Timestamp of when the value was set. (Note that this must not be set a value in the future.) */
 		modified: number
 	}
-}
-
-export interface ActionExecutionResult<ResultData = undefined> {
-	result: ActionExecutionResultCode
-	/** Response message, intended to be displayed to a user */
-	response?: ITranslatableMessage
-	/** Response data */
-	resultData?: ResultData
-}
-
-export enum ActionExecutionResultCode {
-	Error = 'ERROR',
-	IgnoredNotRelevant = 'IGNORED',
-	Ok = 'OK',
 }

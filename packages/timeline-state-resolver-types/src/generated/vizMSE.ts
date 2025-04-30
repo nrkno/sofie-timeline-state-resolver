@@ -91,16 +91,16 @@ export enum VizMSEActions {
 	StandDown = 'standDown',
 	ClearAllEngines = 'clearAllEngines'
 }
-export interface VizMSEActionExecutionResults {
-	vizReset: (payload: VizResetPayload) => void,
-	purgeRundown: () => void,
-	activate: (payload: ActivatePayload) => void,
-	standDown: () => void,
-	clearAllEngines: () => void
+export interface VizMSEActionMethods {
+	[VizMSEActions.VizReset]: (payload: VizResetPayload) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.PurgeRundown]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.Activate]: (payload: ActivatePayload) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.StandDown]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.ClearAllEngines]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
-export type VizMSEActionExecutionPayload<A extends keyof VizMSEActionExecutionResults> = Parameters<
-	VizMSEActionExecutionResults[A]
->[0]
 
-export type VizMSEActionExecutionResult<A extends keyof VizMSEActionExecutionResults> =
-	ActionExecutionResult<ReturnType<VizMSEActionExecutionResults[A]>>
+export interface VizMSEDeviceTypes {
+	Options: VizMSEOptions
+	Mappings: SomeMappingVizMSE
+	Actions: VizMSEActionMethods
+}

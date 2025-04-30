@@ -1,4 +1,10 @@
-import { FocusMode, GetPanTiltPositionResult } from 'timeline-state-resolver-types'
+import {
+	FocusMode,
+	GetFocusModeResult,
+	GetFocusPositionResult,
+	GetPanTiltPositionResult,
+	GetZoomPositionResult,
+} from 'timeline-state-resolver-types'
 import * as ConnectionEnums from '../enums'
 import { PanTiltPosition } from '../commands/inquiry'
 
@@ -83,12 +89,16 @@ export class ViscaValueConverter {
 		return ConnectionEnums.FocusDirection.Stop
 	}
 
-	public mapFocusPositionFromVisca(focusPosition: number): number {
-		return focusPosition / 0xffff
+	public mapFocusPositionFromVisca(focusPosition: number): GetFocusPositionResult {
+		return {
+			focusPosition: focusPosition / 0xffff,
+		}
 	}
 
-	public mapZoomPositionFromVisca(zoomPosition: number): number {
-		return zoomPosition / 0x6000
+	public mapZoomPositionFromVisca(zoomPosition: number): GetZoomPositionResult {
+		return {
+			zoomPosition: zoomPosition / 0x6000,
+		}
 	}
 
 	public mapPanTiltPositionFromVisca(position: PanTiltPosition): GetPanTiltPositionResult {
@@ -98,8 +108,9 @@ export class ViscaValueConverter {
 		}
 	}
 
-	public mapFocusModeFromVisca(focusMode: ConnectionEnums.FocusMode): FocusMode {
-		if (focusMode === ConnectionEnums.FocusMode.Auto) return FocusMode.AUTO
-		return FocusMode.MANUAL
+	public mapFocusModeFromVisca(focusMode: ConnectionEnums.FocusMode): GetFocusModeResult {
+		return {
+			mode: focusMode === ConnectionEnums.FocusMode.Auto ? FocusMode.AUTO : FocusMode.MANUAL,
+		}
 	}
 }

@@ -7,8 +7,10 @@ import {
 	TSRTimelineContent,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
-	AtemActions,
 	SomeMappingAtem,
+	AtemDeviceTypes,
+	AtemActionMethods,
+	AtemActions,
 } from 'timeline-state-resolver-types'
 import { AtemState, State as DeviceState } from 'atem-state'
 import {
@@ -32,10 +34,8 @@ type AtemDeviceState = DeviceState
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommandWithContext> {
-	readonly actions: {
-		[id in AtemActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
-	} = {
+export class AtemDevice extends Device<AtemDeviceTypes, AtemDeviceState, AtemCommandWithContext> {
+	readonly actions: AtemActionMethods = {
 		[AtemActions.Resync]: this.resyncState.bind(this),
 	}
 

@@ -36,13 +36,13 @@ export enum SofieChefActions {
 	RestartAllWindows = 'restartAllWindows',
 	RestartWindow = 'restartWindow'
 }
-export interface SofieChefActionExecutionResults {
-	restartAllWindows: () => void,
-	restartWindow: (payload: RestartWindowPayload) => void
+export interface SofieChefActionMethods {
+	[SofieChefActions.RestartAllWindows]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[SofieChefActions.RestartWindow]: (payload: RestartWindowPayload) => Promise<ActionExecutionResult<void>>
 }
-export type SofieChefActionExecutionPayload<A extends keyof SofieChefActionExecutionResults> = Parameters<
-	SofieChefActionExecutionResults[A]
->[0]
 
-export type SofieChefActionExecutionResult<A extends keyof SofieChefActionExecutionResults> =
-	ActionExecutionResult<ReturnType<SofieChefActionExecutionResults[A]>>
+export interface SofieChefDeviceTypes {
+	Options: SofieChefOptions
+	Mappings: SomeMappingSofieChef
+	Actions: SofieChefActionMethods
+}

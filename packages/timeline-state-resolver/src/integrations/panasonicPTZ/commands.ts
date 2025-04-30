@@ -2,9 +2,9 @@ import { sprintf } from 'sprintf-js'
 import _ = require('underscore')
 import { PanasonicFocusMode } from './connection'
 
-export interface Command {
+export interface Command<TRes> {
 	serialize(): string
-	deserializeResponse(response: string): any
+	deserializeResponse(response: string): TRes
 }
 
 export class InvalidResponseError extends Error {
@@ -19,7 +19,7 @@ export enum PowerMode {
 	POWER_MODE_TURNING_ON = 'p3',
 }
 
-export class PowerModeQuery implements Command {
+export class PowerModeQuery implements Command<PowerMode> {
 	serialize(): string {
 		return '#O'
 	}
@@ -41,7 +41,7 @@ export class PowerModeQuery implements Command {
 /**
  * Store camera preset
  */
-export class PresetRegisterControl implements Command {
+export class PresetRegisterControl implements Command<number> {
 	/**
 	 * @param presetNumber The preset to be stored. 0-99
 	 */
@@ -64,7 +64,7 @@ export class PresetRegisterControl implements Command {
 /**
  * Recall camera preset
  */
-export class PresetPlaybackControl implements Command {
+export class PresetPlaybackControl implements Command<number> {
 	/**
 	 * @param presetNumber The preset to be recalled. 0-99
 	 */
@@ -87,7 +87,7 @@ export class PresetPlaybackControl implements Command {
 /**
  * Reset camera preset
  */
-export class PresetDeleteControl implements Command {
+export class PresetDeleteControl implements Command<number> {
 	/**
 	 * @param presetNumber The preset to be reset. 0-99
 	 */
@@ -115,7 +115,7 @@ function validatePresetNumber(preset: number) {
 /**
  * Get the last preset recalled in the camera
  */
-export class PresetNumberQuery implements Command {
+export class PresetNumberQuery implements Command<number> {
 	serialize(): string {
 		return '#S'
 	}
@@ -131,7 +131,7 @@ export class PresetNumberQuery implements Command {
 /**
  * Set camera preset recall speed, within speed table
  */
-export class PresetSpeedControl implements Command {
+export class PresetSpeedControl implements Command<number> {
 	/**
 	 * @param speed Speed to be set for the camera preset recall. 250-999 or 0. 0 is maximum speed
 	 */
@@ -156,7 +156,7 @@ export class PresetSpeedControl implements Command {
 /**
  * Get camera preset recall speed, within speed table
  */
-export class PresetSpeedQuery implements Command {
+export class PresetSpeedQuery implements Command<number> {
 	serialize(): string {
 		return '#UPVS'
 	}
@@ -177,7 +177,7 @@ interface PanTiltSpeed {
 /**
  * Set camera pan and tilt speed (essentially, current virtual joystick position)
  */
-export class PanTiltSpeedControl implements Command {
+export class PanTiltSpeedControl implements Command<PanTiltSpeed> {
 	/**
 	 * @param panSpeed Acceptable values are 1-99. 50 is pan stop, 49 is slowest LEFT, 51 is slowest RIGHT, 1 is fastest LEFT, 99 is fastest RIGHT
 	 * @param tiltSpeed Acceptable values are 1-99. 50 is tilt stop, 49 is slowest DOWN, 51 is slowest UP, 1 is fastest DOWN, 99 is fastest UP
@@ -209,7 +209,7 @@ interface PanTiltPosition {
 /**
  * Set absolute camera pan and tilt position
  */
-export class PanTiltPositionControl implements Command {
+export class PanTiltPositionControl implements Command<PanTiltPosition> {
 	/**
 	 * @param panPosition
 	 * @param tiltPosition
@@ -236,7 +236,7 @@ export class PanTiltPositionControl implements Command {
 /**
  * Get absolute camera pan and tilt position
  */
-export class PanTiltPositionQuery implements Command {
+export class PanTiltPositionQuery implements Command<PanTiltPosition> {
 	serialize(): string {
 		return '#APC'
 	}
@@ -252,7 +252,7 @@ export class PanTiltPositionQuery implements Command {
 /**
  * Set camera lens zoom speed (essentially, current virtual zoom rocker position)
  */
-export class ZoomSpeedControl implements Command {
+export class ZoomSpeedControl implements Command<number> {
 	/**
 	 * @param speed Speed to be set for the camera zoom. Acceptable values are 1-99. 50 is zoom stop, 49 is slowest WIDE, 51 is slowest TELE, 1 is fastest WIDE, 99 is fastest TELE
 	 */
@@ -276,7 +276,7 @@ export class ZoomSpeedControl implements Command {
 /**
  * Get camera lens zoom speed (essentially, current virtual zoom rocker position)
  */
-export class ZoomSpeedQuery implements Command {
+export class ZoomSpeedQuery implements Command<number> {
 	serialize(): string {
 		return '#Z'
 	}
@@ -292,7 +292,7 @@ export class ZoomSpeedQuery implements Command {
 /**
  * Set camera lens zoom (an absolute number)
  */
-export class ZoomPositionControl implements Command {
+export class ZoomPositionControl implements Command<number> {
 	/**
 	 * @param position Absolute zoom position to be set. Range: 0x555 (WIDE) - 0xfff (TELE)
 	 */
@@ -316,7 +316,7 @@ export class ZoomPositionControl implements Command {
 /**
  * Get camera lens zoom (an absolute number)
  */
-export class ZoomPositionQuery implements Command {
+export class ZoomPositionQuery implements Command<number> {
 	serialize(): string {
 		return '#GZ'
 	}
@@ -332,7 +332,7 @@ export class ZoomPositionQuery implements Command {
 /**
  * Set camera focus speed
  */
-export class FocusSpeedControl implements Command {
+export class FocusSpeedControl implements Command<number> {
 	/**
 	 * @param speed Speed to be set for the camera focus. Acceptable values are 1-99. 50 is focus stop, 49 is slowest NEAR, 51 is slowest FAR, 1 is fastest NEAR, 99 is fastest FAR
 	 */
@@ -356,7 +356,7 @@ export class FocusSpeedControl implements Command {
 /**
  * Set camera focus mode (AUTO/MANUAL)
  */
-export class AutoFocusOnOffControl implements Command {
+export class AutoFocusOnOffControl implements Command<PanasonicFocusMode> {
 	/**
 	 * @param mode Mode to be set for the camera focus
 	 */
@@ -377,7 +377,7 @@ export class AutoFocusOnOffControl implements Command {
 /**
  * Get camera focus mode (AUTO/MANUAL)
  */
-export class AutoFocusOnOffQuery implements Command {
+export class AutoFocusOnOffQuery implements Command<PanasonicFocusMode> {
 	serialize(): string {
 		return sprintf('#D1')
 	}
@@ -393,7 +393,7 @@ export class AutoFocusOnOffQuery implements Command {
 /**
  * Trigger one-touch focus
  */
-export class OneTouchFocusControl implements Command {
+export class OneTouchFocusControl implements Command<void> {
 	serialize(): string {
 		return 'OSE:69:1'
 	}
@@ -409,7 +409,7 @@ export class OneTouchFocusControl implements Command {
 /**
  * Set camera focus distance (an absolute number)
  */
-export class FocusPositionControl implements Command {
+export class FocusPositionControl implements Command<number> {
 	/**
 	 * @param position Absolute focus position to be set. Range: 0x555 (NEAR) - 0xfff (FAR)
 	 */
@@ -433,7 +433,7 @@ export class FocusPositionControl implements Command {
 /**
  * Get camera focus distance (an absolute number)
  */
-export class FocusPositionQuery implements Command {
+export class FocusPositionQuery implements Command<number> {
 	serialize(): string {
 		return '#GF'
 	}
