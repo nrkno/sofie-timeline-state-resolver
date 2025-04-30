@@ -71,7 +71,7 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 	abstract sendCommand(command: Command): Promise<void>
 
 	applyAddressState?(state: DeviceState, address: string, addressState: AddressState): void
-	diffAddressState?(state1: AddressState, state2: AddressState): boolean
+	diffAddressStates?(state1: AddressState, state2: AddressState): boolean
 	addressStateReassertsControl?(oldState: AddressState | undefined, newState: AddressState): boolean
 	// -------------------------------------------------------------------
 }
@@ -105,7 +105,7 @@ export interface BaseDeviceAPI<DeviceState, AddressState, Command extends Comman
 	 * The implementation should return true if the contents of the address state differ,
 	 * but not if only the control value differs
 	 */
-	diffAddressState?(state1: AddressState, state2: AddressState): boolean
+	diffAddressStates?(state1: AddressState, state2: AddressState): boolean
 	/**
 	 * Returns true if the
 	 */

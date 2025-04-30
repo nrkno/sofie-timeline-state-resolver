@@ -212,7 +212,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 	applyAddressState(state: DeviceState, _address: string, addressState: AnyAddressState): void {
 		applyAddressStateToAtemState(state, addressState)
 	}
-	diffAddressState(state1: AnyAddressState, state2: AnyAddressState): boolean {
+	diffAddressStates(state1: AnyAddressState, state2: AnyAddressState): boolean {
 		return diffAddressStates(state1, state2)
 	}
 	addressStateReassertsControl(oldState: AnyAddressState | undefined, newState: AnyAddressState): boolean {

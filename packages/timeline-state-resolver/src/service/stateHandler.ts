@@ -183,7 +183,7 @@ export class StateHandler<DeviceState extends Object, Command extends CommandWit
 		if (
 			this.device.applyAddressState &&
 			this.device.addressStateReassertsControl &&
-			this.device.diffAddressState &&
+			this.device.diffAddressStates &&
 			this._stateTracker
 		) {
 			oldState = cloneDeep(oldState)
@@ -205,7 +205,7 @@ export class StateHandler<DeviceState extends Object, Command extends CommandWit
 						addrState &&
 						!(
 							this.device.addressStateReassertsControl(curExpectedState, addrState) ||
-							this.device.diffAddressState(curExpectedState, addrState)
+							this.device.diffAddressStates(curExpectedState, addrState)
 						)
 					) {
 						this.device.applyAddressState(newState, addr, currentState)
@@ -262,12 +262,12 @@ export class StateHandler<DeviceState extends Object, Command extends CommandWit
 				this.logger.error('Error while executing next state change', e)
 			})
 
-		if (this._stateTracker && newState.addressStates && this.device.diffAddressState) {
+		if (this._stateTracker && newState.addressStates && this.device.diffAddressStates) {
 			for (const [a, s] of Object.entries<AddressState>(newState.addressStates)) {
 				const currentAddrState = this._stateTracker.getExpectedState(a)
 				const reassertsControl = this.device.addressStateReassertsControl
 					? this.device.addressStateReassertsControl(currentAddrState, s)
-					: this.device.diffAddressState(currentAddrState, s)
+					: this.device.diffAddressStates(currentAddrState, s)
 
 				this._stateTracker.updateExpectedState(a, s, reassertsControl)
 			}
