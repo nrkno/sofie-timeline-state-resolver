@@ -91,7 +91,7 @@ export enum AtemActions {
 	Resync = 'resync'
 }
 export interface AtemActionMethods {
-	[AtemActions.Resync]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[AtemActions.Resync]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface AtemDeviceTypes {

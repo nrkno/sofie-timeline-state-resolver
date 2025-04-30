@@ -15,7 +15,7 @@ export enum ActionExecutionResultCode {
 }
 
 export type ActionPayloadType<AMethod extends (id: string, payload: any) => Promise<ActionExecutionResult<any>>> =
-	Parameters<AMethod>[1]
+	Parameters<AMethod>[0]
 
 export type ActionResultType<AMethod extends (id: string, payload: any) => Promise<ActionExecutionResult<any>>> =
 	ReturnType<AMethod> extends Promise<ActionExecutionResult<infer R>> ? R : never

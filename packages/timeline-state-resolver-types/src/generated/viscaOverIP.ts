@@ -30,18 +30,18 @@ export enum ViscaOverIPActions {
 	GetFocusMode = 'getFocusMode'
 }
 export interface ViscaOverIPActionMethods {
-	[ViscaOverIPActions.SetPanTiltSpeed]: (id: string, payload: SetPanTiltSpeedPayload) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.GetPanTiltPosition]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetPanTiltPositionResult>>,
-	[ViscaOverIPActions.SetZoomSpeed]: (id: string, payload: SetZoomSpeedPayload) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.GetZoomPosition]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetZoomPositionResult>>,
-	[ViscaOverIPActions.StorePreset]: (id: string, payload: StorePresetPayload) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.RecallPreset]: (id: string, payload: RecallPresetPayload) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.ResetPreset]: (id: string, payload: ResetPresetPayload) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.SetFocusSpeed]: (id: string, payload: SetFocusSpeedPayload) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.SetFocusMode]: (id: string, payload: SetFocusModePayload) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.TriggerOnePushFocus]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[ViscaOverIPActions.GetFocusPosition]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusPositionResult>>,
-	[ViscaOverIPActions.GetFocusMode]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusModeResult>>
+	[ViscaOverIPActions.SetPanTiltSpeed]: (payload: SetPanTiltSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.GetPanTiltPosition]: (payload: Record<string, never>) => Promise<ActionExecutionResult<GetPanTiltPositionResult>>,
+	[ViscaOverIPActions.SetZoomSpeed]: (payload: SetZoomSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.GetZoomPosition]: (payload: Record<string, never>) => Promise<ActionExecutionResult<GetZoomPositionResult>>,
+	[ViscaOverIPActions.StorePreset]: (payload: StorePresetPayload) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.RecallPreset]: (payload: RecallPresetPayload) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.ResetPreset]: (payload: ResetPresetPayload) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.SetFocusSpeed]: (payload: SetFocusSpeedPayload) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.SetFocusMode]: (payload: SetFocusModePayload) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.TriggerOnePushFocus]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[ViscaOverIPActions.GetFocusPosition]: (payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusPositionResult>>,
+	[ViscaOverIPActions.GetFocusMode]: (payload: Record<string, never>) => Promise<ActionExecutionResult<GetFocusModeResult>>
 }
 
 export interface ViscaOverIPDeviceTypes {

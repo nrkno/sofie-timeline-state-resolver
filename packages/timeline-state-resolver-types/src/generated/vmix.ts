@@ -139,11 +139,11 @@ export enum VmixActions {
 	StopExternal = 'stopExternal'
 }
 export interface VmixActionMethods {
-	[VmixActions.LastPreset]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[VmixActions.OpenPreset]: (id: string, payload: OpenPresetPayload) => Promise<ActionExecutionResult<void>>,
-	[VmixActions.SavePreset]: (id: string, payload: SavePresetPayload) => Promise<ActionExecutionResult<void>>,
-	[VmixActions.StartExternal]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[VmixActions.StopExternal]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[VmixActions.LastPreset]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.OpenPreset]: (payload: OpenPresetPayload) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.SavePreset]: (payload: SavePresetPayload) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.StartExternal]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VmixActions.StopExternal]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface VmixDeviceTypes {

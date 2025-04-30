@@ -69,8 +69,8 @@ export enum QuantelActions {
 	ClearStates = 'clearStates'
 }
 export interface QuantelActionMethods {
-	[QuantelActions.RestartGateway]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[QuantelActions.ClearStates]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[QuantelActions.RestartGateway]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[QuantelActions.ClearStates]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface QuantelDeviceTypes {

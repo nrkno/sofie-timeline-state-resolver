@@ -91,7 +91,7 @@ describe('DeviceInstance', () => {
 			const dev = getDeviceInstance()
 			await dev.executeAction('action', { payload: 1 })
 
-			expect(AbstractDeviceMock.action).toHaveBeenCalledWith('action', { payload: 1 })
+			expect(AbstractDeviceMock.action).toHaveBeenCalledWith({ payload: 1 })
 		})
 
 		test('unknown id', async () => {

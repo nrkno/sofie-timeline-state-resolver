@@ -287,8 +287,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, VmixDeviceTyp
 
 	readonly actions: VmixActionMethods = {
 		[VmixActions.LastPreset]: async () => this._lastPreset(),
-		[VmixActions.OpenPreset]: async (_id, payload) => this._openPreset(payload),
-		[VmixActions.SavePreset]: async (_id, payload) => this._savePreset(payload),
+		[VmixActions.OpenPreset]: async (payload) => this._openPreset(payload),
+		[VmixActions.SavePreset]: async (payload) => this._savePreset(payload),
 		[VmixActions.StartExternal]: async () => this._startExternalOutput(),
 		[VmixActions.StopExternal]: async () => this._stopExternalOutput(),
 	}

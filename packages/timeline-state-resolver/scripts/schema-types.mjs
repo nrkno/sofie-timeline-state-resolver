@@ -315,7 +315,7 @@ export interface ${dirId}ActionMethods {
 ${actionDefinitions
 	.map(
 		(actionDefinition) =>
-			`\t[${dirId}Actions.${capitalise(actionDefinition.id)}]: (id: string, payload: ${
+			`\t[${dirId}Actions.${capitalise(actionDefinition.id)}]: (payload: ${
 				actionDefinition.payloadId ? actionDefinition.payloadId : 'Record<string, never>'
 			}) => Promise<ActionExecutionResult<${actionDefinition.resultId || 'void'}>>`
 	)

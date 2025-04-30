@@ -49,8 +49,8 @@ export enum WebsocketClientActions {
 	SendWebSocketMessage = 'sendWebSocketMessage'
 }
 export interface WebsocketClientActionMethods {
-	[WebsocketClientActions.Reconnect]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[WebsocketClientActions.SendWebSocketMessage]: (id: string, payload: SendWebSocketMessagePayload) => Promise<ActionExecutionResult<void>>
+	[WebsocketClientActions.Reconnect]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[WebsocketClientActions.SendWebSocketMessage]: (payload: SendWebSocketMessagePayload) => Promise<ActionExecutionResult<void>>
 }
 
 export interface WebsocketClientDeviceTypes {

@@ -14,7 +14,7 @@ export enum AbstractActions {
 	TestAction = 'testAction'
 }
 export interface AbstractActionMethods {
-	[AbstractActions.TestAction]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[AbstractActions.TestAction]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface AbstractDeviceTypes {

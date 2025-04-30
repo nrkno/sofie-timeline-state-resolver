@@ -31,8 +31,8 @@ export enum HyperdeckActions {
 	Resync = 'resync'
 }
 export interface HyperdeckActionMethods {
-	[HyperdeckActions.FormatDisks]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[HyperdeckActions.Resync]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[HyperdeckActions.FormatDisks]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[HyperdeckActions.Resync]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface HyperdeckDeviceTypes {

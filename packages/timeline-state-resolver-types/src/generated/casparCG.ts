@@ -60,9 +60,9 @@ export enum CasparCGActions {
 	ListMedia = 'listMedia'
 }
 export interface CasparCGActionMethods {
-	[CasparCGActions.ClearAllChannels]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[CasparCGActions.RestartServer]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[CasparCGActions.ListMedia]: (id: string, payload: ListMediaPayload) => Promise<ActionExecutionResult<ListMediaResult>>
+	[CasparCGActions.ClearAllChannels]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[CasparCGActions.RestartServer]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[CasparCGActions.ListMedia]: (payload: ListMediaPayload) => Promise<ActionExecutionResult<ListMediaResult>>
 }
 
 export interface CasparCGDeviceTypes {

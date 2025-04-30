@@ -71,7 +71,7 @@ export class TcpSendDevice extends Device<TcpSendDeviceTypes, TcpSendDeviceState
 			await this.actionResetState()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[TcpSendActions.SendTcpCommand]: async (_id, payload) => {
+		[TcpSendActions.SendTcpCommand]: async (payload) => {
 			return this.actionSendTcpCommand(payload)
 		},
 	}

@@ -143,7 +143,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			return actionNotFoundMessage(id as never)
 		}
 
-		return action(id, payload)
+		return action(payload)
 	}
 
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {

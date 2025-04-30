@@ -682,7 +682,7 @@ export class CasparCGDevice extends DeviceWithState<State, CasparCGDeviceTypes, 
 		[CasparCGActions.RestartServer]: async () => {
 			return this.restartCasparCG()
 		},
-		[CasparCGActions.ListMedia]: async (_id, query: ClsParameters) => {
+		[CasparCGActions.ListMedia]: async (query: ClsParameters) => {
 			return this.listMedia(query)
 		},
 	}

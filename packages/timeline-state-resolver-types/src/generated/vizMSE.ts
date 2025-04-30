@@ -92,11 +92,11 @@ export enum VizMSEActions {
 	ClearAllEngines = 'clearAllEngines'
 }
 export interface VizMSEActionMethods {
-	[VizMSEActions.VizReset]: (id: string, payload: VizResetPayload) => Promise<ActionExecutionResult<void>>,
-	[VizMSEActions.PurgeRundown]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[VizMSEActions.Activate]: (id: string, payload: ActivatePayload) => Promise<ActionExecutionResult<void>>,
-	[VizMSEActions.StandDown]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
-	[VizMSEActions.ClearAllEngines]: (id: string, payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
+	[VizMSEActions.VizReset]: (payload: VizResetPayload) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.PurgeRundown]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.Activate]: (payload: ActivatePayload) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.StandDown]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>,
+	[VizMSEActions.ClearAllEngines]: (payload: Record<string, never>) => Promise<ActionExecutionResult<void>>
 }
 
 export interface VizMSEDeviceTypes {

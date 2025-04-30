@@ -266,7 +266,7 @@ export abstract class Device<
 			return actionNotFoundMessage(id as never)
 		}
 
-		return action(id, payload)
+		return action(payload)
 	}
 
 	private _updateCurrentTime() {

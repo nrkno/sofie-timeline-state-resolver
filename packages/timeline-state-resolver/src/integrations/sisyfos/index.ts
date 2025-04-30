@@ -218,7 +218,7 @@ export class SisyfosMessageDevice extends DeviceWithState<
 					result: ActionExecutionResultCode.Error,
 				}))
 		},
-		[SisyfosActions.SetSisyfosChannelState]: async (_id, payload) => {
+		[SisyfosActions.SetSisyfosChannelState]: async (payload) => {
 			if (typeof payload?.channel !== 'number') {
 				return {
 					result: ActionExecutionResultCode.Error,
@@ -229,7 +229,7 @@ export class SisyfosMessageDevice extends DeviceWithState<
 				result: ActionExecutionResultCode.Ok,
 			}
 		},
-		[SisyfosActions.LoadMixerPreset]: async (_id, payload) => {
+		[SisyfosActions.LoadMixerPreset]: async (payload) => {
 			if (!payload?.name) {
 				return {
 					result: ActionExecutionResultCode.Error,

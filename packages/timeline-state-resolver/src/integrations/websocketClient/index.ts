@@ -39,11 +39,11 @@ export class WebSocketClientDevice extends Device<
 	}
 
 	readonly actions: WebsocketClientActionMethods = {
-		[WebsocketClientActions.Reconnect]: async (_id) => {
+		[WebsocketClientActions.Reconnect]: async () => {
 			await this.connection?.connect()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[WebsocketClientActions.SendWebSocketMessage]: async (_id, payload) => {
+		[WebsocketClientActions.SendWebSocketMessage]: async (payload) => {
 			if (!payload?.message) {
 				return { result: ActionExecutionResultCode.Error, response: { key: 'Missing message in payload' } }
 			}
@@ -54,7 +54,7 @@ export class WebSocketClientDevice extends Device<
 					message: payload.message,
 				},
 				context: 'SendWebSocketMessage',
-				timelineObjId: _id,
+				timelineObjId: 'tsr-action',
 			})
 
 			return { result: ActionExecutionResultCode.Ok }

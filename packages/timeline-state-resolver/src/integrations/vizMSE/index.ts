@@ -289,7 +289,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, VizMSEDeviceTypes
 			await this.purgeRundown(true)
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[VizMSEActions.Activate]: async (_id, payload) => {
+		[VizMSEActions.Activate]: async (payload) => {
 			return this.activate(payload)
 		},
 		[VizMSEActions.StandDown]: async () => {
@@ -299,7 +299,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, VizMSEDeviceTypes
 			await this.clearEngines()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[VizMSEActions.VizReset]: async (_id, payload) => {
+		[VizMSEActions.VizReset]: async (payload) => {
 			await this.resetViz(payload)
 			return { result: ActionExecutionResultCode.Ok }
 		},

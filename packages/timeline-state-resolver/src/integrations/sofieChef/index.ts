@@ -55,7 +55,7 @@ export class SofieChefDevice extends Device<SofieChefDeviceTypes, SofieChefState
 					result: ActionExecutionResultCode.Ok,
 				}))
 				.catch(() => ({ result: ActionExecutionResultCode.Error })),
-		[SofieChefActions.RestartWindow]: async (_id, payload) => {
+		[SofieChefActions.RestartWindow]: async (payload) => {
 			if (!payload?.windowId) {
 				return { result: ActionExecutionResultCode.Error, response: t('Missing window id') }
 			}
