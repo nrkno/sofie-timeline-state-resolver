@@ -203,6 +203,78 @@ describe('stateHandler', () => {
 			},
 		})
 	})
+
+	test('ignore transitions to states older than current state', async () => {
+		const stateHandler = getNewStateHandler()
+
+		stateHandler
+			.setCurrentState({
+				entry1: { value: true },
+			})
+			.catch((e) => {
+				console.error('Error while setting current state', e)
+			})
+
+		stateHandler.handleState(createTimelineState(10000, {}), {}).catch((e) => {
+			console.error('Error while handling state', e)
+		})
+
+		await mockTime.tick()
+
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
+			command: {
+				type: 'removed',
+				property: 'entry1',
+			},
+		})
+
+		stateHandler
+			.handleState(
+				createTimelineState(10100, {
+					entry1: { value: true },
+				}),
+				{}
+			)
+			.catch((e) => {
+				console.error('Error while handling state', e)
+			})
+
+		await mockTime.tick()
+
+		// do not expect to be called because this is in the future
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
+
+		// advance time
+		MOCK_COMMAND_RECEIVER.mockReset()
+		await mockTime.advanceTimeTicks(100)
+
+		// now expect to be called with new commands
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
+			command: {
+				type: 'added',
+				property: 'entry1',
+			},
+		})
+
+		//
+		MOCK_COMMAND_RECEIVER.mockReset()
+
+		stateHandler.handleState(createTimelineState(10000, {}), {}).catch((e) => {
+			console.error('Error while handling state', e)
+		})
+
+		await mockTime.tick()
+
+		// do not expect to be called because new state is in the past
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(0)
+
+		await mockTime.advanceTimeTicks(100)
+
+		// still no new commands to be received
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(0)
+	})
 })
 
 function createTimelineState(
