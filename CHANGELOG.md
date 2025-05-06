@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [9.2.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.1...9.2.2) (2025-05-06)
+
+
+### Bug Fixes
+
+* _executingStateChange check in calculateNextStateChange is inverted ([311aac2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/311aac2347cfaec20b9f06168cecc678be33dfdd))
+* add a `_executingStateChange` check. ([66e917d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/66e917d83663811ccee6f59bbdd6404a367bccde))
+* ensure that nextState is top-of-queue in `calculateNextStateChange` before calling `executeNextStateChange` ([888f51b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/888f51bab33a222a756ce29426789665873944e7))
+* if a state older than the `currentState` is put into `handleState`, a B-A-B sequence of state changes can happen ([1f6e73a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/1f6e73ad0d77ec2ba28eb0593b0f6433edbf9648))
+
+
+
 ### [9.2.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.0...9.2.1) (2024-11-13)
 
 
