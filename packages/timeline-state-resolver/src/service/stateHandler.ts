@@ -77,6 +77,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	}
 
 	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
+		if (this.currentState?.state && this.currentState.state.time > state.time) return // the incoming state is stale, we ignore it
+
 		const nextState = this.stateQueue[0]
 
 		const trace = startTrace('device:convertTimelineStateToDeviceState', { deviceId: this.context.deviceId })
@@ -112,8 +114,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.currentState = {
 			commands: [],
 			deviceState: state,
-			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
-			mappings: this.currentState?.mappings || {},
+			state: this.currentState?.state ?? { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
+			mappings: this.currentState?.mappings ?? {},
 		}
 		await this.calculateNextStateChange()
 	}
@@ -182,7 +184,11 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			nextState.commands = []
 		}
 
-		if (nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime() && this.currentState) {
+		if (
+			!this._executingStateChange &&
+			nextState === this.stateQueue[0] &&
+			nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime()
+		) {
 			await this.executeNextStateChange()
 		}
 	}
