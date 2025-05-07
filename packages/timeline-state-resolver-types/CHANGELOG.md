@@ -3,35 +3,39 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [9.3.0-release52.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.1...9.3.0-release52.0) (2025-02-04)
+## [9.3.0-release52.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.3.0-release52.1...9.3.0-release52.2) (2025-04-10)
 
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [9.3.0-release52.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.3.0-release52.0...9.3.0-release52.1) (2025-03-12)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [9.3.0-release52.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.1...9.3.0-release52.0) (2025-02-04)
 
 ### Features
 
-* **atem:** add stinger support ([d4378e1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d4378e1ee99462c5abbdb84c999647d6420365bb))
-* **EAV-266:** add more PTZ actions for obtaining values ([bd336f2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/bd336f24eae8cdbaef1c8f77d1e3ec5029839675))
-* **EAV-266:** add return types to PTZ actions ([5299a2b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5299a2b67ba09402a804efff1fd59e4aa544a039))
-* **EAV-266:** implement Panasonic PTZ actions ([b7cccbf](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b7cccbfe19c093afa03ea14d663dd545c404f81b))
-* **EAV-321:** support browser source url in vMix ([db67a61](https://github.com/nrkno/sofie-timeline-state-resolver/commit/db67a618b7649d039a123d80e9c109e00ce3e94b))
-* **EAV-343:** support index (list, photo, virtual set) in vMix ([02db182](https://github.com/nrkno/sofie-timeline-state-resolver/commit/02db182ec8d60a444e8c667fc6ff36ee2f4de0ad))
-* **EAV-410:** add sisyfos action to load mixer preset ([8895f87](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8895f8710458139fa60c2ab1cb09a94daad5a862))
-* **EAV-411:** support setting text in vMix titles ([41c1f93](https://github.com/nrkno/sofie-timeline-state-resolver/commit/41c1f9312d74403a65cfcc2b04ba12a6392d6511))
-* **EAV-423:** add actions to start and stop External in vMix ([e002d0f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e002d0fbcabd3ea7102abc3a40524b884b6d64ff))
-* **EAV-464:** add images support for GT titles in vMix ([8905200](https://github.com/nrkno/sofie-timeline-state-resolver/commit/89052002c322d6515b3a91d32d4ba062e7ebf0db))
-* http url interpolation SOFIE-3310 ([#342](https://github.com/nrkno/sofie-timeline-state-resolver/issues/342)) ([01593a3](https://github.com/nrkno/sofie-timeline-state-resolver/commit/01593a34898c1ecc8de3544545efba69fa69d5b8))
-* SetSisyfosChannelState action implemented ([685fbf9](https://github.com/nrkno/sofie-timeline-state-resolver/commit/685fbf9cc967f8c0fc767f32d0245f0a5527cc6f))
-* Sisyfos - remove re-sync channel functionality. (triggerValue has the functionality) ([4e77eb2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4e77eb27c5123e2a01d5960d15557384b81327c3))
-* Sisyfos add support for mute, gain, selector in triggerValues. Refactor SET_CHANNEL ([25c6516](https://github.com/nrkno/sofie-timeline-state-resolver/commit/25c6516f38c8e5f5d005fdd1fba2c264537340f6))
-
+- **atem:** add stinger support ([d4378e1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d4378e1ee99462c5abbdb84c999647d6420365bb))
+- **EAV-266:** add more PTZ actions for obtaining values ([bd336f2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/bd336f24eae8cdbaef1c8f77d1e3ec5029839675))
+- **EAV-266:** add return types to PTZ actions ([5299a2b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5299a2b67ba09402a804efff1fd59e4aa544a039))
+- **EAV-266:** implement Panasonic PTZ actions ([b7cccbf](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b7cccbfe19c093afa03ea14d663dd545c404f81b))
+- **EAV-321:** support browser source url in vMix ([db67a61](https://github.com/nrkno/sofie-timeline-state-resolver/commit/db67a618b7649d039a123d80e9c109e00ce3e94b))
+- **EAV-343:** support index (list, photo, virtual set) in vMix ([02db182](https://github.com/nrkno/sofie-timeline-state-resolver/commit/02db182ec8d60a444e8c667fc6ff36ee2f4de0ad))
+- **EAV-410:** add sisyfos action to load mixer preset ([8895f87](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8895f8710458139fa60c2ab1cb09a94daad5a862))
+- **EAV-411:** support setting text in vMix titles ([41c1f93](https://github.com/nrkno/sofie-timeline-state-resolver/commit/41c1f9312d74403a65cfcc2b04ba12a6392d6511))
+- **EAV-423:** add actions to start and stop External in vMix ([e002d0f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e002d0fbcabd3ea7102abc3a40524b884b6d64ff))
+- **EAV-464:** add images support for GT titles in vMix ([8905200](https://github.com/nrkno/sofie-timeline-state-resolver/commit/89052002c322d6515b3a91d32d4ba062e7ebf0db))
+- http url interpolation SOFIE-3310 ([#342](https://github.com/nrkno/sofie-timeline-state-resolver/issues/342)) ([01593a3](https://github.com/nrkno/sofie-timeline-state-resolver/commit/01593a34898c1ecc8de3544545efba69fa69d5b8))
+- SetSisyfosChannelState action implemented ([685fbf9](https://github.com/nrkno/sofie-timeline-state-resolver/commit/685fbf9cc967f8c0fc767f32d0245f0a5527cc6f))
+- Sisyfos - remove re-sync channel functionality. (triggerValue has the functionality) ([4e77eb2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4e77eb27c5123e2a01d5960d15557384b81327c3))
+- Sisyfos add support for mute, gain, selector in triggerValues. Refactor SET_CHANNEL ([25c6516](https://github.com/nrkno/sofie-timeline-state-resolver/commit/25c6516f38c8e5f5d005fdd1fba2c264537340f6))
 
 ### Bug Fixes
 
-* actions.json payload format ([116bd76](https://github.com/nrkno/sofie-timeline-state-resolver/commit/116bd765e91ef6257365c11549836792f67cfc1f))
-* add mute, inputgain, inputselector to Sisyfos channel option types ([5f5115e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5f5115e89d9eeff849d983c9491e80534d475a0e))
-* Sisyfos add triggerValue to TimelineContentSisyfosChannel ([3cb6f70](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3cb6f70f847297157459906000e78f0e1ecfebcf))
-* **sisyfos:** trigger value per channel ([54734d5](https://github.com/nrkno/sofie-timeline-state-resolver/commit/54734d51d986f408acb8b20fb1a1e44666b3f347))
-
-
+- actions.json payload format ([116bd76](https://github.com/nrkno/sofie-timeline-state-resolver/commit/116bd765e91ef6257365c11549836792f67cfc1f))
+- add mute, inputgain, inputselector to Sisyfos channel option types ([5f5115e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5f5115e89d9eeff849d983c9491e80534d475a0e))
+- Sisyfos add triggerValue to TimelineContentSisyfosChannel ([3cb6f70](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3cb6f70f847297157459906000e78f0e1ecfebcf))
+- **sisyfos:** trigger value per channel ([54734d5](https://github.com/nrkno/sofie-timeline-state-resolver/commit/54734d51d986f408acb8b20fb1a1e44666b3f347))
 
 ### [9.2.0-release52](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.1.0...9.2.0-release52) (2024-08-19)
 

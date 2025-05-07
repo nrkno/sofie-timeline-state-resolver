@@ -17,7 +17,7 @@ export type AsyncResolverEvents = {
 
 // This is a debug flag, to trace some helpful information when resolving fails.
 // If should be set to false in production.
-const TRACE_RESOLVING = true
+const TRACE_RESOLVING = false
 
 export class AsyncResolver extends EventEmitter<AsyncResolverEvents> {
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
