@@ -4,7 +4,7 @@ import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement, StateChangeReport } from './measure'
 import { CommandExecutor } from './commandExecutor'
 
-interface StateChange<DeviceState, Command extends CommandWithContext> {
+interface StateChange<DeviceState, Command extends CommandWithContext<any, any>> {
 	commands?: Command[]
 	preliminary?: number
 
@@ -14,14 +14,14 @@ interface StateChange<DeviceState, Command extends CommandWithContext> {
 
 	measurement?: Measurement
 }
-interface ExecutedStateChange<DeviceState, Command extends CommandWithContext>
+interface ExecutedStateChange<DeviceState, Command extends CommandWithContext<any, any>>
 	extends StateChange<DeviceState | undefined, Command> {
 	commands: Command[]
 }
 
 const CLOCK_INTERVAL = 20
 
-export class StateHandler<DeviceState, Command extends CommandWithContext> {
+export class StateHandler<DeviceState, Command extends CommandWithContext<any, any>> {
 	private stateQueue: StateChange<DeviceState, Command>[] = []
 	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
 	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */

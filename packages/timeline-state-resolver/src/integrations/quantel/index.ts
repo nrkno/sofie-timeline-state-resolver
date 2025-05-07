@@ -28,10 +28,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface QuantelCommandWithContext extends CommandWithContext {
-	command: QuantelCommand
-	context: string
-}
+export type QuantelCommandWithContext = CommandWithContext<QuantelCommand, string>
 
 export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
 	/** Setup in init */
@@ -127,13 +124,9 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 
 		return diffStates(oldState, newState, currentTime)
 	}
-	async sendCommand({ command, context, timelineObjId }: QuantelCommandWithContext): Promise<any> {
-		const cwc: CommandWithContext = {
-			context: context,
-			command: command,
-			timelineObjId: timelineObjId,
-		}
+	async sendCommand(cwc: QuantelCommandWithContext): Promise<any> {
 		this.context.logger.debug(cwc)
+		const { command } = cwc
 		debug(command)
 
 		try {

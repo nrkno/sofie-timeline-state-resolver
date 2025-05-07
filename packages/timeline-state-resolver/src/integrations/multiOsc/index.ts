@@ -34,9 +34,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface MultiOscCommandWithContext extends CommandWithContext {
-	command: OSCDeviceStateContent
-}
+export type MultiOscCommandWithContext = CommandWithContext<OSCDeviceStateContent, string>
 
 /**
  * This is a generic wrapper for any osc-enabled device.

@@ -17,9 +17,7 @@ export interface PanasonicPtzCommand {
 	zoomSpeed?: number // -1 is full speed WIDE, +1 is full speed TELE, 0 is stationary
 	zoom?: number // 0 is WIDE, 1 is TELE
 }
-export interface PanasonicPtzCommandWithContext extends CommandWithContext {
-	command: PanasonicPtzCommand
-}
+export type PanasonicPtzCommandWithContext = CommandWithContext<PanasonicPtzCommand, string>
 
 export function diffStates(
 	oldPtzState: PanasonicPtzState,

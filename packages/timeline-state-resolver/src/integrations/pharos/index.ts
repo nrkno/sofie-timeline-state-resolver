@@ -11,9 +11,7 @@ import { Pharos } from './connection'
 import { Device, CommandWithContext, DeviceContextAPI } from '../../service/device'
 import { diffStates } from './diffStates'
 
-export interface PharosCommandWithContext extends CommandWithContext {
-	command: CommandContent
-}
+export type PharosCommandWithContext = CommandWithContext<CommandContent, string>
 export type PharosState = Timeline.StateInTime<TSRTimelineContent>
 
 interface CommandContent {
@@ -108,19 +106,14 @@ export class PharosDevice extends Device<PharosOptions, PharosState, PharosComma
 		return diffStates(oldPharosState, newPharosState, mappings)
 	}
 
-	async sendCommand({ command, context, timelineObjId }: PharosCommandWithContext): Promise<void> {
-		const cwc: CommandWithContext = {
-			context,
-			command,
-			timelineObjId,
-		}
+	async sendCommand(cwc: PharosCommandWithContext): Promise<void> {
 		this.context.logger.debug(cwc)
 
 		// Skip attempting send if not connected
 		if (!this.connected) return
 
 		try {
-			await command.fcn(this._pharos)
+			await cwc.command.fcn(this._pharos)
 		} catch (error: any) {
 			this.context.commandError(error, cwc)
 		}

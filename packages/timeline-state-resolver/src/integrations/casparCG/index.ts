@@ -823,7 +823,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			if (this._retryTime) this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
 		}
 
-		const cwc: CommandWithContext = {
+		const cwc: CommandWithContext<string, string> = {
 			context,
 			timelineObjId,
 			command: JSON.stringify(cmd),

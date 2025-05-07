@@ -25,9 +25,7 @@ interface ShotokuSequence {
 	shots: TimelineContentShotokuSequence['shots']
 }
 
-export interface ShotokuCommandWithContext extends CommandWithContext {
-	command: ShotokuCommand // todo
-}
+export type ShotokuCommandWithContext = CommandWithContext<ShotokuCommand, string>
 
 export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
 	private readonly _shotoku = new ShotokuAPI()
@@ -146,17 +144,17 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 
 		return commands
 	}
-	async sendCommand({ command, context, timelineObjId }: ShotokuCommandWithContext): Promise<void> {
-		this.context.logger.debug({ command, context, timelineObjId })
+	async sendCommand(cwc: ShotokuCommandWithContext): Promise<void> {
+		this.context.logger.debug(cwc)
 
 		try {
 			if (this._shotoku.connected) {
-				await this._shotoku.executeCommand(command)
+				await this._shotoku.executeCommand(cwc.command)
 			}
 
 			return
 		} catch (e) {
-			this.context.commandError(e as Error, { command, context, timelineObjId })
+			this.context.commandError(e as Error, cwc)
 			return
 		}
 	}

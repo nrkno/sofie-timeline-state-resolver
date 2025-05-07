@@ -1,4 +1,4 @@
-import { CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
+import { DeviceStatus, StatusCode } from '../../devices/device'
 import {
 	HyperdeckOptions,
 	Mappings,
@@ -203,13 +203,9 @@ export class HyperdeckDevice extends Device<HyperdeckOptions, HyperdeckDeviceSta
 		})
 	}
 
-	async sendCommand({ command, context, timelineObjId }: HyperdeckCommandWithContext): Promise<void> {
-		const cwc: CommandWithContext = {
-			context,
-			command,
-			timelineObjId,
-		}
+	async sendCommand(cwc: HyperdeckCommandWithContext): Promise<void> {
 		this.context.logger.debug(cwc)
+		const { command } = cwc
 
 		// TODO: is this a good idea?
 		// Track what we expect the TransportStatus to be, only Commands we may send need to be considered

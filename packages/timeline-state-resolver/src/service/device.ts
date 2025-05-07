@@ -9,24 +9,22 @@ import {
 	MediaObject,
 } from 'timeline-state-resolver-types'
 
-type CommandContext = any
-
 /**
- * The intended usage of this is to be extended with a device specific type.$
+ * The intended usage of this is for each device to define an alias with the generic types provided.
  * Like so:
- * export interface MyDeviceCommand extends CommandWithContext {
- *   command: { myCommandProps }
- *   context: string
+ * export interface MyDeviceCommand {
+ *   // device specific properties here
  * }
+ * export type MyDeviceCommandWithContext = CommandWithContext<MyDeviceCommand, string>
  */
-export type CommandWithContext = {
+export type CommandWithContext<TCommand, TContext> = {
 	/** Device specific command (to be defined by the device itself) */
-	command: any
+	command: TCommand
 	/**
 	 * The context is provided for logging / troubleshooting reasons.
 	 * It should contain some kind of explanation as to WHY a command was created (like a reference, path etc.)
 	 */
-	context: CommandContext
+	context: TContext
 	/** ID of the timeline-object that the command originated from */
 	timelineObjId: string
 	/** this command is to be executed x ms _before_ the scheduled time */
@@ -38,7 +36,7 @@ export type CommandWithContext = {
 /**
  * API for use by the DeviceInstance to be able to use a device
  */
-export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
+export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext<any, any>>
 	implements BaseDeviceAPI<DeviceState, Command>
 {
 	constructor(protected context: DeviceContextAPI<DeviceState>) {
@@ -88,7 +86,7 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 /**
  * Minimal API for the StateHandler to be able to use a device
  */
-export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> {
+export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext<any, any>> {
 	/**
 	 * This method takes in a Timeline State that describes a point
 	 * in time on the timeline and converts it into a "device state" that
@@ -147,7 +145,7 @@ export interface DeviceEvents {
 	commandReport: [commandReport: CommandReport]
 
 	/** Something went wrong when executing a command  */
-	commandError: [error: Error, context: CommandWithContext]
+	commandError: [error: Error, context: CommandWithContext<any, any>]
 	/** Update a MediaObject  */
 	updateMediaObject: [collectionId: string, docId: string, doc: MediaObject | null]
 	/** Clear a MediaObjects collection */
@@ -184,7 +182,7 @@ export interface DeviceContextAPI<DeviceState> {
 	resetResolver: () => void
 
 	/** Something went wrong when executing a command  */
-	commandError: (error: Error, context: CommandWithContext) => void
+	commandError: (error: Error, context: CommandWithContext<any, any>) => void
 	/** Update a MediaObject  */
 	updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => void
 	/** Clear a MediaObjects collection */

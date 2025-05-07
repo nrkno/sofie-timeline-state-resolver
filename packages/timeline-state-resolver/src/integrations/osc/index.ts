@@ -27,9 +27,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface OscCommandWithContext extends CommandWithContext {
-	command: OSCDeviceStateContent
-}
+export type OscCommandWithContext = CommandWithContext<OSCDeviceStateContent, string>
 
 export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
 	/** Setup in init */
@@ -154,13 +152,9 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 		})
 		return commands
 	}
-	async sendCommand({ command, context, timelineObjId }: OscCommandWithContext): Promise<any> {
-		const cwc: CommandWithContext = {
-			context: context,
-			command: command,
-			timelineObjId,
-		}
+	async sendCommand(cwc: OscCommandWithContext): Promise<any> {
 		this.context.logger.debug(cwc)
+		const { command } = cwc
 		debug(command)
 
 		try {

@@ -4,10 +4,7 @@ import { Model as EmberModel } from 'emberplus-connection'
 import { literal } from '../../lib'
 import { CommandWithContext } from '../..'
 
-export interface LawoCommandWithContext extends CommandWithContext {
-	command: LawoCommand
-	context: string
-}
+export type LawoCommandWithContext = CommandWithContext<LawoCommand, string>
 
 export enum LawoCommandType {
 	FaderRamp = 'FaderRamp',

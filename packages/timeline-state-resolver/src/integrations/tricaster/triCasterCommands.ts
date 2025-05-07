@@ -171,8 +171,7 @@ export type TriCasterGenericCommandName<T> = T extends boolean
 	? TriCasterGenericNumberCommand['name']
 	: never
 
-export interface TriCasterCommandWithContext extends CommandWithContext {
-	command: TriCasterCommand
+export interface TriCasterCommandWithContext extends CommandWithContext<TriCasterCommand, string> {
 	temporalPriority: number
 }
 
