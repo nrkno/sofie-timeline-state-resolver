@@ -8,6 +8,7 @@ import {
 	SomeMappingQuantel,
 	Timeline,
 	TimelineContentQuantelAny,
+	TSRTimeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { QuantelCommandWithContext, QuantelDevice } from '..'
@@ -15,6 +16,11 @@ import { QuantelCommandType, QuantelState } from '../types'
 import { setupQuantelGatewayMock } from './quantelGatewayMock'
 import { MockTime } from '../../../__tests__/mockTime'
 import { getDeviceContext } from '../../../integrations/__tests__/testlib'
+import { StateHandler } from '../../../service/stateHandler'
+import { CommandWithContext } from '../../..'
+import { getResolvedState, resolveTimeline } from 'superfly-timeline'
+import { DevicesDict } from '../../../service/devices'
+import { setSoftJumpWaitTime } from '../connection'
 
 async function getInitialisedQuantelDevice(clearMock?: jest.Mock) {
 	const dev = new QuantelDevice(getDeviceContext())
@@ -417,6 +423,16 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.SETUPPORT,
 							portId: 'port0',
 							timelineObjId: 'obj0',
@@ -475,6 +491,16 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -505,6 +531,7 @@ describe('Quantel Device', () => {
 							mode: QuantelControlMode.QUALITY,
 							transition: undefined,
 						},
+						preliminary: undefined,
 						context: 'New clip is paused',
 						timelineObjId: 'obj1',
 					},
@@ -546,6 +573,16 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -578,6 +615,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is paused',
 						timelineObjId: 'obj1',
+						preliminary: undefined,
 					},
 				]
 			)
@@ -622,6 +660,16 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -654,6 +702,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj1',
+						preliminary: undefined,
 					},
 				]
 			)
@@ -698,6 +747,16 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -730,6 +789,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj1',
+						preliminary: undefined,
 					},
 				]
 			)
@@ -756,6 +816,16 @@ describe('Quantel Device', () => {
 				},
 				{ time: 3000, port: {} },
 				[
+					{
+						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
 					{
 						command: {
 							type: QuantelCommandType.RELEASEPORT,
@@ -810,6 +880,16 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj2',
@@ -842,6 +922,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj2',
+						preliminary: undefined,
 					},
 				],
 				15020
@@ -886,6 +967,16 @@ describe('Quantel Device', () => {
 						},
 					},
 					[
+						{
+							command: {
+								type: QuantelCommandType.CANCELWAITING,
+								portId: 'port0',
+								timelineObjId: '',
+							},
+							context: 'Clear all delayed out-transitions',
+							queueId: 'reset_port_port0',
+							timelineObjId: '',
+						},
 						{
 							command: {
 								type: QuantelCommandType.CLEARCLIP,
@@ -948,6 +1039,16 @@ describe('Quantel Device', () => {
 					[
 						{
 							command: {
+								type: QuantelCommandType.CANCELWAITING,
+								portId: 'port0',
+								timelineObjId: '',
+							},
+							context: 'Clear all delayed out-transitions',
+							queueId: 'reset_port_port0',
+							timelineObjId: '',
+						},
+						{
+							command: {
 								type: QuantelCommandType.LOADCLIPFRAGMENTS,
 								portId: 'port0',
 								timelineObjId: 'obj2',
@@ -983,6 +1084,7 @@ describe('Quantel Device', () => {
 							},
 							context: 'New clip is paused',
 							timelineObjId: 'obj2',
+							preliminary: undefined,
 						},
 					],
 					11500
@@ -1033,6 +1135,16 @@ describe('Quantel Device', () => {
 					[
 						{
 							command: {
+								type: QuantelCommandType.CANCELWAITING,
+								portId: 'port0',
+								timelineObjId: '',
+							},
+							context: 'Clear all delayed out-transitions',
+							queueId: 'reset_port_port0',
+							timelineObjId: '',
+						},
+						{
+							command: {
 								type: QuantelCommandType.LOADCLIPFRAGMENTS,
 								portId: 'port0',
 								timelineObjId: 'obj2',
@@ -1065,6 +1177,7 @@ describe('Quantel Device', () => {
 							},
 							context: 'New clip is paused',
 							timelineObjId: 'obj2',
+							preliminary: undefined,
 						},
 					],
 					11500
@@ -1097,6 +1210,26 @@ describe('Quantel Device', () => {
 					},
 				},
 				[
+					{
+						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0_renamed',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0_renamed',
+						timelineObjId: '',
+					},
+					{
+						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						queueId: 'reset_port_port0',
+						timelineObjId: '',
+					},
 					{
 						command: {
 							type: QuantelCommandType.RELEASEPORT,
@@ -1140,6 +1273,9 @@ describe('Quantel Device', () => {
 		const mockTime = new MockTime()
 		beforeAll(() => {
 			mockTime.init()
+		})
+		afterAll(() => {
+			mockTime.reset()
 		})
 
 		test('sequence of commands', async () => {
@@ -1304,6 +1440,540 @@ describe('Quantel Device', () => {
 			expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('port/my_port/reset'))
 		})
 	})
+	describe('with StateHandler', () => {
+		const MOCK_SEND_COMMAND = jest.fn()
+		const CONTEXT = {
+			deviceId: 'unitTests0',
+			logger: {
+				debug: console.log,
+				info: console.log,
+				warn: console.log,
+				error: console.log,
+			},
+			emitTimeTrace: () => null,
+			reportStateChangeMeasurement: () => null,
+			getCurrentTime: () => Date.now(),
+		}
+		function getNewStateHandler(device: QuantelDevice): StateHandler<QuantelState, CommandWithContext<any, any>> {
+			// eslint-disable-next-line @typescript-eslint/unbound-method
+			const orgSendCommand = device.sendCommand
+			device.sendCommand = async function mockFunction(...args) {
+				MOCK_SEND_COMMAND(...args)
+				return orgSendCommand.apply(device, args)
+			}
+
+			const deviceSpecs = DevicesDict[DeviceType.QUANTEL]
+			return new StateHandler<QuantelState, CommandWithContext<any, any>>(
+				CONTEXT,
+				{
+					executionType: deviceSpecs.executionMode({}),
+				},
+				device
+			)
+		}
+		function clearMocks() {
+			MOCK_SEND_COMMAND.mockClear()
+			onRequest.mockClear()
+		}
+		beforeAll(() => {
+			setSoftJumpWaitTime(0)
+		})
+
+		test('outTransition to clear, cancel, then play another', async () => {
+			const device = await getInitialisedQuantelDevice()
+
+			// give it some time to finish the init
+			await sleep(100)
+
+			const stateHandler = getNewStateHandler(device)
+
+			const now = Date.now()
+
+			const timeline: TSRTimeline = [
+				{
+					id: 'obj0',
+					enable: {
+						start: now + 100,
+						end: now + 200,
+					},
+					content: {
+						deviceType: DeviceType.QUANTEL,
+						title: 'myClip0',
+						outTransition: {
+							type: QuantelTransitionType.DELAY,
+							delay: 500, // 2500
+						},
+					},
+					layer: 'layer0',
+				},
+				{
+					id: 'obj1',
+					enable: {
+						start: now + 210,
+						end: now + 1000,
+					},
+					content: {
+						deviceType: DeviceType.QUANTEL,
+						title: 'myClip1',
+					},
+					layer: 'layer0',
+				},
+			]
+			const mappings: Mappings = {
+				layer0: {
+					device: DeviceType.QUANTEL,
+					deviceId: 'quantel0',
+					options: {
+						mappingType: MappingQuantelType.Port,
+						portId: 'my_port',
+						channelId: 1,
+					},
+				},
+			}
+
+			const resolved = resolveTimeline(timeline, {
+				time: now,
+			})
+
+			// Handle state at time 0 (nothing is playing)
+			{
+				const state = getResolvedState(resolved, now)
+				await stateHandler.handleState(state, mappings)
+
+				// Give QuantelManager some time to process the commands
+				await sleep(200)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({ type: QuantelCommandType.CANCELWAITING, portId: 'my_port' }),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({ type: QuantelCommandType.SETUPPORT, portId: 'my_port', channel: 1 }),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					3,
+					expect.objectContaining({
+						command: expect.objectContaining({ type: QuantelCommandType.CLEARCLIP, portId: 'my_port' }),
+					})
+				)
+
+				expect(onRequest).toHaveBeenCalledWith('post', 'http://localhost:3000/connect/myISA%3A8000')
+				expect(onRequest).toHaveBeenCalledWith('get', 'http://localhost:3000/default/server')
+				expect(onRequest).toHaveBeenCalledWith('get', 'http://localhost:3000/default/server/1100/port/my_port')
+				expect(onRequest).toHaveBeenCalledWith(
+					'put',
+					'http://localhost:3000/default/server/1100/port/my_port/channel/1'
+				)
+				expect(onRequest).toHaveBeenCalledWith('post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
+				clearMocks()
+			}
+
+			// Handle state at time 1000 (myClip0 starts to play)
+			{
+				const state = getResolvedState(resolved, now + 100)
+				await stateHandler.handleState(state, mappings)
+				// Give QuantelManager some time to process the commands
+				await sleep(200)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'my_port',
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.LOADCLIPFRAGMENTS,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip0' }),
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					3,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.PLAYCLIP,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip0' }),
+						}),
+					})
+				)
+
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/fragments?offset=0'))
+				// expect(onRequest).toHaveBeenCalledWith('put', expect.stringContaining('/1100/port/my_port/jump?offset='))
+				// expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/JUMP'))
+				expect(onRequest).toHaveBeenCalledWith('get', expect.stringContaining('/1100/port/my_port'))
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/START'))
+				expect(onRequest).toHaveBeenCalledWith(
+					'post',
+					expect.stringContaining('/1100/port/my_port/trigger/STOP?offset=1999')
+				)
+
+				clearMocks()
+			}
+			// Handle state at time 2000 (myClip0 should stop (but is delayed due to outTransition))
+			{
+				const state = getResolvedState(resolved, now + 200)
+				await stateHandler.handleState(state, mappings)
+				// Give QuantelManager some time to process the commands
+				await sleep(100)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(2)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'my_port',
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.CLEARCLIP,
+							portId: 'my_port',
+							transition: { type: QuantelTransitionType.DELAY, delay: 500 },
+						}),
+					})
+				)
+
+				// Since the clear is delayed, we should not have sent any commands:
+
+				expect(onRequest).toHaveBeenCalledTimes(0)
+
+				clearMocks()
+			}
+			// Handle state at time 2100 (myClip1 starts playing)
+			{
+				const state = getResolvedState(resolved, now + 210)
+				await stateHandler.handleState(state, mappings)
+
+				// Wait enough time to ensure that the outTransition from previous clip would have finished (had it not been cancelled)
+				await sleep(100)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'my_port',
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.LOADCLIPFRAGMENTS,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip1' }),
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					3,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.PLAYCLIP,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip1' }),
+						}),
+					})
+				)
+				// Start playing of next clip:
+				expect(onRequest).toHaveBeenCalledWith(
+					'post',
+					expect.stringContaining('/1100/port/my_port/fragments?offset=2000')
+				)
+				expect(onRequest).toHaveBeenCalledWith('put', expect.stringContaining('/1100/port/my_port/jump?offset='))
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/JUMP'))
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/START'))
+				expect(onRequest).toHaveBeenCalledWith('get', expect.stringContaining('/1100/port/my_port'))
+				expect(onRequest).toHaveBeenCalledWith(
+					'post',
+					expect.stringContaining('/1100/port/my_port/trigger/STOP?offset=3233')
+				)
+				// The first clip should NOT have stopped, as it was delayed and cancelled:
+				expect(onRequest).not.toHaveBeenCalledWith('post', expect.stringMatching(/trigger\/STOP$/))
+
+				clearMocks()
+			}
+			await device.terminate()
+		})
+		test('outTransition to lookahead, cancel, then play another', async () => {
+			const dev = await getInitialisedQuantelDevice()
+
+			// give it some time to finish the init
+			await sleep(100)
+
+			const now = Date.now()
+
+			const stateHandler = getNewStateHandler(dev)
+
+			const timeline: TSRTimeline = [
+				{
+					id: 'obj0',
+					enable: {
+						start: now + 100,
+						end: now + 200,
+					},
+					content: {
+						deviceType: DeviceType.QUANTEL,
+						title: 'myClip0',
+						outTransition: {
+							type: QuantelTransitionType.DELAY,
+							delay: 500, // 2500
+						},
+					},
+					layer: 'layer0',
+				},
+				{
+					id: 'obj0_lookahead',
+					enable: {
+						start: '#obj0.end',
+						end: '#obj1.start',
+					},
+					content: {
+						deviceType: DeviceType.QUANTEL,
+						title: 'myClip0',
+						// outTransition: {
+						// 	type: QuantelTransitionType.DELAY,
+						// 	delay: 1000, // 3000
+						// },
+					},
+					layer: 'layer0_lookahead',
+					lookaheadForLayer: 'layer0',
+					isLookahead: true,
+				},
+				{
+					id: 'obj1',
+					enable: {
+						start: now + 210,
+						end: now + 1000,
+					},
+					content: {
+						deviceType: DeviceType.QUANTEL,
+						title: 'myClip1',
+					},
+					layer: 'layer0',
+				},
+			]
+			const mappings: Mappings = {
+				layer0: {
+					device: DeviceType.QUANTEL,
+					deviceId: 'quantel0',
+					options: {
+						mappingType: MappingQuantelType.Port,
+						portId: 'my_port',
+						channelId: 1,
+					},
+				},
+			}
+			const resolved = resolveTimeline(timeline, { time: now })
+
+			// Handle state at time 0 (nothing is playing)
+			{
+				const state = getResolvedState(resolved, now)
+
+				await stateHandler.handleState(state, mappings)
+
+				// Give QuantelManager some time to process the commands
+
+				await sleep(200)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({ type: QuantelCommandType.CANCELWAITING, portId: 'my_port' }),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({ type: QuantelCommandType.SETUPPORT, portId: 'my_port', channel: 1 }),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					3,
+					expect.objectContaining({
+						command: expect.objectContaining({ type: QuantelCommandType.CLEARCLIP, portId: 'my_port' }),
+					})
+				)
+
+				expect(onRequest).toHaveBeenCalledWith('post', 'http://localhost:3000/connect/myISA%3A8000')
+				expect(onRequest).toHaveBeenCalledWith('get', 'http://localhost:3000/default/server')
+				expect(onRequest).toHaveBeenCalledWith('get', 'http://localhost:3000/default/server/1100/port/my_port')
+				expect(onRequest).toHaveBeenCalledWith(
+					'put',
+					'http://localhost:3000/default/server/1100/port/my_port/channel/1'
+				)
+				expect(onRequest).toHaveBeenCalledWith('post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
+				clearMocks()
+			}
+
+			// Handle state at time 1000 (myClip0 starts to play)
+			{
+				const state = getResolvedState(resolved, now + 100)
+				await stateHandler.handleState(state, mappings)
+				// Give QuantelManager some time to process the commands
+				await sleep(200)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'my_port',
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.LOADCLIPFRAGMENTS,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip0' }),
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					3,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.PLAYCLIP,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip0' }),
+						}),
+					})
+				)
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/fragments?offset=0'))
+				// expect(onRequest).toHaveBeenCalledWith('put', expect.stringContaining('/1100/port/my_port/jump?offset='))
+				// expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/JUMP'))
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/START'))
+				expect(onRequest).toHaveBeenCalledWith('get', expect.stringContaining('/1100/port/my_port'))
+				expect(onRequest).toHaveBeenCalledWith(
+					'post',
+					expect.stringContaining('/1100/port/my_port/trigger/STOP?offset=1999')
+				)
+
+				clearMocks()
+			}
+			// Handle state at time 2000 (myClip0 should stop (but is delayed due to outTransition))
+			{
+				const state = getResolvedState(resolved, now + 200)
+				await stateHandler.handleState(state, mappings)
+				// Give QuantelManager some time to process the commands
+				await sleep(100)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(2)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.LOADCLIPFRAGMENTS,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip0' }),
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.PAUSECLIP,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip0' }),
+							transition: { type: QuantelTransitionType.DELAY, delay: 500 },
+						}),
+					})
+				)
+
+				// Since the pause is delayed, we should not have sent any reset or stop commands:
+
+				expect(onRequest).not.toHaveBeenCalledWith('post', expect.stringContaining('reset'))
+				expect(onRequest).not.toHaveBeenCalledWith('post', expect.stringContaining('trigger/STOP'))
+
+				clearMocks()
+			}
+			// Handle state at time 2500 (myClip1 starts playing)
+			{
+				const state = getResolvedState(resolved, now + 250)
+				await stateHandler.handleState(state, mappings)
+
+				// Wait enough time to ensure that the outTransition from previous clip would have finished (had it not been cancelled)
+				await sleep(200)
+
+				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					1,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'my_port',
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					2,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.LOADCLIPFRAGMENTS,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip1' }),
+						}),
+					})
+				)
+				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
+					3,
+					expect.objectContaining({
+						command: expect.objectContaining({
+							type: QuantelCommandType.PLAYCLIP,
+							portId: 'my_port',
+							clip: expect.objectContaining({ title: 'myClip1' }),
+						}),
+					})
+				)
+
+				// Start playing of next clip:
+				expect(onRequest).toHaveBeenCalledWith(
+					'post',
+					expect.stringContaining('/1100/port/my_port/fragments?offset=2000')
+				)
+				expect(onRequest).toHaveBeenCalledWith('put', expect.stringContaining('/1100/port/my_port/jump?offset='))
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/JUMP'))
+				expect(onRequest).toHaveBeenCalledWith('post', expect.stringContaining('/1100/port/my_port/trigger/START'))
+				expect(onRequest).toHaveBeenCalledWith('get', expect.stringContaining('/1100/port/my_port'))
+				expect(onRequest).toHaveBeenCalledWith(
+					'post',
+					expect.stringContaining('/1100/port/my_port/trigger/STOP?offset=3233')
+				)
+				// The first clip should NOT have stopped, as it was delayed and cancelled:
+				expect(onRequest).not.toHaveBeenCalledWith('post', expect.stringMatching(/trigger\/STOP$/))
+
+				clearMocks()
+			}
+			await dev.terminate()
+		})
+	})
 })
 
 function createTimelineState(
@@ -1323,4 +1993,8 @@ function createTimelineState(
 		layers: objs as any,
 		nextEvents: [],
 	}
+}
+
+async function sleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }

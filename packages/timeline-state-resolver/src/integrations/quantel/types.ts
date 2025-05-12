@@ -53,6 +53,7 @@ export enum QuantelCommandType {
 	PAUSECLIP = 'pauseClip',
 	CLEARCLIP = 'clearClip',
 	RELEASEPORT = 'releasePort',
+	CANCELWAITING = 'cancelWaiting',
 }
 export interface QuantelCommandSetupPort extends QuantelCommandBase {
 	type: QuantelCommandType.SETUPPORT
@@ -84,6 +85,9 @@ export interface QuantelCommandClearClip extends QuantelCommandBase {
 export interface QuantelCommandReleasePort extends QuantelCommandBase {
 	type: QuantelCommandType.RELEASEPORT
 }
+export interface QuantelCommandCancelWaiting extends QuantelCommandBase {
+	type: QuantelCommandType.CANCELWAITING
+}
 
 export type QuantelCommand =
 	| QuantelCommandSetupPort
@@ -92,6 +96,7 @@ export type QuantelCommand =
 	| QuantelCommandPauseClip
 	| QuantelCommandClearClip
 	| QuantelCommandReleasePort
+	| QuantelCommandCancelWaiting
 
 /** Tracked state of an ISA-Zone-Server entity */
 export interface QuantelTrackedState {

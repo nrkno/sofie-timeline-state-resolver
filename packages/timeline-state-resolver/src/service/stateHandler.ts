@@ -44,7 +44,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext<any, a
 		})
 
 		this._commandExecutor = new CommandExecutor(context.logger, this.config.executionType, async (c) =>
-			device.sendCommand(c)
+			this.device.sendCommand(c)
 		)
 
 		this.clock = setInterval(() => {

@@ -143,6 +143,8 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 				await this._quantelManager.pauseClip(command)
 			} else if (command.type === QuantelCommandType.CLEARCLIP) {
 				await this._quantelManager.clearClip(command)
+			} else if (command.type === QuantelCommandType.CANCELWAITING) {
+				this._quantelManager.clearAllWaitWithPort(command.portId)
 			} else {
 				throw new Error(`Unsupported command type "${cmdType}"`)
 			}
