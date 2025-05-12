@@ -1483,7 +1483,7 @@ describe('Quantel Device', () => {
 			const device = await getInitialisedQuantelDevice()
 
 			// give it some time to finish the init
-			await sleep(10)
+			await sleep(100)
 
 			const stateHandler = getNewStateHandler(device)
 
@@ -1541,7 +1541,8 @@ describe('Quantel Device', () => {
 				await stateHandler.handleState(state, mappings)
 
 				// Give QuantelManager some time to process the commands
-				await sleep(10)
+				await sleep(200)
+
 				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
 				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(
 					1,
@@ -1719,7 +1720,7 @@ describe('Quantel Device', () => {
 			const dev = await getInitialisedQuantelDevice()
 
 			// give it some time to finish the init
-			await sleep(10)
+			await sleep(100)
 
 			const now = Date.now()
 
@@ -1794,7 +1795,7 @@ describe('Quantel Device', () => {
 
 				// Give QuantelManager some time to process the commands
 
-				await sleep(100)
+				await sleep(200)
 
 				expect(MOCK_SEND_COMMAND).toHaveBeenCalledTimes(3)
 				expect(MOCK_SEND_COMMAND).toHaveBeenNthCalledWith(

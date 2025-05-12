@@ -120,7 +120,6 @@ export function diffStates(
 		}
 	}
 
-	const maxPreliminary = allCommands.reduce((memo, curr) => Math.max(memo, curr?.preliminary || 0), 0)
 	for (const portId of portIdsToCancelWaiting.values()) {
 		// Put first, so that it'll be executed before any other
 		allCommands.unshift({
@@ -133,8 +132,6 @@ export function diffStates(
 			context: 'Clear all delayed out-transitions',
 			// This must be on a unique queueId, so that it "mimics a salvo", ie is executed first thing and not get stuck behind a delayed sequential command.
 			queueId: `reset_port_${portId}`,
-
-			preliminary: maxPreliminary, // so that it'll be executed out first
 		})
 	}
 
