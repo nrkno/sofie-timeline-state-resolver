@@ -17,7 +17,7 @@ import {
 } from './types'
 import { WaitGroup } from '../../waitGroup'
 
-const SOFT_JUMP_WAIT_TIME = 250
+let SOFT_JUMP_WAIT_TIME = 250 // Is a constant, but can be changed during unit tests
 
 const DEFAULT_FPS = 25 // frames per second
 const JUMP_ERROR_MARGIN = 10 // frames
@@ -651,4 +651,10 @@ class Cache {
 			})
 		}, 1)
 	}
+}
+/**
+ * USED IN UNIT TESTS ONLY
+ */
+export function setSoftJumpWaitTime(time: number) {
+	SOFT_JUMP_WAIT_TIME = time
 }
