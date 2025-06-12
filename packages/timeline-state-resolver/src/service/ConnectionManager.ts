@@ -108,10 +108,7 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 				// see if it should be restarted because of an update
 				if (connectionConfigHasChanged(connection, config)) {
 					operations.push({ operation: 'update', id: deviceId })
-				} else if (
-					connection.deviceOptions.debug !== config.debug ||
-					connection.deviceOptions.debugState !== config.debugState
-				) {
+				} else if (connection.debugLogging !== !!config.debug || connection.debugState !== !!config.debugState) {
 					// see if we should set the debug params
 					operations.push({ operation: 'setDebug', id: deviceId })
 				}
@@ -304,8 +301,8 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		if (!connection || !config) return
 
 		try {
-			await connection.device.setDebugLogging(config.debug ?? false)
-			await connection.device.setDebugState(config.debugState ?? false)
+			await connection.setDebugLogging(!!config.debug)
+			await connection.setDebugState(!!config.debugState)
 		} catch {
 			this.emit('warning', 'Failed to update debug values for ' + id)
 		}
